@@ -148,15 +148,22 @@ describe('BFF Domain Repositories (Mock & Transport Layer)', () => {
       expect(detail.data?.chapters.length).toBeGreaterThan(0);
       expect(detail.data?.active_summary).toBeDefined();
 
-      const expectedTotalWords = detail.data?.segments.reduce(
-        (sum, s) => sum + (s.words_data?.length ?? 0),
-        0
-      );
+      let expectedTotalWords = 0;
+      if (detail.data?.segments) {
+        for (const s of detail.data.segments) {
+          if (s.words_data) {
+            expectedTotalWords += s.words_data.length;
+          }
+        }
+      }
       const analytics = detail.data?.analytics_data as { total_words?: number } | undefined;
       expect(analytics?.total_words).toBe(expectedTotalWords);
     });
 
     it('should paginate and filter recordings list by search and template', async () => {
+      const unconstrained = await recordingRepo.listRecordings();
+      expect(unconstrained.data.length).toBeGreaterThanOrEqual(1);
+
       const all = await recordingRepo.listRecordings({ page: 1, limit: 10 });
       expect(all.pagination.totalItems).toBeGreaterThanOrEqual(1);
 

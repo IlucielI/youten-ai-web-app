@@ -266,24 +266,23 @@ export class MockDataService {
     return found ? { ...found } : null;
   }
 
-  listRecordings(query?: RecordingFilterQuery): { items: RecordingListItemDTO[]; total: number } {
+  listRecordings(query: RecordingFilterQuery = {}): { items: RecordingListItemDTO[]; total: number } {
     let filtered = [...this.listItems];
+    const { search, template, status, page = 1, limit = 10 } = query;
 
-    if (query?.search) {
-      const q = query.search.toLowerCase();
+    if (search) {
+      const q = search.toLowerCase();
       filtered = filtered.filter((r) => r.title.toLowerCase().includes(q));
     }
 
-    if (query?.template) {
-      filtered = filtered.filter((r) => r.selected_template === query.template);
+    if (template) {
+      filtered = filtered.filter((r) => r.selected_template === template);
     }
 
-    if (query?.status) {
-      filtered = filtered.filter((r) => r.status === query.status);
+    if (status) {
+      filtered = filtered.filter((r) => r.status === status);
     }
 
-    const page = query?.page ?? 1;
-    const limit = query?.limit ?? 10;
     const startIndex = (page - 1) * limit;
     const items = filtered.slice(startIndex, startIndex + limit);
 
