@@ -7,6 +7,7 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     globals: true,
+    setupFiles: ['./vitest.setup.ts'],
     testTimeout: 15000,
     env: {
       MOCK_CORE_API: 'true',
