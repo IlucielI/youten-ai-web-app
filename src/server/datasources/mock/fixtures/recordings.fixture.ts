@@ -150,14 +150,9 @@ export const mockHighlights: HighlightDTO[] = [
   },
 ];
 
-const computedAliceWords =
-  (mockTranscriptSegments[0].words_data?.length ?? 9) +
-  (mockTranscriptSegments[2].words_data?.length ?? 10);
-const computedBobWords = mockTranscriptSegments[1].words_data?.length ?? 13;
-const computedTotalWords = mockTranscriptSegments.reduce(
-  (sum, segment) => sum + (segment.words_data?.length ?? 0),
-  0
-);
+const computedAliceWords = 19;
+const computedBobWords = 13;
+const computedTotalWords = 32;
 
 export const mockRecordingAnalytics: RecordingAnalyticsDTO = {
   total_duration_seconds: 17.2,
