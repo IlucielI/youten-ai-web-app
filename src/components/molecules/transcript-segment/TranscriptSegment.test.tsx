@@ -76,8 +76,14 @@ describe('TranscriptSegment Component', () => {
     expect(onRename).toHaveBeenCalledWith('Speaker 0');
   });
 
-  it('triggers onCopyQuote when copy button is clicked', async () => {
+  it('triggers onCopyQuote and copies to clipboard when copy button is clicked', async () => {
     const onCopy = vi.fn();
+    const writeTextMock = vi.fn().mockResolvedValue(undefined);
+    Object.assign(navigator, {
+      clipboard: {
+        writeText: writeTextMock,
+      },
+    });
 
     render(
       <TranscriptSegment
@@ -91,6 +97,7 @@ describe('TranscriptSegment Component', () => {
       fireEvent.click(copyBtn);
     });
 
+    expect(writeTextMock).toHaveBeenCalledWith(mockSegment.text);
     expect(onCopy).toHaveBeenCalledWith(mockSegment.text);
   });
 

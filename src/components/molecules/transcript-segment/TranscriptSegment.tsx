@@ -112,10 +112,10 @@ export const TranscriptSegment: React.FC<TranscriptSegmentProps> = ({
     try {
       if (typeof navigator !== 'undefined' && navigator.clipboard) {
         await navigator.clipboard.writeText(segment.text);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
       }
-      setCopied(true);
       onCopyQuote?.(segment.text);
-      setTimeout(() => setCopied(false), 2000);
     } catch {
       // Fallback
       onCopyQuote?.(segment.text);
