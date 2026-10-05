@@ -64,6 +64,22 @@ describe('BFF Domain Repositories (Mock & Transport Layer)', () => {
       expect(resp.data?.refresh_token).toBeDefined();
     });
 
+    it('should rotate tokens via refreshToken preserving user session', async () => {
+      await authRepo.login({
+        email: 'alice@company.com',
+        password: 'Password123',
+      });
+
+      const refreshResp = await authRepo.refreshToken({
+        refresh_token: 'valid-refresh-token',
+      });
+
+      expect(refreshResp.status).toBe(ResponseStatus.SUCCESS);
+      expect(refreshResp.data?.access_token).toBeDefined();
+      expect(refreshResp.data?.access_token).toContain('mock-jwt-refreshed');
+      expect(refreshResp.data?.user.email).toBe('alice@company.com');
+    });
+
     it('should retrieve current user profile with quota stats', async () => {
       const resp = await authRepo.getMe();
       expect(resp.status).toBe(ResponseStatus.SUCCESS);

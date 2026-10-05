@@ -4,6 +4,7 @@ import {
   UserResponse,
   RegisterRequest,
   LoginRequest,
+  RefreshTokenRequest,
   UpdateProfileRequest,
   ChangePasswordRequest,
   PresignUploadRequest,
@@ -135,6 +136,18 @@ export class MockDataService {
     };
     return {
       ...mockAuthResponse,
+      user: this.user,
+    };
+  }
+
+  refreshToken(payload: RefreshTokenRequest): AuthResponse {
+    void payload;
+    return {
+      access_token: `mock-jwt-refreshed-${crypto.randomUUID()}`,
+      refresh_token: `mock-refresh-${crypto.randomUUID()}`,
+      token_type: 'Bearer',
+      expires_in: 900,
+      refresh_expires_in: 604800,
       user: this.user,
     };
   }

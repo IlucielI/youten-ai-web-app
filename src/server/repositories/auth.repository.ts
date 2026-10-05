@@ -51,7 +51,7 @@ export class AuthRepository implements IAuthRepository {
 
   async refreshToken(payload: RefreshTokenRequest): Promise<ApiResponse<AuthResponse>> {
     if (this.useMock) {
-      const data = this.mock.login({ email: 'founder@youten.ai', password: '' });
+      const data = this.mock.refreshToken(payload);
       return this.successResponse(data, 'Token rotated successfully');
     }
     return this.http.post<ApiResponse<AuthResponse>>('/v1/auth/refresh', payload);
