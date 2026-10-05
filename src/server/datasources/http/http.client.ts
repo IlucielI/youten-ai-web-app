@@ -1,5 +1,13 @@
+import { headers as getNextHeaders, cookies as getNextCookies } from 'next/headers';
 import { ILogger } from '../../logger/logger.interface';
 import { REQUEST_ID_HEADER } from '../../context/request.context';
+import {
+  AUTH_COOKIE_NAME,
+  OWNERSHIP_TOKEN_HEADER,
+  FORWARDED_FOR_HEADER,
+  REAL_IP_HEADER,
+  CLIENT_IP_HEADER,
+} from '../../constants/auth.constant';
 import {
   BadRequestError,
   UnauthorizedError,
@@ -19,6 +27,7 @@ export interface HttpClientConfig {
   defaultTimeoutMs?: number;
   defaultHeaders?: Record<string, string>;
   logger?: ILogger;
+  autoForwardSession?: boolean;
 }
 
 /**
@@ -27,21 +36,26 @@ export interface HttpClientConfig {
  * Guarantees:
  * 1. Automatic base URL resolution and query parameter serialization.
  * 2. Automatic Correlation ID (x-request-id) propagation.
- * 3. Request timeout protection via AbortController.
- * 4. Automatic mapping of HTTP error statuses to Clean Architecture AppErrors.
- * 5. Optional runtime Zod schema validation and Anti-Corruption Layer (ACL) mapping.
+ * 3. Automatic HTTP-only auth cookie resolution (Authorization: Bearer <token>).
+ * 4. Automatic client IP forwarding (X-Forwarded-For & X-Real-IP) to prevent guest IP pooling.
+ * 5. Automatic guest ownership token forwarding (X-Ownership-Token).
+ * 6. Request timeout protection via AbortController.
+ * 7. Automatic mapping of HTTP error statuses to Clean Architecture AppErrors.
+ * 8. Optional runtime Zod schema validation and Anti-Corruption Layer (ACL) mapping.
  */
 export class HttpClient implements IHttpClient {
   private readonly baseUrl: string;
   private readonly defaultTimeoutMs: number;
   private readonly defaultHeaders: Record<string, string>;
   private readonly logger?: ILogger;
+  private readonly autoForwardSession: boolean;
 
   constructor(config: HttpClientConfig = {}) {
     this.baseUrl = (config.baseUrl || '').replace(/\/$/, '');
     this.defaultTimeoutMs = config.defaultTimeoutMs ?? 5000;
     this.defaultHeaders = config.defaultHeaders || {};
     this.logger = config.logger;
+    this.autoForwardSession = config.autoForwardSession ?? true;
   }
 
   async get<T = unknown>(path: string, options?: HttpRequestOptions<T>): Promise<T> {
@@ -81,8 +95,69 @@ export class HttpClient implements IHttpClient {
       ...options?.headers,
     };
 
+    // 1. Session token resolution:
+    if (options?.token) {
+      headers['Authorization'] = `Bearer ${options.token}`;
+    } else if (this.autoForwardSession && !headers['Authorization'] && !headers['authorization']) {
+      try {
+        const cookieStore = await getNextCookies();
+        const token = cookieStore.get(AUTH_COOKIE_NAME)?.value;
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
+        }
+      } catch {
+        // Outside Next.js request context (tests, background jobs)
+      }
+    }
+
+    // 2. Explicit client IP resolution:
+    if (options?.clientIp) {
+      headers[FORWARDED_FOR_HEADER] = options.clientIp;
+      headers[REAL_IP_HEADER] = options.clientIp;
+    }
+
+    // 3. Explicit guest ownership token resolution:
+    if (options?.ownershipToken) {
+      headers[OWNERSHIP_TOKEN_HEADER] = options.ownershipToken;
+    }
+
+    // 4. Explicit request ID resolution:
     if (options?.requestId) {
       headers[REQUEST_ID_HEADER] = options.requestId;
+    }
+
+    // 5. Automatic header forwarding from Next.js incoming request context:
+    if (this.autoForwardSession) {
+      try {
+        const incomingHeaders = await getNextHeaders();
+
+        if (!headers[REQUEST_ID_HEADER]) {
+          const incomingRequestId = incomingHeaders.get(REQUEST_ID_HEADER);
+          if (incomingRequestId) {
+            headers[REQUEST_ID_HEADER] = incomingRequestId;
+          }
+        }
+
+        if (!headers[FORWARDED_FOR_HEADER] && !headers[REAL_IP_HEADER]) {
+          const clientIp =
+            incomingHeaders.get(CLIENT_IP_HEADER) ||
+            incomingHeaders.get(FORWARDED_FOR_HEADER) ||
+            incomingHeaders.get(REAL_IP_HEADER);
+          if (clientIp) {
+            headers[FORWARDED_FOR_HEADER] = clientIp;
+            headers[REAL_IP_HEADER] = clientIp;
+          }
+        }
+
+        if (!headers[OWNERSHIP_TOKEN_HEADER]) {
+          const guestToken = incomingHeaders.get(OWNERSHIP_TOKEN_HEADER);
+          if (guestToken) {
+            headers[OWNERSHIP_TOKEN_HEADER] = guestToken;
+          }
+        }
+      } catch {
+        // Outside Next.js request context
+      }
     }
 
     if (body !== undefined && !headers['Content-Type']) {

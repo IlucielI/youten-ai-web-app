@@ -203,3 +203,6 @@ export interface UpdateSpeakersResponse {
   updated_count: number;
   speakers: Record<string, string>;
 }
+
+export type ImportUrlRequest = ImportURLRequest;
+export type RecordingListItem = RecordingListItemDTO;

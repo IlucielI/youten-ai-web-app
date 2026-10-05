@@ -176,4 +176,65 @@ describe('HttpClient DataSource', () => {
     const client = new HttpClient({ defaultTimeoutMs: 100 });
     await expect(client.get('https://api.internal.com/timeout')).rejects.toThrow(GatewayTimeoutError);
   });
+
+  it('should auto-inject Authorization header when token option is provided', async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ success: true }),
+    });
+
+    const client = new HttpClient({ baseUrl: 'https://api.internal.com' });
+    await client.get('/v1/auth/me', { token: 'jwt-access-token-123' });
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      'https://api.internal.com/v1/auth/me',
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          Authorization: 'Bearer jwt-access-token-123',
+        }),
+      })
+    );
+  });
+
+  it('should auto-forward X-Forwarded-For and X-Real-IP when clientIp is provided', async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ success: true }),
+    });
+
+    const client = new HttpClient({ baseUrl: 'https://api.internal.com' });
+    await client.post('/v1/recordings/upload', {}, { clientIp: '203.0.113.195' });
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      'https://api.internal.com/v1/recordings/upload',
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          'x-forwarded-for': '203.0.113.195',
+          'x-real-ip': '203.0.113.195',
+        }),
+      })
+    );
+  });
+
+  it('should auto-forward X-Ownership-Token when ownershipToken is provided', async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ success: true }),
+    });
+
+    const client = new HttpClient({ baseUrl: 'https://api.internal.com' });
+    await client.get('/v1/recordings/rec-123', { ownershipToken: 'guest-claim-token-xyz' });
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      'https://api.internal.com/v1/recordings/rec-123',
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          'x-ownership-token': 'guest-claim-token-xyz',
+        }),
+      })
+    );
+  });
 });
