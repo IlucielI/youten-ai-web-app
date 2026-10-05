@@ -264,7 +264,7 @@ export const RegenerateSummaryRequestSchema = z.object({
     TemplateKey.SALES_DISCOVERY,
     TemplateKey.DAILY_STANDUP,
     TemplateKey.GENERAL,
-  ]).or(z.string()).optional(),
+  ]).optional(),
   custom_angle: z.string().trim().max(2000, 'Custom angle cannot exceed 2000 characters').nullable().optional(),
   ownership_token: z.string().optional(),
 });

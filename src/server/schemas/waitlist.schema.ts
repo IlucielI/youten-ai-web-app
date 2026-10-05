@@ -17,7 +17,7 @@ export const WaitlistResponseSchema = z.object({
   email: z.string().email(),
   platform: z.string(),
   company_size: z.string(),
-  status: z.enum([WaitlistStatus.PENDING, WaitlistStatus.APPROVED, WaitlistStatus.REJECTED]).or(z.string()),
+  status: z.enum([WaitlistStatus.PENDING, WaitlistStatus.APPROVED, WaitlistStatus.REJECTED]),
   message: z.string(),
 });
 export type WaitlistResponseDto = z.infer<typeof WaitlistResponseSchema>;

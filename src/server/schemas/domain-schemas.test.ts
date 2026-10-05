@@ -3,10 +3,15 @@ import {
   RegisterRequestSchema,
   LoginRequestSchema,
   ChangePasswordRequestSchema,
+  UserResponseSchema,
+  UserProfileResponseSchema,
   PresignUploadRequestSchema,
   UploadRecordingRequestSchema,
   ImportUrlRequestSchema,
+  RecordingUploadResponseSchema,
+  RecordingDetailResponseSchema,
   RecordingFilterQuerySchema,
+  HighlightSchema,
   MomStructuredDataSchema,
   OneOnOneStructuredDataSchema,
   InterviewStructuredDataSchema,
@@ -25,8 +30,11 @@ import {
   SemanticSearchQuerySchema,
   WorkspaceAskRequestSchema,
   WaitlistRequestSchema,
+  WaitlistResponseSchema,
 } from './index';
 import {
+  UserStatus,
+  WaitlistStatus,
   TemplateKey,
   RecordingStatus,
   PipelineErrorCode,
@@ -36,6 +44,8 @@ import {
   InterviewRecommendation,
   InterviewCompetencyRating,
   DailyStandupSprintStatus,
+  HighlightSource,
+  SourceType,
 } from '../constants';
 
 describe('Domain Schemas & Validation Rules', () => {
@@ -95,6 +105,49 @@ describe('Domain Schemas & Validation Rules', () => {
       };
       expect(() => ChangePasswordRequestSchema.parse(input)).not.toThrow();
     });
+
+    it('should validate UserResponseSchema with valid UserStatus', () => {
+      const validUser = {
+        id: '123e4567-e89b-12d3-a456-426614174000',
+        email: 'user@example.com',
+        full_name: 'John Doe',
+        status: UserStatus.ACTIVE,
+        daily_quota: 5,
+        daily_quota_override: null,
+        email_verified: true,
+        created_at: new Date().toISOString(),
+      };
+      const parsed = UserResponseSchema.parse(validUser);
+      expect(parsed.status).toBe(UserStatus.ACTIVE);
+    });
+
+    it('should reject UserResponseSchema with unknown status string', () => {
+      const invalidUser = {
+        id: '123e4567-e89b-12d3-a456-426614174000',
+        email: 'user@example.com',
+        full_name: 'John Doe',
+        status: 'UNKNOWN_STATUS',
+        daily_quota: 5,
+        email_verified: true,
+        created_at: new Date().toISOString(),
+      };
+      expect(() => UserResponseSchema.parse(invalidUser)).toThrow();
+    });
+
+    it('should reject UserProfileResponseSchema with unknown status string', () => {
+      const invalidProfile = {
+        id: '123e4567-e89b-12d3-a456-426614174000',
+        email: 'user@example.com',
+        full_name: 'John Doe',
+        status: 'SOME_RANDOM_STATUS',
+        daily_quota: 5,
+        quota_used_today: 1,
+        quota_remaining: 4,
+        email_verified: true,
+        created_at: new Date().toISOString(),
+      };
+      expect(() => UserProfileResponseSchema.parse(invalidProfile)).toThrow();
+    });
   });
 
   describe('Recording Schemas', () => {
@@ -131,6 +184,82 @@ describe('Domain Schemas & Validation Rules', () => {
       expect(parsed.limit).toBe(10);
       expect(parsed.sort_by).toBe('created_at');
       expect(parsed.sort_order).toBe('desc');
+    });
+
+    it('should validate HighlightSchema with valid source and reject invalid source', () => {
+      const valid = {
+        id: '123e4567-e89b-12d3-a456-426614174000',
+        start_time: 10.5,
+        end_time: 25.0,
+        title: 'Key Decision',
+        note: 'Decided on PostgreSQL architecture',
+        source: HighlightSource.AI,
+        clip_url: 'https://cdn.example.com/clips/1.mp4',
+        created_at: new Date().toISOString(),
+      };
+      const parsed = HighlightSchema.parse(valid);
+      expect(parsed.source).toBe(HighlightSource.AI);
+
+      expect(() =>
+        HighlightSchema.parse({
+          ...valid,
+          source: 'INVALID_SOURCE',
+        })
+      ).toThrow();
+    });
+
+    it('should validate RecordingUploadResponseSchema and reject invalid recording status', () => {
+      const valid = {
+        id: '123e4567-e89b-12d3-a456-426614174000',
+        title: 'Sprint Retrospective',
+        original_filename: 'sprint_retro.mp3',
+        file_size_bytes: 1048576,
+        status: RecordingStatus.EXTRACTING,
+        selected_template: TemplateKey.MOM,
+        output_language: 'id',
+        is_guest: false,
+        created_at: new Date().toISOString(),
+      };
+      const parsed = RecordingUploadResponseSchema.parse(valid);
+      expect(parsed.status).toBe(RecordingStatus.EXTRACTING);
+
+      expect(() =>
+        RecordingUploadResponseSchema.parse({
+          ...valid,
+          status: 'INVALID_STATUS',
+        })
+      ).toThrow();
+    });
+
+    it('should validate RecordingDetailResponseSchema and reject invalid source_type or status', () => {
+      const valid = {
+        id: '123e4567-e89b-12d3-a456-426614174000',
+        title: 'Weekly Standup',
+        original_filename: 'standup.mp4',
+        file_size_bytes: 5242880,
+        duration_seconds: 900.5,
+        source_type: SourceType.UPLOAD,
+        status: RecordingStatus.COMPLETED,
+        selected_template: TemplateKey.DAILY_STANDUP,
+        output_language: 'id',
+        is_guest: false,
+        consent_given: true,
+        consent_version: 'v1.0',
+        segments: [],
+        chapters: [],
+        highlights: [],
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+      const parsed = RecordingDetailResponseSchema.parse(valid);
+      expect(parsed.status).toBe(RecordingStatus.COMPLETED);
+
+      expect(() =>
+        RecordingDetailResponseSchema.parse({
+          ...valid,
+          status: 'INVALID_STATUS',
+        })
+      ).toThrow();
     });
   });
 
@@ -349,6 +478,14 @@ describe('Domain Schemas & Validation Rules', () => {
         /Custom angle cannot exceed 2000 characters/
       );
     });
+
+    it('should reject RegenerateSummaryRequest with invalid template_category', () => {
+      expect(() =>
+        RegenerateSummaryRequestSchema.parse({
+          template_category: 'invalid_category',
+        })
+      ).toThrow();
+    });
   });
 
   describe('Analytics & Comments Schemas', () => {
@@ -497,6 +634,29 @@ describe('Domain Schemas & Validation Rules', () => {
       });
       expect(parsed.platform).toBe('google_meet');
       expect(parsed.company_size).toBe('1-10');
+    });
+
+    it('should validate WaitlistResponseSchema with valid WaitlistStatus', () => {
+      const valid = {
+        email: 'founder@startup.com',
+        platform: 'google_meet',
+        company_size: '1-10',
+        status: WaitlistStatus.PENDING,
+        message: 'Successfully joined waitlist',
+      };
+      const parsed = WaitlistResponseSchema.parse(valid);
+      expect(parsed.status).toBe(WaitlistStatus.PENDING);
+    });
+
+    it('should reject WaitlistResponseSchema with invalid status string', () => {
+      const invalid = {
+        email: 'founder@startup.com',
+        platform: 'google_meet',
+        company_size: '1-10',
+        status: 'UNKNOWN_WAITLIST_STATUS',
+        message: 'Joined',
+      };
+      expect(() => WaitlistResponseSchema.parse(invalid)).toThrow();
     });
   });
 });

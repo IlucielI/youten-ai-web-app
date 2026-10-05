@@ -3,6 +3,8 @@
  * Codified directly from youten-ai-core-api/internal/dtos/auth.go.
  */
 
+import type { UserStatus } from '../constants/recording.constant';
+
 export interface RegisterRequest {
   email: string;
   password: string;
@@ -13,7 +15,7 @@ export interface UserResponse {
   id: string;
   email: string;
   full_name: string;
-  status: string;
+  status: UserStatus;
   daily_quota: number;
   daily_quota_override?: number | null;
   email_verified: boolean;
@@ -24,7 +26,7 @@ export interface UserProfileResponse {
   id: string;
   email: string;
   full_name: string;
-  status: string;
+  status: UserStatus;
   daily_quota: number;
   quota_used_today: number;
   quota_remaining: number;
