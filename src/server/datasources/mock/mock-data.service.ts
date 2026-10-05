@@ -305,8 +305,9 @@ export class MockDataService {
     if (recording) {
       recording.is_guest = false;
       recording.user_id = this.user.id;
+      return { claimed: true };
     }
-    return { claimed: true };
+    return { claimed: false };
   }
 
   claimBulkRecordings(payload: BulkClaimRequest): BulkClaimResponse {

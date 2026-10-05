@@ -202,6 +202,9 @@ describe('BFF Domain Repositories (Mock & Transport Layer)', () => {
       const claimResp = await recordingRepo.claimRecording(id);
       expect(claimResp.data?.claimed).toBe(true);
 
+      const nonExistentClaim = await recordingRepo.claimRecording('00000000-non-existent-id');
+      expect(nonExistentClaim.data?.claimed).toBe(false);
+
       const bulkResp = await recordingRepo.claimBulk({
         tokens: ['guest-tok-1', 'guest-tok-2'],
       });
