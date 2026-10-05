@@ -7,3 +7,4 @@ export * from './status-pill';
 export * from './step-tracker';
 export * from './user-chip';
 export * from './karaoke-text';
+export * from './pipeline-error-card';
