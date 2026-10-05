@@ -36,8 +36,11 @@ describe('parseTimestamp', () => {
     expect(parseTimestamp('02:00:00')).toBe(7200);
   });
 
-  it('returns 0 for invalid string', () => {
+  it('returns 0 for invalid string or malformed segments', () => {
     expect(parseTimestamp('')).toBe(0);
     expect(parseTimestamp('invalid')).toBe(0);
+    expect(parseTimestamp('01::30')).toBe(0);
+    expect(parseTimestamp('01:abc')).toBe(0);
+    expect(parseTimestamp('01:02:03:04')).toBe(0);
   });
 });

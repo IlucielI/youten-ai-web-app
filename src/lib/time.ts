@@ -25,8 +25,10 @@ export function formatTime(seconds: number): string {
  */
 export function parseTimestamp(timeString: string): number {
   if (!timeString || typeof timeString !== 'string') return 0;
-  const parts = timeString.split(':').map((p) => Number(p));
-  if (parts.some((n) => Number.isNaN(n))) return 0;
+  const segments = timeString.split(':');
+  if (segments.length < 2 || segments.length > 3) return 0;
+  if (segments.some((p) => !/^\d+$/.test(p))) return 0;
+  const parts = segments.map((p) => Number(p));
 
   if (parts.length === 3) {
     return (parts[0] ?? 0) * 3600 + (parts[1] ?? 0) * 60 + (parts[2] ?? 0);
