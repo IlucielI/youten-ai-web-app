@@ -11,3 +11,5 @@ export * from './logger';
 export * from './repositories';
 export * from './schemas';
 export * from './services';
+export { httpClient } from './datasources';
+export { logger } from './logger';

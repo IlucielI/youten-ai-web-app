@@ -10,6 +10,9 @@ export interface HttpRequestOptions<T = unknown> {
   headers?: Record<string, string>;
   timeoutMs?: number;
   requestId?: string;
+  token?: string;
+  ownershipToken?: string;
+  clientIp?: string;
   schema?: z.ZodType<T>;
   next?: NextFetchOptions;
   cache?: RequestCache;
