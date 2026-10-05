@@ -8,7 +8,7 @@ import type { WordResultDTO } from '@/server/dtos/recording.dto';
 export interface KaraokeTextProps {
   segmentId: string;
   text: string;
-  words?: WordResultDTO[];
+  words?: WordResultDTO[] | null;
   currentTime?: number;
   isActiveSegment?: boolean;
   onWordClick?: (word: WordResultDTO) => void;
@@ -43,6 +43,8 @@ export const KaraokeText: React.FC<KaraokeTextProps> = ({
   const shouldAutoScroll =
     autoScroll !== undefined ? autoScroll : storeIsAutoScrollEnabled;
 
+  const wordList = words ?? [];
+
   // Auto-scroll when active
   useEffect(() => {
     if (isActiveSegment && shouldAutoScroll && containerRef.current) {
@@ -55,14 +57,14 @@ export const KaraokeText: React.FC<KaraokeTextProps> = ({
 
   // Synchronize active word index in store when active
   useEffect(() => {
-    if (!isActiveSegment || !words || words.length === 0) return;
-    const activeIdx = words.findIndex(
+    if (!isActiveSegment || wordList.length === 0) return;
+    const activeIdx = wordList.findIndex(
       (w) => currentTime >= w.start && currentTime <= w.end
     );
     if (activeIdx !== -1) {
       setActiveSegment(segmentId, activeIdx);
     }
-  }, [isActiveSegment, currentTime, words, segmentId, setActiveSegment]);
+  }, [isActiveSegment, currentTime, wordList, segmentId, setActiveSegment]);
 
   // Handle word click
   const handleWordClick = (word: WordResultDTO) => {
@@ -74,7 +76,7 @@ export const KaraokeText: React.FC<KaraokeTextProps> = ({
   };
 
   // If no detailed words data, render simple text
-  if (!words || words.length === 0) {
+  if (wordList.length === 0) {
     return (
       <div
         ref={containerRef}
@@ -104,7 +106,7 @@ export const KaraokeText: React.FC<KaraokeTextProps> = ({
         className
       )}
     >
-      {words.map((wordObj, index) => {
+      {wordList.map((wordObj, index) => {
         const isCurrentWord =
           isActiveSegment &&
           currentTime >= wordObj.start &&

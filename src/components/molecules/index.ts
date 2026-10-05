@@ -8,3 +8,6 @@ export * from './step-tracker';
 export * from './user-chip';
 export * from './karaoke-text';
 export * from './pipeline-error-card';
+export * from './speaker-rename-dialog';
+export * from './transcript-search';
+export * from './transcript-segment';
