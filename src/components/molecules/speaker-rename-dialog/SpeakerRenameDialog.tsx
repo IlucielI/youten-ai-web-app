@@ -96,7 +96,7 @@ const SpeakerRenameForm: React.FC<SpeakerRenameFormProps> = ({
             setLabel(e.target.value);
             if (error) setError(null);
           }}
-          placeholder="Contoh: Bayu Anugerah, Timbalan Direktur..."
+          placeholder="Contoh: Bayu Anugerah, Direktur..."
           autoFocus
           disabled={isSubmitting}
         />
