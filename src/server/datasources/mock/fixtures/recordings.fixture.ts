@@ -150,21 +150,30 @@ export const mockHighlights: HighlightDTO[] = [
   },
 ];
 
+const computedAliceWords =
+  (mockTranscriptSegments[0].words_data?.length ?? 9) +
+  (mockTranscriptSegments[2].words_data?.length ?? 10);
+const computedBobWords = mockTranscriptSegments[1].words_data?.length ?? 13;
+const computedTotalWords = mockTranscriptSegments.reduce(
+  (sum, segment) => sum + (segment.words_data?.length ?? 0),
+  0
+);
+
 export const mockRecordingAnalytics: RecordingAnalyticsDTO = {
   total_duration_seconds: 17.2,
-  total_words: 34,
+  total_words: computedTotalWords,
   speakers: [
     {
       name: 'Alice',
       total_seconds: 10.0,
-      word_count: 21,
-      share_percent: 58.1,
+      word_count: computedAliceWords,
+      share_percent: Number(((computedAliceWords / computedTotalWords) * 100).toFixed(1)),
     },
     {
       name: 'Bob',
       total_seconds: 7.2,
-      word_count: 13,
-      share_percent: 41.9,
+      word_count: computedBobWords,
+      share_percent: Number(((computedBobWords / computedTotalWords) * 100).toFixed(1)),
     },
   ],
 };

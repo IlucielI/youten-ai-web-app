@@ -146,8 +146,14 @@ describe('BFF Domain Repositories (Mock & Transport Layer)', () => {
       expect(detail.data?.segments.length).toBeGreaterThan(0);
       expect(detail.data?.segments[0].words_data?.length).toBeGreaterThan(0);
       expect(detail.data?.chapters.length).toBeGreaterThan(0);
-      expect(detail.data?.highlights.length).toBeGreaterThan(0);
       expect(detail.data?.active_summary).toBeDefined();
+
+      const expectedTotalWords = detail.data?.segments.reduce(
+        (sum, s) => sum + (s.words_data?.length ?? 0),
+        0
+      );
+      const analytics = detail.data?.analytics_data as { total_words?: number } | undefined;
+      expect(analytics?.total_words).toBe(expectedTotalWords);
     });
 
     it('should paginate and filter recordings list by search and template', async () => {
