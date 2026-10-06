@@ -127,4 +127,22 @@ describe('UploadDropzone Organism', () => {
     expect(screen.queryByText('Callback routing failure')).not.toBeInTheDocument();
     consoleSpy.mockRestore();
   });
+
+  it('triggers file picker on Enter or Space key press', () => {
+    render(<UploadDropzone />);
+
+    const dropArea = screen.getByTestId('drop-target-area');
+    const fileInput = screen.getByTestId('file-input');
+    const clickSpy = vi.spyOn(fileInput, 'click');
+
+    // Press Enter
+    fireEvent.keyDown(dropArea, { key: 'Enter', code: 'Enter' });
+    expect(clickSpy).toHaveBeenCalledTimes(1);
+
+    // Press Space
+    fireEvent.keyDown(dropArea, { key: ' ', code: 'Space' });
+    expect(clickSpy).toHaveBeenCalledTimes(2);
+
+    clickSpy.mockRestore();
+  });
 });

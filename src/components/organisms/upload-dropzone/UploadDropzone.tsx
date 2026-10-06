@@ -100,6 +100,13 @@ export function UploadDropzone({
     setIsDragOver(false);
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      fileInputRef.current?.click();
+    }
+  };
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const file = e.target.files[0];
@@ -185,6 +192,7 @@ export function UploadDropzone({
           data-testid="drop-target-area"
           role="button"
           tabIndex={0}
+          onKeyDown={handleKeyDown}
         >
           <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/15 text-primary border border-primary/30 mb-4 group-hover:scale-110 transition-transform">
             <UploadCloud className="h-7 w-7" />
