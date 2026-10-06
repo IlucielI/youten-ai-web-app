@@ -9,6 +9,8 @@ import {
   ShareToggleRequest,
   ShareToggleResponse,
   SharedRecordingResponse,
+  UpdateSpeakersRequest,
+  UpdateSpeakersResponse,
 } from '../dtos';
 import { ApiResponse } from '../dtos/response.dto';
 
@@ -20,4 +22,5 @@ export interface IRecordingService {
   retryRecording(id: string): Promise<ApiResponse<RetryRecordingResponse>>;
   toggleShare(id: string, payload: ShareToggleRequest): Promise<ApiResponse<ShareToggleResponse>>;
   getSharedRecording(token: string): Promise<ApiResponse<SharedRecordingResponse>>;
+  updateSpeakers(id: string, payload: UpdateSpeakersRequest): Promise<ApiResponse<UpdateSpeakersResponse>>;
 }

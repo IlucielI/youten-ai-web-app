@@ -60,7 +60,7 @@ export function HighlightsGrid({
         {sortedHighlights.map((highlight, index) => {
           const isActive =
             currentTime >= highlight.start_time && currentTime < highlight.end_time;
-          const isAiSource = highlight.source.toLowerCase() === 'ai';
+          const isAiSource = highlight.source?.toLowerCase() === 'ai';
 
           return (
             <div

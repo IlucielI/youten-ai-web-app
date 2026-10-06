@@ -6,6 +6,8 @@ import {
   PresignUploadRequestSchema,
   UploadRecordingRequestSchema,
   ImportUrlRequestSchema,
+  ShareToggleRequestSchema,
+  UpdateSpeakersRequestSchema,
 } from '../schemas/recording.schema';
 import { ILogger } from '../logger/logger.interface';
 
@@ -55,6 +57,20 @@ export class RecordingController extends BaseController {
   async retry(req: Request, id: string): Promise<NextResponse> {
     return this.handle(req, async () => {
       return this.recordingService.retryRecording(id);
+    });
+  }
+
+  async toggleShare(req: Request, id: string): Promise<NextResponse> {
+    return this.handle(req, async () => {
+      const body = await this.getBody(req, ShareToggleRequestSchema);
+      return this.recordingService.toggleShare(id, body);
+    });
+  }
+
+  async updateSpeakers(req: Request, id: string): Promise<NextResponse> {
+    return this.handle(req, async () => {
+      const body = await this.getBody(req, UpdateSpeakersRequestSchema);
+      return this.recordingService.updateSpeakers(id, body);
     });
   }
 }

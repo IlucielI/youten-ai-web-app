@@ -56,6 +56,7 @@ describe('RecordingController', () => {
     retryRecording: vi.fn(),
     toggleShare: vi.fn(),
     getSharedRecording: vi.fn(),
+    updateSpeakers: vi.fn(),
   };
 
   const controller = new RecordingController(mockService);
@@ -180,5 +181,56 @@ describe('RecordingController', () => {
     expect(res.status).toBe(200);
     const json = await res.json();
     expect(json.data.status).toBe('TRANSCRIBING');
+  });
+
+  it('handles toggleShare request and returns updated share status', async () => {
+    mockService.toggleShare = vi.fn().mockResolvedValue({
+      status: ResponseStatus.SUCCESS,
+      code: ResponseCode.SUCCESS,
+      message: 'Share updated',
+      data: {
+        is_share_enabled: true,
+        share_token: 'share-token-xyz',
+        share_url: 'http://localhost/share/share-token-xyz',
+      },
+      timestamp: new Date().toISOString(),
+    });
+
+    const req = new Request('http://localhost/api/recordings/test-rec-id/share', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ is_share_enabled: true }),
+    });
+
+    const res = await controller.toggleShare(req, 'test-rec-id');
+    expect(res.status).toBe(200);
+    const json = await res.json();
+    expect(json.data.is_share_enabled).toBe(true);
+  });
+
+  it('handles updateSpeakers request and returns updated speaker mapping', async () => {
+    mockService.updateSpeakers = vi.fn().mockResolvedValue({
+      status: ResponseStatus.SUCCESS,
+      code: ResponseCode.SUCCESS,
+      message: 'Speakers updated',
+      data: {
+        updated_count: 2,
+        speakers: { speaker_0: 'Budi Santoso', speaker_1: 'Siti Rahma' },
+      },
+      timestamp: new Date().toISOString(),
+    });
+
+    const req = new Request('http://localhost/api/recordings/test-rec-id/speakers', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        speakers: { speaker_0: 'Budi Santoso', speaker_1: 'Siti Rahma' },
+      }),
+    });
+
+    const res = await controller.updateSpeakers(req, 'test-rec-id');
+    expect(res.status).toBe(200);
+    const json = await res.json();
+    expect(json.data.updated_count).toBe(2);
   });
 });

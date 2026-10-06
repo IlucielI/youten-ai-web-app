@@ -29,7 +29,7 @@ export interface TranscriptSegmentProps {
   className?: string;
 }
 
-export function getSpeakerColors(speakerId: string) {
+export function getSpeakerColors(speakerId?: string) {
   const palette = [
     {
       badge: 'bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border-indigo-500/20',
@@ -63,9 +63,10 @@ export function getSpeakerColors(speakerId: string) {
     },
   ];
 
+  const safeId = speakerId || 'speaker_1';
   let sum = 0;
-  for (let i = 0; i < speakerId.length; i++) {
-    sum += speakerId.charCodeAt(i);
+  for (let i = 0; i < safeId.length; i++) {
+    sum += safeId.charCodeAt(i);
   }
   const color = palette[sum % palette.length];
   return color ?? palette[0]!;
@@ -97,7 +98,7 @@ export const TranscriptSegment: React.FC<TranscriptSegmentProps> = ({
       : storeActiveSegmentId === segment.id ||
         (currentTime >= segment.start_time && currentTime <= segment.end_time);
 
-  const displayName = speakerName || segment.speaker_name || segment.speaker_label;
+  const displayName = speakerName || segment.speaker_name || segment.speaker_label || 'Pembicara';
   const colors = getSpeakerColors(segment.speaker_label);
 
   const handleTimestampClick = () => {
@@ -177,6 +178,7 @@ export const TranscriptSegment: React.FC<TranscriptSegmentProps> = ({
             data-testid="timestamp-badge"
             onClick={handleTimestampClick}
             title={`Putar mulai ${formatTime(segment.start_time)}`}
+            aria-label={`Dengarkan segmen mulai ${formatTime(segment.start_time)}`}
             className="flex items-center gap-1 text-[11px] font-mono font-medium text-muted-foreground hover:text-primary transition-colors cursor-pointer bg-muted/60 hover:bg-primary/10 px-2 py-0.5 rounded-full"
           >
             <Play className="w-2.5 h-2.5 fill-current" />
