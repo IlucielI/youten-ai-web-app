@@ -93,7 +93,7 @@ export function AnalyticsCards({ analytics, className }: AnalyticsCardsProps) {
             <span className="text-xs font-medium">Total Kata</span>
           </div>
           <div className="text-xl font-bold text-foreground">
-            {total_words.toLocaleString('id-ID')}
+            {(total_words ?? 0).toLocaleString('id-ID')}
           </div>
           <span className="text-[11px] text-muted-foreground">kata terucap</span>
         </div>
@@ -148,7 +148,7 @@ export function AnalyticsCards({ analytics, className }: AnalyticsCardsProps) {
           <div className="space-y-3 pt-1">
             {sortedSpeakers.map((speaker, index) => {
               const palette = SPEAKER_PALETTES[index % SPEAKER_PALETTES.length];
-              const share = Math.min(100, Math.max(0, Math.round(speaker.share_percent)));
+              const share = Math.min(100, Math.max(0, Math.round(speaker.share_percent ?? 0)));
 
               return (
                 <div
@@ -169,8 +169,8 @@ export function AnalyticsCards({ analytics, className }: AnalyticsCardsProps) {
                     </div>
 
                     <div className="flex items-center gap-3 text-muted-foreground">
-                      <span>{speaker.word_count.toLocaleString('id-ID')} kata</span>
-                      <span>{formatTime(speaker.total_seconds)}</span>
+                      <span>{(speaker.word_count ?? 0).toLocaleString('id-ID')} kata</span>
+                      <span>{formatTime(speaker.total_seconds ?? 0)}</span>
                       <span className={cn('font-semibold min-w-9 text-right', palette.text)}>
                         {share}%
                       </span>

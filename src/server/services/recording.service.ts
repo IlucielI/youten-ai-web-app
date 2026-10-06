@@ -12,6 +12,8 @@ import {
   ShareToggleRequest,
   ShareToggleResponse,
   SharedRecordingResponse,
+  UpdateSpeakersRequest,
+  UpdateSpeakersResponse,
 } from '../dtos';
 import { ApiResponse } from '../dtos/response.dto';
 
@@ -46,6 +48,10 @@ export class RecordingService implements IRecordingService {
 
   async getSharedRecording(token: string): Promise<ApiResponse<SharedRecordingResponse>> {
     return this.recordingRepo.getSharedRecording(token);
+  }
+
+  async updateSpeakers(id: string, payload: UpdateSpeakersRequest): Promise<ApiResponse<UpdateSpeakersResponse>> {
+    return this.recordingRepo.updateSpeakers(id, payload);
   }
 }
 
