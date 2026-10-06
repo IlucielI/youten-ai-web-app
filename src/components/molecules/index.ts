@@ -15,3 +15,5 @@ export * from './summary-version-tabs';
 export * from './chat-chips';
 export * from './url-import-form';
 export * from './comment-popover';
+export * from './export-menu';
+export * from './share-dialog';
