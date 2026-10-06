@@ -51,6 +51,12 @@ export class RecordingController extends BaseController {
       return this.recordingService.getRecordingDetail(id);
     });
   }
+
+  async retry(req: Request, id: string): Promise<NextResponse> {
+    return this.handle(req, async () => {
+      return this.recordingService.retryRecording(id);
+    });
+  }
 }
 
 /**
