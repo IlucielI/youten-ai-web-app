@@ -200,7 +200,9 @@ export function ChatPanel({
           </div>
         ) : (
           <>
-            {messages.map((msg) => {
+            {messages
+              .filter((msg) => !msg.isStreaming)
+              .map((msg) => {
               const isUser = msg.role === 'user';
               return (
                 <div
