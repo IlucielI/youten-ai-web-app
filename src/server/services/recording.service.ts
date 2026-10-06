@@ -16,8 +16,10 @@ import {
   UpdateSpeakersResponse,
   BulkClaimRequest,
   BulkClaimResponse,
+  RecordingListItem,
+  RecordingFilterQuery,
 } from '../dtos';
-import { ApiResponse } from '../dtos/response.dto';
+import { ApiResponse, PaginatedResponse, BaseResponse } from '../dtos/response.dto';
 
 export class RecordingService implements IRecordingService {
   constructor(
@@ -38,6 +40,14 @@ export class RecordingService implements IRecordingService {
 
   async getRecordingDetail(id: string): Promise<ApiResponse<RecordingDetailResponse>> {
     return this.recordingRepo.getRecordingDetail(id);
+  }
+
+  async listRecordings(query?: RecordingFilterQuery): Promise<PaginatedResponse<RecordingListItem>> {
+    return this.recordingRepo.listRecordings(query);
+  }
+
+  async deleteRecording(id: string): Promise<BaseResponse> {
+    return this.recordingRepo.deleteRecording(id);
   }
 
   async retryRecording(id: string): Promise<ApiResponse<RetryRecordingResponse>> {

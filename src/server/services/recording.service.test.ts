@@ -133,4 +133,39 @@ describe('RecordingService', () => {
     expect(mockRepo.claimBulk).toHaveBeenCalledWith({ tokens: ['tok-1', 'tok-2'] });
     expect(res.data?.claimed_count).toBe(2);
   });
+
+  it('delegates listRecordings to repository', async () => {
+    mockRepo.listRecordings = vi.fn().mockResolvedValue({
+      status: ResponseStatus.SUCCESS,
+      code: ResponseCode.SUCCESS,
+      message: 'List success',
+      data: [],
+      pagination: {
+        page: 1,
+        limit: 10,
+        totalItems: 0,
+        totalPages: 1,
+        hasNextPage: false,
+        hasPrevPage: false,
+      },
+      timestamp: new Date().toISOString(),
+    });
+
+    const res = await service.listRecordings({ page: 1, limit: 10 });
+    expect(mockRepo.listRecordings).toHaveBeenCalledWith({ page: 1, limit: 10 });
+    expect(res.pagination.totalItems).toBe(0);
+  });
+
+  it('delegates deleteRecording to repository', async () => {
+    mockRepo.deleteRecording = vi.fn().mockResolvedValue({
+      status: ResponseStatus.SUCCESS,
+      code: ResponseCode.SUCCESS,
+      message: 'Deleted successfully',
+      timestamp: new Date().toISOString(),
+    });
+
+    const res = await service.deleteRecording('rec-123');
+    expect(mockRepo.deleteRecording).toHaveBeenCalledWith('rec-123');
+    expect(res.status).toBe(ResponseStatus.SUCCESS);
+  });
 });

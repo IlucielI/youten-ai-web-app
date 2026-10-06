@@ -17,3 +17,4 @@ export * from './url-import-form';
 export * from './comment-popover';
 export * from './export-menu';
 export * from './share-dialog';
+export * from './recording-card';

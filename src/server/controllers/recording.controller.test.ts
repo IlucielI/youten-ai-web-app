@@ -59,6 +59,8 @@ describe('RecordingController', () => {
     updateSpeakers: vi.fn(),
     claimRecording: vi.fn(),
     claimBulk: vi.fn(),
+    listRecordings: vi.fn(),
+    deleteRecording: vi.fn(),
   };
 
   const controller = new RecordingController(mockService);
@@ -299,5 +301,48 @@ describe('RecordingController', () => {
     expect(res.status).toBe(200);
     const json = await res.json();
     expect(json.data.claimed_count).toBe(2);
+  });
+
+  it('handles list request with query params', async () => {
+    mockService.listRecordings = vi.fn().mockResolvedValue({
+      status: ResponseStatus.SUCCESS,
+      code: ResponseCode.SUCCESS,
+      message: 'List success',
+      data: [],
+      pagination: {
+        page: 1,
+        limit: 10,
+        totalItems: 0,
+        totalPages: 1,
+        hasNextPage: false,
+        hasPrevPage: false,
+      },
+      timestamp: new Date().toISOString(),
+    });
+
+    const req = new Request('http://localhost/api/recordings?page=1&limit=10&search=test', {
+      method: 'GET',
+    });
+    const res = await controller.list(req);
+    expect(res.status).toBe(200);
+    const json = await res.json();
+    expect(json.pagination.totalItems).toBe(0);
+    expect(mockService.listRecordings).toHaveBeenCalled();
+  });
+
+  it('handles delete request by id', async () => {
+    mockService.deleteRecording = vi.fn().mockResolvedValue({
+      status: ResponseStatus.SUCCESS,
+      code: ResponseCode.SUCCESS,
+      message: 'Deleted successfully',
+      timestamp: new Date().toISOString(),
+    });
+
+    const req = new Request('http://localhost/api/recordings/rec-123', {
+      method: 'DELETE',
+    });
+    const res = await controller.delete(req, 'rec-123');
+    expect(res.status).toBe(200);
+    expect(mockService.deleteRecording).toHaveBeenCalledWith('rec-123');
   });
 });
