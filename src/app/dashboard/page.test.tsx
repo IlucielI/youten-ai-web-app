@@ -316,4 +316,49 @@ describe('DashboardPage', () => {
     render(<DashboardPage />);
     expect(await screen.findByText('Belum Ada Rekaman')).toBeInTheDocument();
   });
+
+  it('clears previous error message when retry fetch succeeds', async () => {
+    let callCount = 0;
+    vi.spyOn(apiClient, 'apiFetch').mockImplementation(async (url: string) => {
+      if (url === '/api/auth/me') {
+        const res: ApiResponse<UserProfileResponse> = {
+          status: 'success',
+          code: 'SUCCESS',
+          message: 'OK',
+          data: mockUser,
+          timestamp: new Date().toISOString(),
+        };
+        return res as unknown as ApiResponse<never>;
+      }
+      callCount += 1;
+      if (callCount === 1) {
+        throw new Error('Jaringan terputus');
+      }
+      const res: PaginatedResponse<RecordingListItemDTO> = {
+        status: 'success',
+        code: 'SUCCESS',
+        message: 'OK',
+        data: mockRecordings,
+        pagination: {
+          page: 1,
+          limit: 12,
+          totalItems: 2,
+          totalPages: 1,
+          hasNextPage: false,
+          hasPrevPage: false,
+        },
+        timestamp: new Date().toISOString(),
+      };
+      return res as unknown as ApiResponse<never>;
+    });
+
+    render(<DashboardPage />);
+    expect(await screen.findByText('Gagal Memuat Data')).toBeInTheDocument();
+
+    const retryBtn = screen.getByText('Coba Lagi');
+    fireEvent.click(retryBtn);
+
+    expect(await screen.findByText('Weekly Standup Engineering')).toBeInTheDocument();
+    expect(screen.queryByText('Gagal Memuat Data')).not.toBeInTheDocument();
+  });
 });

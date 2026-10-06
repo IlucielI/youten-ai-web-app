@@ -125,7 +125,7 @@ export default function DashboardPage() {
         if (mounted && res && res.status === 'success' && res.data) {
           setUser(res.data);
           setAuthLoading(false);
-        } else {
+        } else if (mounted) {
           router.push('/login?redirect=/dashboard');
         }
       } catch {
@@ -173,6 +173,7 @@ export default function DashboardPage() {
       .then((res) => {
         if (!isMounted) return;
         if (res && res.status === 'success' && res.data) {
+          setDataError(null);
           setRecordings(res.data);
           if (res.pagination) {
             setTotalItems(res.pagination.totalItems);
