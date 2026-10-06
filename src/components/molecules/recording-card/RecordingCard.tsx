@@ -58,7 +58,7 @@ export function getStatusPillConfig(status: string): {
     case RecordingStatus.PENDING:
       return { label: 'Tertunda', status: 'offline' };
     default:
-      return { label: 'Memproses...', status: 'busy' };
+      return { label: 'Memproses', status: 'busy' };
   }
 }
 

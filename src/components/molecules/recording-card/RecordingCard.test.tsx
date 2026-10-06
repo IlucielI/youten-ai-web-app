@@ -36,7 +36,7 @@ describe('RecordingCard Component', () => {
     expect(getStatusPillConfig(RecordingStatus.COMPLETED).label).toBe('Selesai');
     expect(getStatusPillConfig(RecordingStatus.FAILED).label).toBe('Gagal');
     expect(getStatusPillConfig(RecordingStatus.QUEUED).label).toBe('Antrean');
-    expect(getStatusPillConfig('TRANSCRIBING').label).toBe('Memproses...');
+    expect(getStatusPillConfig('TRANSCRIBING').label).toBe('Memproses');
   });
 
   it('invokes onShare and onDelete callbacks when actions are clicked', () => {
