@@ -54,6 +54,7 @@ import {
   ChevronRight,
   User,
   Quote,
+  Users,
 } from 'lucide-react';
 
 let messageSequence = 1;
@@ -331,6 +332,17 @@ export default function SearchPage() {
                 <CommandIcon className="w-2.5 h-2.5" /> K
               </kbd>
             </Button>
+
+            <Link href="/speakers">
+              <Button
+                variant="outline"
+                size="sm"
+                className="hidden sm:flex items-center gap-1.5 text-xs text-slate-600 border-slate-200 hover:text-blue-600 hover:border-blue-300 h-9"
+              >
+                <Users className="w-3.5 h-3.5 text-slate-400" />
+                <span>Direktori Pembicara</span>
+              </Button>
+            </Link>
 
             <UserChip
               name={user?.full_name || 'Pengguna'}
