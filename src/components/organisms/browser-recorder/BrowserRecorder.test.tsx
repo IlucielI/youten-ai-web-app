@@ -156,4 +156,20 @@ describe('BrowserRecorder Organism', () => {
       expect(screen.getByText('Network error saat upload')).toBeInTheDocument();
     });
   });
+
+  it('resets recorder state and returns to idle when reset button is clicked', async () => {
+    render(<BrowserRecorder />);
+
+    fireEvent.click(screen.getByTestId('start-record-btn'));
+    await waitFor(() => expect(screen.getByTestId('stop-record-btn')).toBeInTheDocument());
+    fireEvent.click(screen.getByTestId('stop-record-btn'));
+    await waitFor(() => expect(screen.getByTestId('reset-record-btn')).toBeInTheDocument());
+
+    fireEvent.click(screen.getByTestId('reset-record-btn'));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('start-record-btn')).toBeInTheDocument();
+      expect(screen.queryByTestId('reset-record-btn')).not.toBeInTheDocument();
+    });
+  });
 });

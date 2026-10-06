@@ -145,4 +145,16 @@ describe('UploadDropzone Organism', () => {
 
     clickSpy.mockRestore();
   });
+
+  it('resets input value after file selection to allow selecting the same file again', () => {
+    render(<UploadDropzone />);
+
+    const fileInput = screen.getByTestId('file-input') as HTMLInputElement;
+    const file = new File(['content'], 'sample.mp3', { type: 'audio/mp3' });
+
+    fireEvent.change(fileInput, { target: { files: [file] } });
+
+    expect(screen.getByText('sample.mp3')).toBeInTheDocument();
+    expect(fileInput.value).toBe('');
+  });
 });
