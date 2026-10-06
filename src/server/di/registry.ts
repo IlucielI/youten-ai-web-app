@@ -13,7 +13,9 @@ import {
 import { recordingService } from '../services/recording.service';
 import { authService } from '../services/auth.service';
 import { workspaceService } from '../services/workspace.service';
+import { waitlistService } from '../services/waitlist.service';
 import { workspaceController } from '../controllers/workspace.controller';
+import { waitlistController } from '../controllers/waitlist.controller';
 
 /**
  * Shared Infrastructure & Domain Singletons Registry
@@ -39,5 +41,12 @@ export {
 };
 
 // 4. Domain Services & Controllers Singletons
-export { recordingService, authService, workspaceService, workspaceController };
+export {
+  recordingService,
+  authService,
+  workspaceService,
+  waitlistService,
+  workspaceController,
+  waitlistController,
+};
 
