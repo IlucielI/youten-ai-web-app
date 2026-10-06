@@ -18,3 +18,4 @@ export * from './comment-popover';
 export * from './export-menu';
 export * from './share-dialog';
 export * from './recording-card';
+export * from './search-result-card';
