@@ -77,4 +77,18 @@ describe('UrlImportForm Molecule', () => {
       });
     });
   });
+
+  it('displays error message when onSubmit throws an error', async () => {
+    const handleSubmit = vi.fn().mockRejectedValue(new Error('Koneksi timeout'));
+    render(<UrlImportForm onSubmit={handleSubmit} />);
+
+    const urlInput = screen.getByTestId('media-url-input');
+    fireEvent.change(urlInput, { target: { value: 'https://cdn.example.com/audio.mp3' } });
+    fireEvent.click(screen.getByTestId('submit-url-btn'));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('url-error-alert')).toBeInTheDocument();
+      expect(screen.getByText('Koneksi timeout')).toBeInTheDocument();
+    });
+  });
 });

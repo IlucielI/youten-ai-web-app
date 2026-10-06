@@ -68,12 +68,17 @@ export function UrlImportForm({
       return;
     }
 
-    await onSubmit({
-      url: trimmedUrl,
-      title: title.trim() || undefined,
-      templateCategory,
-      language,
-    });
+    try {
+      await onSubmit({
+        url: trimmedUrl,
+        title: title.trim() || undefined,
+        templateCategory,
+        language,
+      });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Gagal mengimpor tautan. Silakan coba lagi.';
+      setValidationError(msg);
+    }
   };
 
   return (

@@ -117,14 +117,15 @@ export function BrowserRecorder({
   };
 
   const handlePauseResume = () => {
-    if (!mediaRecorderRef.current) return;
+    const recorder = mediaRecorderRef.current;
+    if (!recorder) return;
 
-    if (recorderState === 'recording') {
-      mediaRecorderRef.current.pause();
+    if (recorderState === 'recording' && recorder.state === 'recording') {
+      recorder.pause();
       clearTimer();
       setRecorderState('paused');
-    } else if (recorderState === 'paused') {
-      mediaRecorderRef.current.resume();
+    } else if (recorderState === 'paused' && recorder.state === 'paused') {
+      recorder.resume();
       timerIntervalRef.current = setInterval(() => {
         setDuration((prev) => prev + 1);
       }, 1000);
