@@ -8,6 +8,7 @@ import {
   ImportUrlRequestSchema,
   ShareToggleRequestSchema,
   UpdateSpeakersRequestSchema,
+  BulkClaimRequestSchema,
 } from '../schemas/recording.schema';
 import { ILogger } from '../logger/logger.interface';
 
@@ -77,6 +78,19 @@ export class RecordingController extends BaseController {
   async getShared(req: Request, token: string): Promise<NextResponse> {
     return this.handle(req, async () => {
       return this.recordingService.getSharedRecording(token);
+    });
+  }
+
+  async claim(req: Request, id: string): Promise<NextResponse> {
+    return this.handle(req, async () => {
+      return this.recordingService.claimRecording(id);
+    });
+  }
+
+  async claimBulk(req: Request): Promise<NextResponse> {
+    return this.handle(req, async () => {
+      const body = await this.getBody(req, BulkClaimRequestSchema);
+      return this.recordingService.claimBulk(body);
     });
   }
 }

@@ -105,4 +105,32 @@ describe('RecordingService', () => {
     });
     expect(res.data?.id).toBe('22222222-2222-4222-8222-222222222222');
   });
+
+  it('delegates claimRecording to repository', async () => {
+    mockRepo.claimRecording = vi.fn().mockResolvedValue({
+      status: ResponseStatus.SUCCESS,
+      code: ResponseCode.SUCCESS,
+      message: 'Claim success',
+      data: { claimed: true },
+      timestamp: new Date().toISOString(),
+    });
+
+    const res = await service.claimRecording('rec-123');
+    expect(mockRepo.claimRecording).toHaveBeenCalledWith('rec-123');
+    expect(res.data?.claimed).toBe(true);
+  });
+
+  it('delegates claimBulk to repository', async () => {
+    mockRepo.claimBulk = vi.fn().mockResolvedValue({
+      status: ResponseStatus.SUCCESS,
+      code: ResponseCode.SUCCESS,
+      message: 'Bulk claim success',
+      data: { claimed_count: 2, recording_ids: ['rec-1', 'rec-2'] },
+      timestamp: new Date().toISOString(),
+    });
+
+    const res = await service.claimBulk({ tokens: ['tok-1', 'tok-2'] });
+    expect(mockRepo.claimBulk).toHaveBeenCalledWith({ tokens: ['tok-1', 'tok-2'] });
+    expect(res.data?.claimed_count).toBe(2);
+  });
 });

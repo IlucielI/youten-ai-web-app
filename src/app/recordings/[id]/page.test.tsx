@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import RecordingDetailPage from './page';
 import * as apiClient from '@/lib/api-client';
+import * as claimLib from '@/lib/claim';
 import { RecordingStatus } from '@/server/constants';
 import { usePlayerStore } from '@/stores/player.store';
 
@@ -238,6 +239,24 @@ describe('RecordingDetailPage', () => {
     await waitFor(() => {
       expect(screen.getByTestId('recording-detail-error')).toBeInTheDocument();
       expect(screen.getByText(/Rekaman Tidak Ditemukan/i)).toBeInTheDocument();
+    });
+  });
+
+  it('allows logged-in user to manually claim recording and removes guest banner', async () => {
+    const claimSpy = vi.spyOn(claimLib, 'claimSingleRecording').mockResolvedValueOnce(true);
+
+    render(<RecordingDetailPage />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('guest-warning-banner')).toBeInTheDocument();
+    });
+
+    const claimBtn = screen.getByTestId('claim-account-btn');
+    fireEvent.click(claimBtn);
+
+    await waitFor(() => {
+      expect(claimSpy).toHaveBeenCalledWith('rec-detail-123');
+      expect(screen.queryByTestId('guest-warning-banner')).not.toBeInTheDocument();
     });
   });
 });

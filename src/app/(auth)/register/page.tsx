@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { Suspense, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Eye, EyeOff, Loader2, UserPlus } from 'lucide-react';
 import {
   Card,
@@ -19,9 +19,13 @@ import { Alert, AlertDescription } from '@/components/atoms/alert';
 import { apiFetch } from '@/lib/api-client';
 import { ApiResponse } from '@/server/dtos/response.dto';
 import { AuthResponse } from '@/server/dtos/auth.dto';
+import { claimGuestRecordings, claimSingleRecording } from '@/lib/claim';
 
-export default function RegisterPage() {
+function RegisterForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const claimId = searchParams.get('claim');
+
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -56,7 +60,16 @@ export default function RegisterPage() {
       });
 
       if (response && response.status === 'success') {
-        router.push('/');
+        // Auto-claim any guest recordings stored in localStorage
+        await claimGuestRecordings();
+
+        // If specific recording was requested via ?claim=<id>, claim it and navigate there
+        if (claimId) {
+          await claimSingleRecording(claimId);
+          router.push(`/recordings/${claimId}`);
+        } else {
+          router.push('/');
+        }
       } else {
         setErrorMessage(response?.message || 'Pendaftaran gagal. Silakan coba kembali.');
       }
@@ -173,7 +186,7 @@ export default function RegisterPage() {
           <p className="text-center text-xs text-muted-foreground">
             Sudah memiliki akun?{' '}
             <Link
-              href="/login"
+              href={claimId ? `/login?claim=${claimId}` : '/login'}
               className="text-primary font-semibold hover:underline"
               data-testid="to-login-link"
             >
@@ -183,5 +196,21 @@ export default function RegisterPage() {
         </CardFooter>
       </form>
     </Card>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense
+      fallback={
+        <Card className="border-border/70 shadow-lg bg-card/90 backdrop-blur-sm p-6" data-testid="register-card-loading">
+          <div className="h-40 flex items-center justify-center">
+            <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+          </div>
+        </Card>
+      }
+    >
+      <RegisterForm />
+    </Suspense>
   );
 }
