@@ -39,8 +39,16 @@ export async function claimGuestRecordings(): Promise<ClaimResult | null> {
 
     if (res && res.status === 'success' && res.data) {
       const count = res.data.claimed_count;
-      if (count > 0) {
+      const claimedIds = new Set(res.data.recording_ids || []);
+
+      if (count === tokens.length) {
         store.clearGuestTokens();
+      } else if (claimedIds.size > 0) {
+        const remaining = guestTokens.filter((t) => !claimedIds.has(t.id));
+        store.setGuestTokens(remaining);
+      }
+
+      if (count > 0) {
         toast.success(`Berhasil menyimpan ${count} rekaman tamu ke akun Anda!`);
       }
       return {

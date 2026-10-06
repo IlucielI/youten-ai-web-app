@@ -87,6 +87,30 @@ describe('claim helper', () => {
       expect(toast.success).not.toHaveBeenCalled();
     });
 
+    it('removes only claimed tokens and preserves remaining on partial claim', async () => {
+      vi.spyOn(apiClient, 'apiFetch').mockResolvedValue({
+        status: 'success',
+        code: 'SUCCESS',
+        message: 'Partial recordings claimed',
+        data: {
+          claimed_count: 1,
+          recording_ids: ['rec-1'],
+        },
+        timestamp: new Date().toISOString(),
+      });
+
+      const result = await claimGuestRecordings();
+
+      expect(result).toEqual({
+        claimedCount: 1,
+        recordingIds: ['rec-1'],
+      });
+      const remaining = useTokenStore.getState().guestTokens;
+      expect(remaining).toHaveLength(1);
+      expect(remaining[0].id).toBe('rec-2');
+      expect(toast.success).toHaveBeenCalledWith('Berhasil menyimpan 1 rekaman tamu ke akun Anda!');
+    });
+
     it('returns null and does not throw on api failure', async () => {
       vi.spyOn(apiClient, 'apiFetch').mockRejectedValue(new Error('Network error'));
 
