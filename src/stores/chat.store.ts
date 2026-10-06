@@ -145,16 +145,18 @@ export const useChatStore = create<ChatStore>()(
             isStreaming: false,
             streamingContent: '',
             streamingCitations: [],
-            messages: state.messages.map((msg) =>
-              msg.id === id
-                ? {
-                    ...msg,
-                    content: finalContent,
-                    citations: finalCitations,
-                    isStreaming: false,
-                  }
-                : msg
-            ),
+            messages: state.messages
+              .map((msg) =>
+                msg.id === id
+                  ? {
+                      ...msg,
+                      content: finalContent,
+                      citations: finalCitations,
+                      isStreaming: false,
+                    }
+                  : msg
+              )
+              .filter((msg) => msg.content.trim().length > 0),
           }),
           false,
           'chat/finalizeAssistantMessage'
@@ -162,7 +164,17 @@ export const useChatStore = create<ChatStore>()(
       },
 
       setChatError: (error: string | null) => {
-        set({ error, isStreaming: false }, false, 'chat/setChatError');
+        set(
+          (state) => ({
+            error,
+            isStreaming: false,
+            streamingContent: '',
+            streamingCitations: [],
+            messages: state.messages.filter((msg) => msg.content.trim().length > 0),
+          }),
+          false,
+          'chat/setChatError'
+        );
       },
 
       clearChat: () => {

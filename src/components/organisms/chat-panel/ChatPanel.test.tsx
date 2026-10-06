@@ -128,4 +128,45 @@ describe('ChatPanel Organism', () => {
     fireEvent.click(screen.getByTestId('citation-badge'));
     expect(usePlayerStore.getState().currentTime).toBe(66);
   });
+
+  it('renders thinking animation indicator when streaming starts with empty content', () => {
+    act(() => {
+      useChatStore.setState({
+        isStreaming: true,
+        streamingContent: '',
+      });
+    });
+
+    render(<ChatPanel isOpen={true} />);
+
+    expect(screen.getByTestId('chat-streaming-indicator')).toBeInTheDocument();
+    expect(screen.getByTestId('chat-thinking-indicator')).toBeInTheDocument();
+    expect(screen.getByText('Sedang berpikir...')).toBeInTheDocument();
+  });
+
+  it('does not render blank bubbles for messages with empty content', () => {
+    act(() => {
+      useChatStore.setState({
+        messages: [
+          {
+            id: 'empty-msg-1',
+            role: 'assistant',
+            content: '',
+            timestamp: new Date().toISOString(),
+          },
+          {
+            id: 'valid-msg-2',
+            role: 'assistant',
+            content: 'Pesan valid.',
+            timestamp: new Date().toISOString(),
+          },
+        ],
+      });
+    });
+
+    render(<ChatPanel isOpen={true} />);
+
+    expect(screen.queryByTestId('chat-message-empty-msg-1')).not.toBeInTheDocument();
+    expect(screen.getByTestId('chat-message-valid-msg-2')).toBeInTheDocument();
+  });
 });

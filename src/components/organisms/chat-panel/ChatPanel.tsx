@@ -301,7 +301,7 @@ export function ChatPanel({
         ) : (
           <>
             {messages
-              .filter((msg) => !msg.isStreaming)
+              .filter((msg) => !msg.isStreaming && Boolean(msg.content?.trim()))
               .map((msg) => {
               const isUser = msg.role === 'user';
               return (
@@ -365,11 +365,24 @@ export function ChatPanel({
                 <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/20 text-primary mt-0.5">
                   <Bot className="h-3.5 w-3.5" />
                 </div>
-                <div className="max-w-[85%] rounded-2xl rounded-tl-sm bg-secondary/70 text-foreground border border-border/50 px-3.5 py-2.5 leading-relaxed space-y-1.5 shadow-sm">
-                  <div className="relative">
-                    {renderMessageContent(streamingContent, seek)}
-                    <span className="inline-block animate-pulse text-primary font-bold ml-0.5">▍</span>
-                  </div>
+                <div className="max-w-[85%] min-w-[140px] rounded-2xl rounded-tl-sm bg-secondary/70 text-foreground border border-border/50 px-3.5 py-2.5 leading-relaxed space-y-1.5 shadow-sm">
+                  {streamingContent.trim() ? (
+                    <div className="relative">
+                      {renderMessageContent(streamingContent, seek)}
+                      <span className="inline-block animate-pulse text-primary font-bold ml-0.5" aria-hidden="true">▍</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2 py-0.5" data-testid="chat-thinking-indicator">
+                      <div className="flex items-center gap-1">
+                        <span className="h-1.5 w-1.5 rounded-full bg-primary animate-bounce [animation-delay:-0.3s]" />
+                        <span className="h-1.5 w-1.5 rounded-full bg-primary animate-bounce [animation-delay:-0.15s]" />
+                        <span className="h-1.5 w-1.5 rounded-full bg-primary animate-bounce" />
+                      </div>
+                      <span className="text-[11px] text-muted-foreground font-medium animate-pulse select-none">
+                        Sedang berpikir...
+                      </span>
+                    </div>
+                  )}
 
                   {streamingCitations.length > 0 && (
                     <div className="flex flex-wrap gap-1 pt-1.5 border-t border-border/30">
