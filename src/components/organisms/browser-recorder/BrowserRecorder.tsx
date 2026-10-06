@@ -99,6 +99,7 @@ export function BrowserRecorder({
         setDuration((prev) => prev + 1);
       }, 1000);
     } catch (err: unknown) {
+      cleanupStream();
       const msg =
         err instanceof Error
           ? err.message

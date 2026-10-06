@@ -172,4 +172,38 @@ describe('BrowserRecorder Organism', () => {
       expect(screen.queryByTestId('reset-record-btn')).not.toBeInTheDocument();
     });
   });
+
+  it('stops media stream tracks when MediaRecorder fails to initialize', async () => {
+    const mockTrackStop = vi.fn();
+    Object.defineProperty(navigator, 'mediaDevices', {
+      value: {
+        getUserMedia: vi.fn().mockResolvedValue({
+          getTracks: vi.fn().mockReturnValue([{ stop: mockTrackStop }]),
+        }),
+      },
+      writable: true,
+      configurable: true,
+    });
+
+    // Make MediaRecorder throw
+    Object.defineProperty(window, 'MediaRecorder', {
+      value: class {
+        static isTypeSupported = vi.fn().mockReturnValue(true);
+        constructor() {
+          throw new Error('MIME type not supported by hardware encoder');
+        }
+      },
+      writable: true,
+      configurable: true,
+    });
+
+    render(<BrowserRecorder />);
+    fireEvent.click(screen.getByTestId('start-record-btn'));
+
+    await waitFor(() => {
+      expect(mockTrackStop).toHaveBeenCalled();
+      expect(screen.getByText('MIME type not supported by hardware encoder')).toBeInTheDocument();
+      expect(screen.getByTestId('start-record-btn')).toBeInTheDocument();
+    });
+  });
 });

@@ -29,6 +29,26 @@ describe('UrlImportForm Molecule', () => {
     expect(handleSubmit).not.toHaveBeenCalled();
   });
 
+  it('rejects localhost and private IP addresses to prevent SSRF', async () => {
+    const handleSubmit = vi.fn();
+    render(<UrlImportForm onSubmit={handleSubmit} />);
+
+    const urlInput = screen.getByTestId('media-url-input');
+    const submitBtn = screen.getByTestId('submit-url-btn');
+
+    // Test localhost
+    fireEvent.change(urlInput, { target: { value: 'http://localhost:3000/test.mp3' } });
+    fireEvent.click(submitBtn);
+    expect(screen.getByTestId('url-error-alert')).toBeInTheDocument();
+    expect(handleSubmit).not.toHaveBeenCalled();
+
+    // Test private IP
+    fireEvent.change(urlInput, { target: { value: 'http://192.168.1.100/secret.mp3' } });
+    fireEvent.click(submitBtn);
+    expect(screen.getByTestId('url-error-alert')).toBeInTheDocument();
+    expect(handleSubmit).not.toHaveBeenCalled();
+  });
+
   it('submits valid media URL with selected template and language', async () => {
     const handleSubmit = vi.fn();
     render(<UrlImportForm onSubmit={handleSubmit} />);

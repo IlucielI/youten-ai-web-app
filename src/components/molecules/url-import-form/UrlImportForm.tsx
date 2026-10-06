@@ -28,7 +28,15 @@ export interface UrlImportFormProps {
 export function isValidMediaUrl(url: string): boolean {
   try {
     const parsed = new URL(url);
-    return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+    const hostname = parsed.hostname.toLowerCase();
+    const isPrivateHost =
+      hostname === 'localhost' ||
+      hostname === '::1' ||
+      /^127\./.test(hostname) ||
+      /^10\./.test(hostname) ||
+      /^192\.168\./.test(hostname) ||
+      /^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(hostname);
+    return (parsed.protocol === 'http:' || parsed.protocol === 'https:') && !isPrivateHost;
   } catch {
     return false;
   }
