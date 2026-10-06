@@ -6,3 +6,5 @@ export * from './auth.service.interface';
 export * from './auth.service';
 export * from './workspace.service.interface';
 export * from './workspace.service';
+export * from './waitlist.service.interface';
+export * from './waitlist.service';
