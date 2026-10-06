@@ -64,6 +64,7 @@ export default function SettingsPage() {
         if (res && res.data) {
           setUser(res.data);
           setFullName(res.data.full_name || '');
+          setAuthLoading(false);
         } else {
           router.push('/login?redirect=/settings');
         }
@@ -71,11 +72,6 @@ export default function SettingsPage() {
       .catch(() => {
         if (isMounted) {
           router.push('/login?redirect=/settings');
-        }
-      })
-      .finally(() => {
-        if (isMounted) {
-          setAuthLoading(false);
         }
       });
 
@@ -117,7 +113,7 @@ export default function SettingsPage() {
 
       if (res && res.data) {
         const updated = res.data;
-        setUser((prev) => (prev ? { ...prev, full_name: updated.full_name } : prev));
+        setUser((prev) => (prev ? Object.assign({}, prev, { full_name: updated.full_name }) : prev));
         toast.success('Profil berhasil diperbarui!');
       } else {
         toast.error('Gagal memperbarui profil.');
@@ -186,7 +182,7 @@ export default function SettingsPage() {
     }
   };
 
-  if (authLoading) {
+  if (authLoading || !user) {
     return (
       <div
         data-testid="settings-loading"
