@@ -9,6 +9,7 @@ export * from './button';
 export * from './calendar';
 export * from './card';
 export * from './checkbox';
+export * from './citation-badge';
 export * from './collapsible';
 export * from './command';
 export * from './context-menu';

@@ -5,3 +5,4 @@ export * from './audio-player';
 export * from './pipeline-stepper';
 export * from './summary-viewer';
 export * from './regenerate-modal';
+export * from './chat-panel';
