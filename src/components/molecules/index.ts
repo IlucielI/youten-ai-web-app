@@ -19,3 +19,4 @@ export * from './export-menu';
 export * from './share-dialog';
 export * from './recording-card';
 export * from './search-result-card';
+export * from './speaker-card';
