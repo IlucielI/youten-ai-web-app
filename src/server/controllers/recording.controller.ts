@@ -9,6 +9,7 @@ import {
   ShareToggleRequestSchema,
   UpdateSpeakersRequestSchema,
   BulkClaimRequestSchema,
+  RecordingFilterQuerySchema,
 } from '../schemas/recording.schema';
 import { ILogger } from '../logger/logger.interface';
 
@@ -18,6 +19,13 @@ export class RecordingController extends BaseController {
     logger?: ILogger
   ) {
     super(logger);
+  }
+
+  async list(req: Request): Promise<NextResponse> {
+    return this.handle(req, async () => {
+      const query = this.getQuery(req, RecordingFilterQuerySchema);
+      return this.recordingService.listRecordings(query);
+    });
   }
 
   async presign(req: Request): Promise<NextResponse> {
@@ -52,6 +60,12 @@ export class RecordingController extends BaseController {
   async getDetail(req: Request, id: string): Promise<NextResponse> {
     return this.handle(req, async () => {
       return this.recordingService.getRecordingDetail(id);
+    });
+  }
+
+  async delete(req: Request, id: string): Promise<NextResponse> {
+    return this.handle(req, async () => {
+      return this.recordingService.deleteRecording(id);
     });
   }
 
