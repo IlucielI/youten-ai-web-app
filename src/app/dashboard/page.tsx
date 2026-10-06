@@ -227,7 +227,7 @@ export default function DashboardPage() {
       await apiFetch('/api/auth/logout', { method: 'POST' });
       router.push('/login');
     } catch {
-      router.push('/login');
+      toast.error('Gagal keluar dari sesi. Silakan coba kembali.');
     }
   };
 

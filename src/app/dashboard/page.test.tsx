@@ -361,4 +361,97 @@ describe('DashboardPage', () => {
     expect(await screen.findByText('Weekly Standup Engineering')).toBeInTheDocument();
     expect(screen.queryByText('Gagal Memuat Data')).not.toBeInTheDocument();
   });
+
+  it('redirects to /login on successful logout', async () => {
+    vi.spyOn(apiClient, 'apiFetch').mockImplementation(async (url: string) => {
+      if (url === '/api/auth/me') {
+        const res: ApiResponse<UserProfileResponse> = {
+          status: 'success',
+          code: 'SUCCESS',
+          message: 'OK',
+          data: mockUser,
+          timestamp: new Date().toISOString(),
+        };
+        return res as unknown as ApiResponse<never>;
+      }
+      if (url === '/api/auth/logout') {
+        const res: ApiResponse<{ success: boolean }> = {
+          status: 'success',
+          code: 'SUCCESS',
+          message: 'Logout successful',
+          data: { success: true },
+          timestamp: new Date().toISOString(),
+        };
+        return res as unknown as ApiResponse<never>;
+      }
+      const res: PaginatedResponse<RecordingListItemDTO> = {
+        status: 'success',
+        code: 'SUCCESS',
+        message: 'OK',
+        data: [],
+        pagination: {
+          page: 1,
+          limit: 12,
+          totalItems: 0,
+          totalPages: 0,
+          hasNextPage: false,
+          hasPrevPage: false,
+        },
+        timestamp: new Date().toISOString(),
+      };
+      return res as unknown as ApiResponse<never>;
+    });
+
+    render(<DashboardPage />);
+    const logoutBtn = await screen.findByRole('button', { name: /keluar/i });
+    fireEvent.click(logoutBtn);
+
+    await waitFor(() => {
+      expect(mockPush).toHaveBeenCalledWith('/login');
+    });
+  });
+
+  it('shows error toast and stays on page when logout fails', async () => {
+    vi.spyOn(apiClient, 'apiFetch').mockImplementation(async (url: string) => {
+      if (url === '/api/auth/me') {
+        const res: ApiResponse<UserProfileResponse> = {
+          status: 'success',
+          code: 'SUCCESS',
+          message: 'OK',
+          data: mockUser,
+          timestamp: new Date().toISOString(),
+        };
+        return res as unknown as ApiResponse<never>;
+      }
+      if (url === '/api/auth/logout') {
+        throw new Error('Network error');
+      }
+      const res: PaginatedResponse<RecordingListItemDTO> = {
+        status: 'success',
+        code: 'SUCCESS',
+        message: 'OK',
+        data: [],
+        pagination: {
+          page: 1,
+          limit: 12,
+          totalItems: 0,
+          totalPages: 0,
+          hasNextPage: false,
+          hasPrevPage: false,
+        },
+        timestamp: new Date().toISOString(),
+      };
+      return res as unknown as ApiResponse<never>;
+    });
+
+    render(<DashboardPage />);
+    const logoutBtn = await screen.findByRole('button', { name: /keluar/i });
+    fireEvent.click(logoutBtn);
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith('Gagal keluar dari sesi. Silakan coba kembali.');
+    });
+    expect(mockPush).not.toHaveBeenCalledWith('/login');
+  });
 });
+
