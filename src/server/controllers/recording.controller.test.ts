@@ -61,6 +61,7 @@ describe('RecordingController', () => {
     claimBulk: vi.fn(),
     listRecordings: vi.fn(),
     deleteRecording: vi.fn(),
+    regenerateSummary: vi.fn(),
   };
 
   const controller = new RecordingController(mockService);

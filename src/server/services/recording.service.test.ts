@@ -61,6 +61,7 @@ describe('RecordingService', () => {
     getSharedRecording: vi.fn(),
     retryRecording: vi.fn(),
     updateSpeakers: vi.fn(),
+    regenerateSummary: vi.fn(),
   };
 
   const service = new RecordingService(mockRepo);

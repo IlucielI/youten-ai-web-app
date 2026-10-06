@@ -37,7 +37,7 @@ import { AudioPlayer } from '@/components/organisms/audio-player';
 import { ChatPanel } from '@/components/organisms/chat-panel';
 import { ShareDialog } from '@/components/molecules/share-dialog';
 import { ExportMenu } from '@/components/molecules/export-menu';
-import { formatTime } from '@/lib/time';
+import { formatTime, parseTimestamp } from '@/lib/time';
 import { cn } from '@/lib/utils';
 import { RecordingStatus } from '@/server/constants';
 import { TemplateKey } from '@/server/constants/template.constant';
@@ -53,6 +53,7 @@ import type { SummaryVersionResponse } from '@/server/dtos/summary.dto';
 import type { TranscriptSegmentDTO } from '@/server/dtos/recording.dto';
 import type { CommentResponse, CreateCommentRequest } from '@/server/dtos/comment.dto';
 import type { RecordingAnalyticsDTO } from '@/server/dtos/analytics.dto';
+import type { MeetingSourceCitationDTO } from '@/server/dtos/workspace.dto';
 
 export default function RecordingDetailPage() {
   const params = useParams();
@@ -106,6 +107,10 @@ export default function RecordingDetailPage() {
   const setAudioUrl = usePlayerStore((state) => state.setAudioUrl);
   const setRecordingIdChat = useChatStore((state) => state.setRecordingId);
   const addUserMessage = useChatStore((state) => state.addUserMessage);
+  const startAssistantStream = useChatStore((state) => state.startAssistantStream);
+  const appendStreamChunk = useChatStore((state) => state.appendStreamChunk);
+  const finalizeAssistantMessage = useChatStore((state) => state.finalizeAssistantMessage);
+  const setChatError = useChatStore((state) => state.setChatError);
 
   const routerRef = useRef(router);
   useEffect(() => {
@@ -306,6 +311,105 @@ export default function RecordingDetailPage() {
       console.error('Failed to regenerate summary:', err);
     } finally {
       setIsRegenerating(false);
+    }
+  };
+
+  /**
+   * Handle sending message in AI Chat panel with real-time SSE streaming.
+   */
+  const handleSendMessage = async (text: string) => {
+    if (!recordingId) return;
+
+    const assistantMsgId = startAssistantStream();
+    let fullContent = '';
+    let rawCitations: string[] = [];
+
+    try {
+      const ownershipToken = useTokenStore.getState().getGuestToken(recordingId);
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+      if (ownershipToken) {
+        headers['x-ownership-token'] = ownershipToken;
+      }
+
+      const res = await fetch(`/api/recordings/${recordingId}/chat`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          message: text,
+          ownership_token: ownershipToken,
+        }),
+      });
+
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        throw new Error(errJson.error || errJson.message || 'Gagal menghubungi asisten AI');
+      }
+
+      if (!res.body) {
+        throw new Error('Respon tidak memiliki data streaming');
+      }
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+
+        for (let i = 0; i < lines.length; i++) {
+          const line = lines[i]?.trim() || '';
+          if (line.startsWith('event:')) {
+            const eventType = line.slice(6).trim();
+            const nextLine = lines[i + 1]?.trim() || '';
+            if (nextLine.startsWith('data:')) {
+              i++;
+              const rawData = nextLine.slice(5).trim();
+              if (!rawData) continue;
+
+              try {
+                const data = JSON.parse(rawData);
+                if (eventType === 'token' && data.token) {
+                  fullContent += data.token;
+                  appendStreamChunk(data.token);
+                } else if (eventType === 'done') {
+                  if (data.content && !fullContent) {
+                    fullContent = data.content;
+                  }
+                  if (Array.isArray(data.citations)) {
+                    rawCitations = data.citations;
+                  }
+                } else if (eventType === 'error') {
+                  throw new Error(data.error || 'Terjadi kesalahan pada respon AI');
+                }
+              } catch (parseErr) {
+                if (eventType === 'error') throw parseErr;
+              }
+            }
+          }
+        }
+      }
+
+      const mappedCitations: MeetingSourceCitationDTO[] = rawCitations.map((c, idx) => ({
+        recording_id: recordingId,
+        recording_title: recording?.title || '',
+        chunk_index: idx,
+        snippet: c,
+        start_time: parseTimestamp(c),
+        end_time: parseTimestamp(c),
+      }));
+
+      finalizeAssistantMessage(assistantMsgId, fullContent, mappedCitations);
+    } catch (err: unknown) {
+      const errMsg = err instanceof Error ? err.message : 'Terjadi kesalahan koneksi AI';
+      setChatError(errMsg);
+      finalizeAssistantMessage(assistantMsgId, fullContent || `Maaf, terjadi kesalahan: ${errMsg}`);
     }
   };
 
@@ -742,7 +846,9 @@ export default function RecordingDetailPage() {
                           }}
                           onAskAI={(seg) => {
                             setIsChatOpen(true);
-                            addUserMessage(`Jelaskan pernyataan berikut: "${seg.text}"`);
+                            const prompt = `Jelaskan pernyataan berikut: "${seg.text}"`;
+                            addUserMessage(prompt);
+                            void handleSendMessage(prompt);
                           }}
                         />
                       );
@@ -797,6 +903,7 @@ export default function RecordingDetailPage() {
                 recordingId={recording.id}
                 isOpen={isChatOpen}
                 onClose={() => setIsChatOpen(false)}
+                onSendMessage={handleSendMessage}
                 onSeekAudio={(timestamp) => seek(timestamp)}
               />
             </aside>
