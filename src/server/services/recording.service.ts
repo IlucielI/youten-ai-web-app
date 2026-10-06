@@ -38,8 +38,8 @@ export class RecordingService implements IRecordingService {
     return this.recordingRepo.importUrl(payload);
   }
 
-  async getRecordingDetail(id: string): Promise<ApiResponse<RecordingDetailResponse>> {
-    return this.recordingRepo.getRecordingDetail(id);
+  async getRecordingDetail(id: string, ownershipToken?: string): Promise<ApiResponse<RecordingDetailResponse>> {
+    return this.recordingRepo.getRecordingDetail(id, ownershipToken);
   }
 
   async listRecordings(query?: RecordingFilterQuery): Promise<PaginatedResponse<RecordingListItem>> {
@@ -50,8 +50,8 @@ export class RecordingService implements IRecordingService {
     return this.recordingRepo.deleteRecording(id);
   }
 
-  async retryRecording(id: string): Promise<ApiResponse<RetryRecordingResponse>> {
-    return this.recordingRepo.retryRecording(id);
+  async retryRecording(id: string, ownershipToken?: string): Promise<ApiResponse<RetryRecordingResponse>> {
+    return this.recordingRepo.retryRecording(id, ownershipToken);
   }
 
   async toggleShare(id: string, payload: ShareToggleRequest): Promise<ApiResponse<ShareToggleResponse>> {

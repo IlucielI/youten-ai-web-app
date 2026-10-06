@@ -22,10 +22,10 @@ export interface IRecordingService {
   presignUpload(payload: PresignUploadRequest): Promise<ApiResponse<PresignUploadResponse>>;
   uploadRecording(payload: UploadRecordingRequest): Promise<ApiResponse<RecordingUploadResponse>>;
   importUrl(payload: ImportUrlRequest): Promise<ApiResponse<RecordingUploadResponse>>;
-  getRecordingDetail(id: string): Promise<ApiResponse<RecordingDetailResponse>>;
+  getRecordingDetail(id: string, ownershipToken?: string): Promise<ApiResponse<RecordingDetailResponse>>;
   listRecordings(query?: RecordingFilterQuery): Promise<PaginatedResponse<RecordingListItem>>;
   deleteRecording(id: string): Promise<BaseResponse>;
-  retryRecording(id: string): Promise<ApiResponse<RetryRecordingResponse>>;
+  retryRecording(id: string, ownershipToken?: string): Promise<ApiResponse<RetryRecordingResponse>>;
   toggleShare(id: string, payload: ShareToggleRequest): Promise<ApiResponse<ShareToggleResponse>>;
   getSharedRecording(token: string): Promise<ApiResponse<SharedRecordingResponse>>;
   updateSpeakers(id: string, payload: UpdateSpeakersRequest): Promise<ApiResponse<UpdateSpeakersResponse>>;

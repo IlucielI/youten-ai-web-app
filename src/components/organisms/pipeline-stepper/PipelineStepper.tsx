@@ -23,6 +23,7 @@ export interface PipelineStepperProps {
   errorMessage?: string | null;
   onRetry?: () => Promise<void> | void;
   className?: string;
+  startedAt?: string | number | Date | null;
 }
 
 interface StepDefinition {
@@ -82,6 +83,7 @@ export const PipelineStepper: React.FC<PipelineStepperProps> = ({
   errorMessage: propErrorMessage,
   onRetry,
   className,
+  startedAt,
 }) => {
   // Connect to Zustand pipeline store
   const storeStatus = usePipelineStore((state) => state.status);
@@ -99,18 +101,30 @@ export const PipelineStepper: React.FC<PipelineStepperProps> = ({
   const isFailed = status === RecordingStatus.FAILED;
   const isCompleted = status === RecordingStatus.COMPLETED;
 
-  // Live timer for elapsed processing duration
-  const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  // Live timer for elapsed processing duration (persistent across refreshes when startedAt is provided)
+  const [mountTime] = useState<number>(() => Date.now());
+  const [tickSeconds, setTickSeconds] = useState<number>(0);
 
   useEffect(() => {
     if (isCompleted || isFailed) return;
 
     const timer = setInterval(() => {
-      setElapsedSeconds((prev) => prev + 1);
+      setTickSeconds((prev) => prev + 1);
     }, 1000);
 
     return () => clearInterval(timer);
   }, [isCompleted, isFailed]);
+
+  const elapsedSeconds = useMemo(() => {
+    if (startedAt) {
+      const baseMs = new Date(startedAt).getTime();
+      if (!isNaN(baseMs)) {
+        const initialElapsed = Math.max(0, Math.floor((mountTime - baseMs) / 1000));
+        return initialElapsed + tickSeconds;
+      }
+    }
+    return tickSeconds;
+  }, [startedAt, mountTime, tickSeconds]);
 
   // Determine current active step index (0 to 3)
   const currentStepIndex = useMemo(() => {

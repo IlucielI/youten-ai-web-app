@@ -59,7 +59,9 @@ export class RecordingController extends BaseController {
 
   async getDetail(req: Request, id: string): Promise<NextResponse> {
     return this.handle(req, async () => {
-      return this.recordingService.getRecordingDetail(id);
+      const url = new URL(req.url);
+      const token = url.searchParams.get('token') || req.headers.get('x-ownership-token') || undefined;
+      return this.recordingService.getRecordingDetail(id, token);
     });
   }
 
@@ -71,7 +73,9 @@ export class RecordingController extends BaseController {
 
   async retry(req: Request, id: string): Promise<NextResponse> {
     return this.handle(req, async () => {
-      return this.recordingService.retryRecording(id);
+      const url = new URL(req.url);
+      const token = url.searchParams.get('token') || req.headers.get('x-ownership-token') || undefined;
+      return this.recordingService.retryRecording(id, token);
     });
   }
 

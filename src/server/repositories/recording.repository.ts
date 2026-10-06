@@ -63,7 +63,7 @@ export class RecordingRepository implements IRecordingRepository {
     return this.http.post<ApiResponse<RecordingUploadResponse>>('/v1/recordings/import-url', payload);
   }
 
-  async getRecordingDetail(id: string): Promise<ApiResponse<RecordingDetailResponse>> {
+  async getRecordingDetail(id: string, ownershipToken?: string): Promise<ApiResponse<RecordingDetailResponse>> {
     if (this.useMock) {
       const data = this.mock.getRecordingDetail(id);
       if (!data) {
@@ -71,7 +71,14 @@ export class RecordingRepository implements IRecordingRepository {
       }
       return this.successResponse(data, 'Recording detail retrieved successfully');
     }
-    return this.http.get<ApiResponse<RecordingDetailResponse>>(`/v1/recordings/${id}`);
+    const headers: Record<string, string> = {};
+    if (ownershipToken) {
+      headers['x-ownership-token'] = ownershipToken;
+    }
+    return this.http.get<ApiResponse<RecordingDetailResponse>>(`/v1/recordings/${id}`, {
+      headers,
+      ownershipToken,
+    });
   }
 
   async listRecordings(query?: RecordingFilterQuery): Promise<PaginatedResponse<RecordingListItem>> {
@@ -153,12 +160,19 @@ export class RecordingRepository implements IRecordingRepository {
     return this.http.get<ApiResponse<SharedRecordingResponse>>(`/v1/recordings/shared/${token}`);
   }
 
-  async retryRecording(id: string): Promise<ApiResponse<RetryRecordingResponse>> {
+  async retryRecording(id: string, ownershipToken?: string): Promise<ApiResponse<RetryRecordingResponse>> {
     if (this.useMock) {
       const data = this.mock.retryRecording(id);
       return this.successResponse(data, 'Pipeline retry initiated');
     }
-    return this.http.post<ApiResponse<RetryRecordingResponse>>(`/v1/recordings/${id}/retry`);
+    const headers: Record<string, string> = {};
+    if (ownershipToken) {
+      headers['x-ownership-token'] = ownershipToken;
+    }
+    return this.http.post<ApiResponse<RetryRecordingResponse>>(`/v1/recordings/${id}/retry`, undefined, {
+      headers,
+      ownershipToken,
+    });
   }
 
   async updateSpeakers(id: string, payload: UpdateSpeakersRequest): Promise<ApiResponse<UpdateSpeakersResponse>> {
