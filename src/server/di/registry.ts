@@ -10,6 +10,7 @@ import {
   waitlistRepository,
   systemRepository,
 } from '../repositories';
+import { recordingService } from '../services/recording.service';
 
 /**
  * Shared Infrastructure & Domain Singletons Registry
@@ -33,3 +34,6 @@ export {
   waitlistRepository,
   systemRepository,
 };
+
+// 4. Domain Services Singletons
+export { recordingService };
