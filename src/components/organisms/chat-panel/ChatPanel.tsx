@@ -17,7 +17,6 @@ import {
   X,
   Loader2,
   AlertCircle,
-  StopCircle,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -68,7 +67,6 @@ function renderMessageContent(content: string, onSeek?: (timestamp: number) => v
 }
 
 export function ChatPanel({
-  recordingId,
   isOpen = true,
   onClose,
   onSendMessage,
