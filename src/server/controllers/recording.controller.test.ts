@@ -137,4 +137,48 @@ describe('RecordingController', () => {
     const res = await controller.importUrl(req);
     expect(res.status).toBe(400);
   });
+
+  it('handles getDetail request and returns recording detail', async () => {
+    mockService.getRecordingDetail = vi.fn().mockResolvedValue({
+      status: ResponseStatus.SUCCESS,
+      code: ResponseCode.SUCCESS,
+      message: 'Detail retrieved',
+      data: { id: 'test-rec-id', title: 'Test Recording', status: 'COMPLETED' },
+      timestamp: new Date().toISOString(),
+    });
+
+    const req = new Request('http://localhost/api/recordings/test-rec-id', {
+      method: 'GET',
+    });
+
+    const res = await controller.getDetail(req, 'test-rec-id');
+    expect(res.status).toBe(200);
+    const json = await res.json();
+    expect(json.data.id).toBe('test-rec-id');
+  });
+
+  it('handles retry request and returns 200 with resumed pipeline status', async () => {
+    mockService.retryRecording = vi.fn().mockResolvedValue({
+      status: ResponseStatus.SUCCESS,
+      code: ResponseCode.SUCCESS,
+      message: 'Retry initiated',
+      data: {
+        id: 'test-rec-id',
+        status: 'TRANSCRIBING',
+        stage: 'transcription',
+        message: 'Resumed',
+        updated_at: new Date().toISOString(),
+      },
+      timestamp: new Date().toISOString(),
+    });
+
+    const req = new Request('http://localhost/api/recordings/test-rec-id/retry', {
+      method: 'POST',
+    });
+
+    const res = await controller.retry(req, 'test-rec-id');
+    expect(res.status).toBe(200);
+    const json = await res.json();
+    expect(json.data.status).toBe('TRANSCRIBING');
+  });
 });
