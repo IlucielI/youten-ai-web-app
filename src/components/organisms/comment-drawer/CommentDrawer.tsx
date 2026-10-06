@@ -190,7 +190,9 @@ export function CommentDrawer({
     const isDeleting = deletingId === comment.id;
     const canDelete =
       Boolean(onDeleteComment) &&
-      (!comment.user_id || !currentUserId || comment.user_id === currentUserId);
+      (comment.user_id
+        ? Boolean(currentUserId && comment.user_id === currentUserId)
+        : !currentUserId);
 
     return (
       <div

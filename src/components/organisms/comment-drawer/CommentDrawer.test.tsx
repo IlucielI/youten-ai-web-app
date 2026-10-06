@@ -152,6 +152,48 @@ describe('CommentDrawer Organism Component', () => {
     });
   });
 
+  it('hides delete button when unauthenticated user views a comment owned by a registered user', () => {
+    const ownedComment: CommentResponse = {
+      id: 'c-owned',
+      author_name: 'Registered Member',
+      timestamp_sec: 10,
+      comment_text: 'Private note',
+      user_id: 'user-registered-123',
+      created_at: new Date().toISOString(),
+    };
+
+    render(
+      <CommentDrawer
+        {...defaultProps}
+        comments={[ownedComment]}
+        currentUserId={undefined}
+      />
+    );
+
+    expect(screen.queryByTestId('delete-comment-c-owned')).not.toBeInTheDocument();
+  });
+
+  it('shows delete button when authenticated user views their own comment', () => {
+    const ownedComment: CommentResponse = {
+      id: 'c-owned',
+      author_name: 'Registered Member',
+      timestamp_sec: 10,
+      comment_text: 'Private note',
+      user_id: 'user-registered-123',
+      created_at: new Date().toISOString(),
+    };
+
+    render(
+      <CommentDrawer
+        {...defaultProps}
+        comments={[ownedComment]}
+        currentUserId="user-registered-123"
+      />
+    );
+
+    expect(screen.getByTestId('delete-comment-c-owned')).toBeInTheDocument();
+  });
+
   it('switches sort order between timeline and recent', () => {
     render(<CommentDrawer {...defaultProps} />);
 
