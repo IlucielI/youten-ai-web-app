@@ -257,6 +257,15 @@ describe('AuthController', () => {
 
   describe('updateProfile', () => {
     it('returns 200 on valid full_name', async () => {
+      const mockUpdatedUser = Object.assign({}, mockUserResponse, { full_name: 'Jane Doe' });
+      (mockService.updateProfile as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+        status: ResponseStatus.SUCCESS,
+        code: ResponseCode.SUCCESS,
+        message: 'Profile updated',
+        data: mockUpdatedUser,
+        timestamp: new Date().toISOString(),
+      });
+
       const req = new Request('http://localhost/api/auth/me', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -266,7 +275,7 @@ describe('AuthController', () => {
       const res = await controller.updateProfile(req);
       expect(res.status).toBe(200);
       const json = await res.json();
-      expect(json.data.full_name).toBe('Test Person');
+      expect(json.data.full_name).toBe('Jane Doe');
       expect(mockService.updateProfile).toHaveBeenCalledWith({ full_name: 'Jane Doe' });
     });
 
@@ -281,6 +290,7 @@ describe('AuthController', () => {
       expect(res.status).toBe(400);
       const json = await res.json();
       expect(json.code).toBe(ResponseCode.BAD_REQUEST);
+      expect(mockService.updateProfile).not.toHaveBeenCalled();
     });
   });
 
@@ -319,6 +329,7 @@ describe('AuthController', () => {
       expect(res.status).toBe(400);
       const json = await res.json();
       expect(json.code).toBe(ResponseCode.BAD_REQUEST);
+      expect(mockService.changePassword).not.toHaveBeenCalled();
     });
   });
 });

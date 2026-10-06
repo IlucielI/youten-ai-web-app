@@ -100,7 +100,7 @@ describe('SettingsPage', () => {
           status: 'SUCCESS',
           code: 'SUCCESS',
           message: 'Profile updated',
-          data: { ...mockUser, full_name: 'Bayu Perkasa' },
+          data: Object.assign({}, mockUser, { full_name: 'Bayu Perkasa' }),
           timestamp: new Date().toISOString(),
         });
       }
