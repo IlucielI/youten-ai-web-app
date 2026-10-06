@@ -8,3 +8,4 @@ export * from './regenerate-modal';
 export * from './chat-panel';
 export * from './upload-dropzone';
 export * from './browser-recorder';
+export * from './comment-drawer';
