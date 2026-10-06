@@ -40,7 +40,11 @@ export async function claimGuestRecordings(): Promise<ClaimResult | null> {
     if (res && res.status === 'success' && res.data) {
       const count = res.data.claimed_count;
       const claimedIds = new Set(res.data.recording_ids ?? []);
-      const shouldClearAll = count === tokens.length;
+      const shouldClearAll =
+        count === guestTokens.length &&
+        guestTokens.every(
+          (t) => typeof t.ownership_token === 'string' && t.ownership_token.trim().length > 0
+        );
 
       if (shouldClearAll) {
         store.clearGuestTokens();

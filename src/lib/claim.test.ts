@@ -111,6 +111,46 @@ describe('claim helper', () => {
       expect(toast.success).toHaveBeenCalledWith('Berhasil menyimpan 1 rekaman tamu ke akun Anda!');
     });
 
+    it('preserves tokens with empty ownership_token when claimed_count equals sent tokens', async () => {
+      useTokenStore.setState({
+        guestTokens: [
+          {
+            id: 'rec-1',
+            ownership_token: 'tok-guest-1',
+            title: 'Guest Meeting 1',
+            created_at: new Date().toISOString(),
+          },
+          {
+            id: 'rec-2',
+            ownership_token: '',
+            title: 'Guest Meeting 2 (no token)',
+            created_at: new Date().toISOString(),
+          },
+        ],
+      });
+
+      vi.spyOn(apiClient, 'apiFetch').mockResolvedValue({
+        status: 'success',
+        code: 'SUCCESS',
+        message: 'Partial recordings claimed',
+        data: {
+          claimed_count: 1,
+          recording_ids: ['rec-1'],
+        },
+        timestamp: new Date().toISOString(),
+      });
+
+      const result = await claimGuestRecordings();
+
+      expect(result).toEqual({
+        claimedCount: 1,
+        recordingIds: ['rec-1'],
+      });
+      const remaining = useTokenStore.getState().guestTokens;
+      expect(remaining).toHaveLength(1);
+      expect(remaining[0].id).toBe('rec-2');
+    });
+
     it('returns null and does not throw on api failure', async () => {
       vi.spyOn(apiClient, 'apiFetch').mockRejectedValue(new Error('Network error'));
 
