@@ -310,28 +310,88 @@ export default function RecordingDetailPage() {
   const handleExport = async (format: ExportFormat) => {
     if (!recording) return;
 
-    // Generate export file and trigger browser download
-    const filename = `${recording.title.replace(/[^a-zA-Z0-9_-]/g, '_')}.${format}`;
-    let content = '';
+    try {
+      let ownershipToken = '';
+      if (typeof window !== 'undefined') {
+        try {
+          const raw = localStorage.getItem('youten_guest_tokens');
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            const tokens = parsed?.state?.guestTokens || [];
+            const item = tokens.find((t: { id: string }) => t.id === recordingId);
+            if (item?.ownership_token) {
+              ownershipToken = item.ownership_token;
+            }
+          }
+        } catch {
+          // Ignore storage parse errors
+        }
+      }
 
-    if (format === ExportFormat.TXT) {
-      content = `# ${recording.title}\n\n${recording.active_summary?.markdown_content || ''}\n\n## Transkrip\n` +
-        (recording.segments || []).map((s) => `[${formatTime(s.start_time)}] ${speakerLabels[s.speaker_label] || s.speaker_name || s.speaker_label}: ${s.text}`).join('\n');
-    } else if (format === ExportFormat.JSON) {
-      content = JSON.stringify(recording, null, 2);
-    } else {
-      content = recording.active_summary?.markdown_content || recording.title;
+      const params = new URLSearchParams({ format });
+      if (ownershipToken) {
+        params.set('token', ownershipToken);
+      }
+
+      const headers: Record<string, string> = {};
+      if (ownershipToken) {
+        headers['x-ownership-token'] = ownershipToken;
+      }
+
+      const res = await fetch(`/api/recordings/${recordingId}/export?${params.toString()}`, {
+        method: 'GET',
+        headers,
+      });
+
+      if (!res.ok) {
+        throw new Error(`Export request failed with status ${res.status}`);
+      }
+
+      const blob = await res.blob();
+      const disposition = res.headers.get('content-disposition');
+      let filename = `${recording.title.replace(/[^a-zA-Z0-9_-]/g, '_')}.${format === ExportFormat.MARKDOWN ? 'md' : format}`;
+      if (disposition && disposition.includes('filename=')) {
+        const match = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+        if (match && match[1]) {
+          filename = match[1].replace(/['"]/g, '');
+        }
+      }
+
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (err: unknown) {
+      console.warn('Backend export failed, falling back to local exporter:', err);
+      // Fallback for offline mode
+      const ext = format === ExportFormat.MARKDOWN ? 'md' : format;
+      const filename = `${recording.title.replace(/[^a-zA-Z0-9_-]/g, '_')}.${ext}`;
+      let content = '';
+
+      if (format === ExportFormat.TXT) {
+        content = `# ${recording.title}\n\n${recording.active_summary?.markdown_content || ''}\n\n## Transkrip\n` +
+          (recording.segments || []).map((s) => `[${formatTime(s.start_time)}] ${speakerLabels[s.speaker_label] || s.speaker_name || s.speaker_label}: ${s.text}`).join('\n');
+      } else if (format === ExportFormat.JSON) {
+        content = JSON.stringify(recording, null, 2);
+      } else {
+        content = recording.active_summary?.markdown_content || recording.title;
+      }
+
+      const mimeType = format === ExportFormat.JSON ? 'application/json' : 'text/plain;charset=utf-8';
+      const blob = new Blob([content], { type: mimeType });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
     }
-
-    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
   };
 
   /**
