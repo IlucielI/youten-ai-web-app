@@ -66,7 +66,7 @@ export function BrowserRecorder({
     audioChunksRef.current = [];
 
     try {
-      if (typeof navigator === 'undefined' || !navigator.mediaDevices?.getUserMedia) {
+      if (typeof navigator === 'undefined' || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         throw new Error('Perekaman audio tidak didukung oleh browser Anda.');
       }
 

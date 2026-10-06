@@ -33,7 +33,8 @@ export function formatFileSize(bytes: number): string {
   const k = 1024;
   const sizes = ['B', 'KB', 'MB', 'GB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return `${(bytes / Math.pow(k, i)).toFixed(1)} ${sizes[i]}`;
+  const unitIndex = Math.min(Math.max(0, i), sizes.length - 1);
+  return `${(bytes / Math.pow(k, unitIndex)).toFixed(1)} ${sizes[unitIndex]}`;
 }
 
 export function isSupportedExtension(fileName: string): boolean {

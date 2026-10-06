@@ -12,6 +12,7 @@ describe('UploadDropzone Organism', () => {
     expect(formatFileSize(Infinity)).toBe('0 B');
     expect(formatFileSize(1024)).toBe('1.0 KB');
     expect(formatFileSize(1024 * 1024 * 5)).toBe('5.0 MB');
+    expect(formatFileSize(Number.MAX_VALUE)).toContain('GB');
   });
   it('renders dropzone target with supported extensions', () => {
     render(<UploadDropzone />);
