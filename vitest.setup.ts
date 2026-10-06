@@ -1,4 +1,5 @@
 import { vi } from 'vitest';
+import '@testing-library/jest-dom/vitest';
 
 // Polyfill ResizeObserver for Radix UI primitives in JSDOM
 if (typeof window !== 'undefined') {
