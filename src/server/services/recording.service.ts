@@ -14,6 +14,8 @@ import {
   SharedRecordingResponse,
   UpdateSpeakersRequest,
   UpdateSpeakersResponse,
+  BulkClaimRequest,
+  BulkClaimResponse,
 } from '../dtos';
 import { ApiResponse } from '../dtos/response.dto';
 
@@ -52,6 +54,14 @@ export class RecordingService implements IRecordingService {
 
   async updateSpeakers(id: string, payload: UpdateSpeakersRequest): Promise<ApiResponse<UpdateSpeakersResponse>> {
     return this.recordingRepo.updateSpeakers(id, payload);
+  }
+
+  async claimRecording(id: string): Promise<ApiResponse<{ claimed: boolean }>> {
+    return this.recordingRepo.claimRecording(id);
+  }
+
+  async claimBulk(payload: BulkClaimRequest): Promise<ApiResponse<BulkClaimResponse>> {
+    return this.recordingRepo.claimBulk(payload);
   }
 }
 

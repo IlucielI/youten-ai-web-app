@@ -57,6 +57,8 @@ describe('RecordingController', () => {
     toggleShare: vi.fn(),
     getSharedRecording: vi.fn(),
     updateSpeakers: vi.fn(),
+    claimRecording: vi.fn(),
+    claimBulk: vi.fn(),
   };
 
   const controller = new RecordingController(mockService);
@@ -259,5 +261,43 @@ describe('RecordingController', () => {
     const json = await res.json();
     expect(json.data.id).toBe('rec-shared-123');
     expect(json.data.title).toBe('Shared Team Sync');
+  });
+
+  it('handles claim single recording request', async () => {
+    mockService.claimRecording = vi.fn().mockResolvedValue({
+      status: ResponseStatus.SUCCESS,
+      code: ResponseCode.SUCCESS,
+      message: 'Claim success',
+      data: { claimed: true },
+      timestamp: new Date().toISOString(),
+    });
+
+    const req = new Request('http://localhost/api/recordings/rec-123/claim', {
+      method: 'POST',
+    });
+    const res = await controller.claim(req, 'rec-123');
+    expect(res.status).toBe(200);
+    const json = await res.json();
+    expect(json.data.claimed).toBe(true);
+  });
+
+  it('handles claimBulk request and returns claimed summary', async () => {
+    mockService.claimBulk = vi.fn().mockResolvedValue({
+      status: ResponseStatus.SUCCESS,
+      code: ResponseCode.SUCCESS,
+      message: 'Bulk claim success',
+      data: { claimed_count: 2, recording_ids: ['rec-1', 'rec-2'] },
+      timestamp: new Date().toISOString(),
+    });
+
+    const req = new Request('http://localhost/api/recordings/claim', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tokens: ['tok-guest-1', 'tok-guest-2'] }),
+    });
+    const res = await controller.claimBulk(req);
+    expect(res.status).toBe(200);
+    const json = await res.json();
+    expect(json.data.claimed_count).toBe(2);
   });
 });

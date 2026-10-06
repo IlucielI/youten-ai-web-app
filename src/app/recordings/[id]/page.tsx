@@ -45,6 +45,7 @@ import { ExportFormat } from '@/server/constants/recording.constant';
 import { usePlayerStore } from '@/stores/player.store';
 import { useChatStore } from '@/stores/chat.store';
 import { apiFetch } from '@/lib/api-client';
+import { claimSingleRecording } from '@/lib/claim';
 import { ApiResponse } from '@/server/dtos/response.dto';
 import { RecordingDetailDto } from '@/server/schemas/recording.schema';
 import type { TranscriptSegmentDTO } from '@/server/dtos/recording.dto';
@@ -87,6 +88,10 @@ export default function RecordingDetailPage() {
   // AI Chat Panel Collapse State
   const [isChatOpen, setIsChatOpen] = useState<boolean>(false);
 
+  // Claim state
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+  const [isClaiming, setIsClaiming] = useState<boolean>(false);
+
   // Comment Drawer State
   const [isCommentDrawerOpen, setIsCommentDrawerOpen] = useState<boolean>(false);
   const [selectedCommentSegment, setSelectedCommentSegment] = useState<TranscriptSegmentDTO | null>(null);
@@ -103,6 +108,32 @@ export default function RecordingDetailPage() {
   useEffect(() => {
     routerRef.current = router;
   });
+
+  useEffect(() => {
+    if (!recording?.is_guest) return;
+    apiFetch<ApiResponse<unknown>>('/api/auth/me')
+      .then((res) => {
+        if (res && (res.status === 'success' || (res.status as string) === 'SUCCESS')) {
+          setIsLoggedIn(true);
+        }
+      })
+      .catch(() => {
+        setIsLoggedIn(false);
+      });
+  }, [recording?.is_guest]);
+
+  const handleManualClaim = async () => {
+    if (!recording) return;
+    setIsClaiming(true);
+    try {
+      const success = await claimSingleRecording(recording.id);
+      if (success) {
+        setRecording((prev) => (prev ? { ...prev, is_guest: false } : prev));
+      }
+    } finally {
+      setIsClaiming(false);
+    }
+  };
 
   /**
    * Fetch initial recording data.
@@ -484,15 +515,28 @@ export default function RecordingDetailPage() {
                 <strong>Rekaman Sementara:</strong> Rekaman ini disimpan lokal di browser. Buat akun atau masuk untuk menyimpan rekaman secara permanen.
               </span>
             </div>
-            <Button
-              size="sm"
-              variant="outline"
-              asChild
-              data-testid="claim-account-btn"
-              className="text-xs h-7 px-3 shrink-0 border-amber-500/30 hover:bg-amber-500/15"
-            >
-              <Link href={`/login?claim=${recording.id}`}>Klaim ke Akun</Link>
-            </Button>
+            {isLoggedIn ? (
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={isClaiming}
+                onClick={handleManualClaim}
+                data-testid="claim-account-btn"
+                className="text-xs h-7 px-3 shrink-0 border-amber-500/30 hover:bg-amber-500/15"
+              >
+                {isClaiming ? 'Mengklaim...' : 'Klaim ke Akun'}
+              </Button>
+            ) : (
+              <Button
+                size="sm"
+                variant="outline"
+                asChild
+                data-testid="claim-account-btn"
+                className="text-xs h-7 px-3 shrink-0 border-amber-500/30 hover:bg-amber-500/15"
+              >
+                <Link href={`/login?claim=${recording.id}`}>Klaim ke Akun</Link>
+              </Button>
+            )}
           </div>
         </div>
       )}

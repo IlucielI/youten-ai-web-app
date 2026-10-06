@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { Suspense, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Eye, EyeOff, Loader2, LogIn } from 'lucide-react';
 import {
   Card,
@@ -19,9 +19,13 @@ import { Alert, AlertDescription } from '@/components/atoms/alert';
 import { apiFetch } from '@/lib/api-client';
 import { ApiResponse } from '@/server/dtos/response.dto';
 import { AuthResponse } from '@/server/dtos/auth.dto';
+import { claimGuestRecordings, claimSingleRecording } from '@/lib/claim';
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const claimId = searchParams.get('claim');
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -49,7 +53,16 @@ export default function LoginPage() {
       });
 
       if (response && response.status === 'success') {
-        router.push('/');
+        // Auto-claim any guest recordings stored in localStorage
+        await claimGuestRecordings();
+
+        // If specific recording was requested via ?claim=<id>, claim it and navigate there
+        if (claimId) {
+          await claimSingleRecording(claimId);
+          router.push(`/recordings/${claimId}`);
+        } else {
+          router.push('/');
+        }
       } else {
         setErrorMessage(response?.message || 'Gagal masuk. Periksa kembali email dan kata sandi Anda.');
       }
@@ -83,14 +96,15 @@ export default function LoginPage() {
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="login-email">Email</Label>
+            <Label htmlFor="login-email" className="text-xs font-semibold">
+              Alamat Email
+            </Label>
             <Input
               id="login-email"
               type="email"
-              placeholder="nama@perusahaan.com"
+              placeholder="nama@email.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              disabled={isLoading}
               required
               autoComplete="email"
               data-testid="login-email-input"
@@ -99,10 +113,12 @@ export default function LoginPage() {
 
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <Label htmlFor="login-password">Kata Sandi</Label>
+              <Label htmlFor="login-password" className="text-xs font-semibold">
+                Kata Sandi
+              </Label>
               <Link
                 href="/forgot-password"
-                className="text-xs text-primary hover:underline font-medium"
+                className="text-xs text-primary font-medium hover:underline"
                 data-testid="forgot-password-link"
               >
                 Lupa kata sandi?
@@ -112,10 +128,9 @@ export default function LoginPage() {
               <Input
                 id="login-password"
                 type={showPassword ? 'text' : 'password'}
-                placeholder="Masukkan kata sandi"
+                placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                disabled={isLoading}
                 required
                 autoComplete="current-password"
                 className="pr-10"
@@ -157,7 +172,7 @@ export default function LoginPage() {
           <p className="text-center text-xs text-muted-foreground">
             Belum memiliki akun?{' '}
             <Link
-              href="/register"
+              href={claimId ? `/register?claim=${claimId}` : '/register'}
               className="text-primary font-semibold hover:underline"
               data-testid="to-register-link"
             >
@@ -167,5 +182,21 @@ export default function LoginPage() {
         </CardFooter>
       </form>
     </Card>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <Card className="border-border/70 shadow-lg bg-card/90 backdrop-blur-sm p-6" data-testid="login-card-loading">
+          <div className="h-40 flex items-center justify-center">
+            <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+          </div>
+        </Card>
+      }
+    >
+      <LoginForm />
+    </Suspense>
   );
 }
