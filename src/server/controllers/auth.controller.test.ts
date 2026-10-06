@@ -79,6 +79,19 @@ describe('AuthController', () => {
         }),
         timestamp: new Date().toISOString(),
       }),
+      updateProfile: vi.fn().mockResolvedValue({
+        status: ResponseStatus.SUCCESS,
+        code: ResponseCode.SUCCESS,
+        message: 'Profile updated',
+        data: mockUserResponse,
+        timestamp: new Date().toISOString(),
+      }),
+      changePassword: vi.fn().mockResolvedValue({
+        status: ResponseStatus.SUCCESS,
+        code: ResponseCode.SUCCESS,
+        message: 'Password changed successfully',
+        timestamp: new Date().toISOString(),
+      }),
     };
 
     controller = new AuthController(mockService);
@@ -241,4 +254,83 @@ describe('AuthController', () => {
       expect(res.status).toBe(400);
     });
   });
+
+  describe('updateProfile', () => {
+    it('returns 200 on valid full_name', async () => {
+      const mockUpdatedUser = Object.assign({}, mockUserResponse, { full_name: 'Jane Doe' });
+      (mockService.updateProfile as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+        status: ResponseStatus.SUCCESS,
+        code: ResponseCode.SUCCESS,
+        message: 'Profile updated',
+        data: mockUpdatedUser,
+        timestamp: new Date().toISOString(),
+      });
+
+      const req = new Request('http://localhost/api/auth/me', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ full_name: 'Jane Doe' }),
+      });
+
+      const res = await controller.updateProfile(req);
+      expect(res.status).toBe(200);
+      const json = await res.json();
+      expect(json.data.full_name).toBe('Jane Doe');
+      expect(mockService.updateProfile).toHaveBeenCalledWith({ full_name: 'Jane Doe' });
+    });
+
+    it('returns 400 on invalid full_name', async () => {
+      const req = new Request('http://localhost/api/auth/me', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ full_name: 'x' }),
+      });
+
+      const res = await controller.updateProfile(req);
+      expect(res.status).toBe(400);
+      const json = await res.json();
+      expect(json.code).toBe(ResponseCode.BAD_REQUEST);
+      expect(mockService.updateProfile).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('changePassword', () => {
+    it('returns 200 on valid passwords', async () => {
+      const req = new Request('http://localhost/api/auth/change-password', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          old_password: 'OldPassword123',
+          new_password: 'NewPassword456',
+        }),
+      });
+
+      const res = await controller.changePassword(req);
+      expect(res.status).toBe(200);
+      const json = await res.json();
+      expect(json.message).toBe('Password changed successfully');
+      expect(mockService.changePassword).toHaveBeenCalledWith({
+        old_password: 'OldPassword123',
+        new_password: 'NewPassword456',
+      });
+    });
+
+    it('returns 400 when new_password is the same as old_password', async () => {
+      const req = new Request('http://localhost/api/auth/change-password', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          old_password: 'SamePassword123',
+          new_password: 'SamePassword123',
+        }),
+      });
+
+      const res = await controller.changePassword(req);
+      expect(res.status).toBe(400);
+      const json = await res.json();
+      expect(json.code).toBe(ResponseCode.BAD_REQUEST);
+      expect(mockService.changePassword).not.toHaveBeenCalled();
+    });
+  });
 });
+

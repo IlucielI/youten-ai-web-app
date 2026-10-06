@@ -34,6 +34,7 @@ import {
   ArrowUpDown,
   X,
   AlertCircle,
+  User,
 } from 'lucide-react';
 
 type SortOption = 'talk_time' | 'meetings' | 'last_active' | 'name';
@@ -233,6 +234,16 @@ export default function SpeakersPage() {
                 >
                   <Users className="w-3.5 h-3.5" />
                   <span>Direktori Pembicara</span>
+                </Button>
+              </Link>
+              <Link href="/settings">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-slate-600 hover:text-blue-600 hover:bg-slate-100 gap-1.5 h-8 text-xs font-medium"
+                >
+                  <User className="w-3.5 h-3.5" />
+                  <span>Pengaturan</span>
                 </Button>
               </Link>
             </nav>

@@ -6,7 +6,7 @@ import { UserStatus } from '../constants/recording.constant';
 
 describe('AuthService', () => {
   let service: AuthService;
-  let mockRepo: IAuthRepository;
+  let mockRepo: { [K in keyof IAuthRepository]: ReturnType<typeof vi.fn> };
 
   const mockUserResponse = {
     id: 'user-123',
@@ -82,7 +82,7 @@ describe('AuthService', () => {
       changePassword: vi.fn(),
     };
 
-    service = new AuthService(mockRepo);
+    service = new AuthService(mockRepo as unknown as IAuthRepository);
   });
 
   it('delegates register to repository', async () => {
@@ -138,5 +138,36 @@ describe('AuthService', () => {
     const res = await service.getMe();
     expect(mockRepo.getMe).toHaveBeenCalled();
     expect(res.data?.email).toBe('test@example.com');
+  });
+
+  it('delegates updateProfile to repository', async () => {
+    const payload = { full_name: 'Updated Name' };
+    const expectedResponse = {
+      status: ResponseStatus.SUCCESS,
+      code: ResponseCode.SUCCESS,
+      message: 'Profile updated',
+      data: Object.assign({}, mockUserResponse, { full_name: 'Updated Name' }),
+      timestamp: new Date().toISOString(),
+    };
+    mockRepo.updateProfile.mockResolvedValue(expectedResponse);
+
+    const res = await service.updateProfile(payload);
+    expect(mockRepo.updateProfile).toHaveBeenCalledWith(payload);
+    expect(res.data?.full_name).toBe('Updated Name');
+  });
+
+  it('delegates changePassword to repository', async () => {
+    const payload = { old_password: 'OldPassword1', new_password: 'NewPassword2' };
+    const expectedResponse = {
+      status: ResponseStatus.SUCCESS,
+      code: ResponseCode.SUCCESS,
+      message: 'Password changed successfully',
+      timestamp: new Date().toISOString(),
+    };
+    mockRepo.changePassword.mockResolvedValue(expectedResponse);
+
+    const res = await service.changePassword(payload);
+    expect(mockRepo.changePassword).toHaveBeenCalledWith(payload);
+    expect(res.message).toBe('Password changed successfully');
   });
 });

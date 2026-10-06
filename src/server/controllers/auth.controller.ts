@@ -7,6 +7,8 @@ import {
   LoginRequestSchema,
   ForgotPasswordRequestSchema,
   ResetPasswordRequestSchema,
+  UpdateProfileRequestSchema,
+  ChangePasswordRequestSchema,
 } from '../schemas/auth.schema';
 import {
   AUTH_COOKIE_NAME,
@@ -112,6 +114,20 @@ export class AuthController extends BaseController {
   async getMe(req: Request): Promise<NextResponse> {
     return this.handle(req, async () => {
       return this.authService.getMe();
+    });
+  }
+
+  async updateProfile(req: Request): Promise<NextResponse> {
+    return this.handle(req, async () => {
+      const body = await this.getBody(req, UpdateProfileRequestSchema);
+      return this.authService.updateProfile(body);
+    });
+  }
+
+  async changePassword(req: Request): Promise<NextResponse> {
+    return this.handle(req, async () => {
+      const body = await this.getBody(req, ChangePasswordRequestSchema);
+      return this.authService.changePassword(body);
     });
   }
 
