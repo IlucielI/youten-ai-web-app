@@ -44,10 +44,12 @@ import { TemplateKey } from '@/server/constants/template.constant';
 import { ExportFormat } from '@/server/constants/recording.constant';
 import { usePlayerStore } from '@/stores/player.store';
 import { useChatStore } from '@/stores/chat.store';
+import { useTokenStore } from '@/stores/token.store';
 import { apiFetch } from '@/lib/api-client';
 import { claimSingleRecording } from '@/lib/claim';
 import { ApiResponse } from '@/server/dtos/response.dto';
 import { RecordingDetailDto } from '@/server/schemas/recording.schema';
+import type { SummaryVersionResponse } from '@/server/dtos/summary.dto';
 import type { TranscriptSegmentDTO } from '@/server/dtos/recording.dto';
 import type { CommentResponse, CreateCommentRequest } from '@/server/dtos/comment.dto';
 import type { RecordingAnalyticsDTO } from '@/server/dtos/analytics.dto';
@@ -75,6 +77,7 @@ export default function RecordingDetailPage() {
   const [summaryVersions, setSummaryVersions] = useState<SummaryVersionItem[]>([]);
   const [selectedVersionId, setSelectedVersionId] = useState<string>('');
   const [isRegenerateOpen, setIsRegenerateOpen] = useState<boolean>(false);
+  const [isRegenerating, setIsRegenerating] = useState<boolean>(false);
   const [activeSummaryData, setActiveSummaryData] = useState<SummaryData | null>(null);
 
   // Share Dialog State
@@ -249,34 +252,60 @@ export default function RecordingDetailPage() {
     if (!recordingId) return;
 
     try {
-      const nextVerNum = summaryVersions.length + 1;
-      const newVerId = `ver-${nextVerNum}`;
+      setIsRegenerating(true);
+      const ownershipToken = useTokenStore.getState().getGuestToken(recordingId);
 
-      const newVersionItem: SummaryVersionItem = {
-        id: newVerId,
-        version: nextVerNum,
-        template_category: payload.templateCategory,
-        is_active: true,
-        created_at: new Date().toISOString(),
-      };
+      const headers: Record<string, string> = {};
+      if (ownershipToken) {
+        headers['x-ownership-token'] = ownershipToken;
+      }
 
-      setSummaryVersions((prev) => [...prev, newVersionItem]);
-      setSelectedVersionId(newVerId);
+      const res = await apiFetch<ApiResponse<SummaryVersionResponse>>(
+        `/api/recordings/${recordingId}/regenerate`,
+        {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({
+            template_category: payload.templateCategory,
+            custom_angle: payload.customAngle,
+            ownership_token: ownershipToken,
+          }),
+        }
+      );
 
-      setActiveSummaryData({
-        id: newVerId,
-        version: nextVerNum,
-        template_category: payload.templateCategory,
-        custom_angle: payload.customAngle,
-        structured_data: recording?.active_summary?.structured_data || null,
-        markdown_content: recording?.active_summary?.markdown_content,
-        is_active: true,
-        created_at: new Date().toISOString(),
-      });
+      if (res.data) {
+        const regenerated = res.data;
+        const newVersionItem: SummaryVersionItem = {
+          id: regenerated.id,
+          version: regenerated.version,
+          template_category: regenerated.template_category as TemplateKey,
+          is_active: true,
+          created_at: regenerated.created_at,
+        };
+
+        setSummaryVersions((prev) => [
+          ...prev.map((v) => ({ ...v, is_active: false })),
+          newVersionItem,
+        ]);
+        setSelectedVersionId(regenerated.id);
+
+        setActiveSummaryData({
+          id: regenerated.id,
+          version: regenerated.version,
+          template_category: regenerated.template_category as TemplateKey,
+          custom_angle: regenerated.custom_angle,
+          structured_data: regenerated.structured_data,
+          markdown_content: regenerated.markdown_content,
+          is_active: true,
+          created_at: regenerated.created_at,
+        });
+      }
 
       setIsRegenerateOpen(false);
     } catch (err: unknown) {
       console.error('Failed to regenerate summary:', err);
+    } finally {
+      setIsRegenerating(false);
     }
   };
 
@@ -807,6 +836,7 @@ export default function RecordingDetailPage() {
         }}
         defaultTemplate={recording.selected_template as TemplateKey}
         currentVersionsCount={summaryVersions.length}
+        isLoading={isRegenerating}
       />
 
       {/* Share Dialog */}

@@ -18,6 +18,8 @@ import {
   BulkClaimResponse,
   RecordingListItem,
   RecordingFilterQuery,
+  SummaryVersionResponse,
+  RegenerateSummaryRequest,
 } from '../dtos';
 import { ApiResponse, PaginatedResponse, BaseResponse } from '../dtos/response.dto';
 
@@ -72,6 +74,14 @@ export class RecordingService implements IRecordingService {
 
   async claimBulk(payload: BulkClaimRequest): Promise<ApiResponse<BulkClaimResponse>> {
     return this.recordingRepo.claimBulk(payload);
+  }
+
+  async regenerateSummary(
+    id: string,
+    payload: RegenerateSummaryRequest,
+    ownershipToken?: string
+  ): Promise<ApiResponse<SummaryVersionResponse>> {
+    return this.recordingRepo.regenerateSummary(id, payload, ownershipToken);
   }
 }
 

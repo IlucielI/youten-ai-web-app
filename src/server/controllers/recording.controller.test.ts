@@ -345,4 +345,45 @@ describe('RecordingController', () => {
     expect(res.status).toBe(200);
     expect(mockService.deleteRecording).toHaveBeenCalledWith('rec-123');
   });
+
+  it('handles regenerateSummary request and calls recordingService', async () => {
+    mockService.regenerateSummary = vi.fn().mockResolvedValue({
+      status: ResponseStatus.SUCCESS,
+      code: ResponseCode.SUCCESS,
+      message: 'Summary regenerated',
+      data: {
+        id: 'ver-2',
+        version: 2,
+        template_category: 'MOM',
+        custom_angle: 'Focus on deliverables',
+        structured_data: {},
+        markdown_content: 'New notes',
+        is_active: true,
+        created_at: new Date().toISOString(),
+      },
+      timestamp: new Date().toISOString(),
+    });
+
+    const req = new Request('http://localhost/api/recordings/rec-123/regenerate', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'x-ownership-token': 'token-abc',
+      },
+      body: JSON.stringify({
+        template_category: 'MOM',
+        custom_angle: 'Focus on deliverables',
+      }),
+    });
+
+    const res = await controller.regenerateSummary(req, 'rec-123');
+    expect(res.status).toBe(200);
+    const json = await res.json();
+    expect(json.data.version).toBe(2);
+    expect(mockService.regenerateSummary).toHaveBeenCalledWith(
+      'rec-123',
+      expect.objectContaining({ template_category: 'MOM' }),
+      'token-abc'
+    );
+  });
 });

@@ -11,6 +11,7 @@ import {
   BulkClaimRequestSchema,
   RecordingFilterQuerySchema,
 } from '../schemas/recording.schema';
+import { RegenerateSummaryRequestSchema } from '../schemas/summary.schema';
 import { ILogger } from '../logger/logger.interface';
 
 export class RecordingController extends BaseController {
@@ -109,6 +110,14 @@ export class RecordingController extends BaseController {
     return this.handle(req, async () => {
       const body = await this.getBody(req, BulkClaimRequestSchema);
       return this.recordingService.claimBulk(body);
+    });
+  }
+
+  async regenerateSummary(req: Request, id: string): Promise<NextResponse> {
+    return this.handle(req, async () => {
+      const ownershipToken = req.headers.get('x-ownership-token') || undefined;
+      const body = await this.getBody(req, RegenerateSummaryRequestSchema);
+      return this.recordingService.regenerateSummary(id, body, ownershipToken);
     });
   }
 }

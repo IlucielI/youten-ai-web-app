@@ -15,6 +15,8 @@ import {
   BulkClaimResponse,
   RecordingListItem,
   RecordingFilterQuery,
+  SummaryVersionResponse,
+  RegenerateSummaryRequest,
 } from '../dtos';
 import { ApiResponse, PaginatedResponse, BaseResponse } from '../dtos/response.dto';
 
@@ -31,4 +33,9 @@ export interface IRecordingService {
   updateSpeakers(id: string, payload: UpdateSpeakersRequest): Promise<ApiResponse<UpdateSpeakersResponse>>;
   claimRecording(id: string): Promise<ApiResponse<{ claimed: boolean }>>;
   claimBulk(payload: BulkClaimRequest): Promise<ApiResponse<BulkClaimResponse>>;
+  regenerateSummary(
+    id: string,
+    payload: RegenerateSummaryRequest,
+    ownershipToken?: string
+  ): Promise<ApiResponse<SummaryVersionResponse>>;
 }
