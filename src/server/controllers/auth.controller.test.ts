@@ -73,11 +73,10 @@ describe('AuthController', () => {
         status: ResponseStatus.SUCCESS,
         code: ResponseCode.SUCCESS,
         message: 'Profile retrieved',
-        data: {
-          ...mockUserResponse,
+        data: Object.assign({}, mockUserResponse, {
           quota_used_today: 0,
           quota_remaining: 5,
-        },
+        }),
         timestamp: new Date().toISOString(),
       }),
     };

@@ -72,11 +72,10 @@ describe('AuthService', () => {
         status: ResponseStatus.SUCCESS,
         code: ResponseCode.SUCCESS,
         message: 'Profile retrieved',
-        data: {
-          ...mockUserResponse,
+        data: Object.assign({}, mockUserResponse, {
           quota_used_today: 1,
           quota_remaining: 4,
-        },
+        }),
         timestamp: new Date().toISOString(),
       }),
       updateProfile: vi.fn(),
