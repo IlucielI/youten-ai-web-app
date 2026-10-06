@@ -179,9 +179,9 @@ export const TranscriptSegment: React.FC<TranscriptSegmentProps> = ({
             onClick={handleTimestampClick}
             title={`Putar mulai ${formatTime(segment.start_time)}`}
             aria-label={`Dengarkan segmen mulai ${formatTime(segment.start_time)}`}
-            className="flex items-center gap-1 text-[11px] font-mono font-medium text-muted-foreground hover:text-primary transition-colors cursor-pointer bg-muted/60 hover:bg-primary/10 px-2 py-0.5 rounded-full"
+            className="inline-flex items-center gap-1.5 text-[11px] font-mono font-semibold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 border border-slate-200/90 dark:border-slate-700/90 hover:text-primary hover:bg-primary/10 hover:border-primary/30 transition-all cursor-pointer px-2.5 py-0.5 rounded-full shadow-2xs"
           >
-            <Play className="w-2.5 h-2.5 fill-current" />
+            <Play className="w-2.5 h-2.5 fill-current shrink-0 text-primary" />
             <span>{formatTime(segment.start_time)}</span>
           </button>
         </div>
