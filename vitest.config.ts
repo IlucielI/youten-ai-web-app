@@ -8,6 +8,7 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     pool: 'threads',
+    maxWorkers: 4,
     setupFiles: ['./vitest.setup.ts'],
     testTimeout: 15000,
     env: {

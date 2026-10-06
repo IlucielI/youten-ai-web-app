@@ -73,6 +73,12 @@ export class RecordingController extends BaseController {
       return this.recordingService.updateSpeakers(id, body);
     });
   }
+
+  async getShared(req: Request, token: string): Promise<NextResponse> {
+    return this.handle(req, async () => {
+      return this.recordingService.getSharedRecording(token);
+    });
+  }
 }
 
 /**
