@@ -1,10 +1,18 @@
 import React from 'react';
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { UploadDropzone } from './UploadDropzone';
+import { UploadDropzone, formatFileSize } from './UploadDropzone';
 import { TemplateKey } from '@/server/constants/template.constant';
 
 describe('UploadDropzone Organism', () => {
+  it('formats file sizes safely for valid and edge cases', () => {
+    expect(formatFileSize(0)).toBe('0 B');
+    expect(formatFileSize(-100)).toBe('0 B');
+    expect(formatFileSize(NaN)).toBe('0 B');
+    expect(formatFileSize(Infinity)).toBe('0 B');
+    expect(formatFileSize(1024)).toBe('1.0 KB');
+    expect(formatFileSize(1024 * 1024 * 5)).toBe('5.0 MB');
+  });
   it('renders dropzone target with supported extensions', () => {
     render(<UploadDropzone />);
 
