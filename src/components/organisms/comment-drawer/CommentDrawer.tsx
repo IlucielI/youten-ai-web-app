@@ -38,7 +38,9 @@ function getInitials(name: string): string {
   if (!name.trim()) return 'U';
   const parts = name.trim().split(/\s+/);
   if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-  return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+  const first = parts[0]?.[0] ?? '';
+  const second = parts[1]?.[0] ?? '';
+  return `${first}${second}`.toUpperCase() || 'U';
 }
 
 function formatRelativeTime(dateString: string): string {
@@ -46,6 +48,7 @@ function formatRelativeTime(dateString: string): string {
     const date = new Date(dateString);
     if (isNaN(date.getTime())) return 'baru saja';
     const diffMs = Date.now() - date.getTime();
+    if (diffMs <= 0) return 'baru saja';
     const diffSec = Math.floor(diffMs / 1000);
     if (diffSec < 60) return 'baru saja';
     const diffMin = Math.floor(diffSec / 60);
@@ -74,13 +77,8 @@ export function CommentDrawer({
   className,
 }: CommentDrawerProps) {
   const [sortBy, setSortBy] = useState<'timeline' | 'recent'>('timeline');
-  const [authorName, setAuthorName] = useState(defaultAuthorName);
-  const [prevDefaultAuthor, setPrevDefaultAuthor] = useState(defaultAuthorName);
-
-  if (defaultAuthorName !== prevDefaultAuthor) {
-    setPrevDefaultAuthor(defaultAuthorName);
-    setAuthorName(defaultAuthorName);
-  }
+  const [customAuthorName, setCustomAuthorName] = useState<string | null>(null);
+  const authorName = customAuthorName ?? defaultAuthorName;
   const [newCommentText, setNewCommentText] = useState('');
   const [isSubmittingNew, setIsSubmittingNew] = useState(false);
   const [replyingToId, setReplyingToId] = useState<string | null>(null);
@@ -117,6 +115,7 @@ export function CommentDrawer({
 
   const handleCreateNewComment = async (e?: React.FormEvent) => {
     e?.preventDefault();
+    if (isSubmittingNew) return;
     const text = newCommentText.trim();
     if (!text || !onCreateComment) return;
 
@@ -142,6 +141,7 @@ export function CommentDrawer({
   };
 
   const handleSendReply = async (parentComment: CommentResponse) => {
+    if (isSubmittingReply) return;
     const text = replyText.trim();
     if (!text || !onReplyComment) return;
 
@@ -426,7 +426,7 @@ export function CommentDrawer({
             <Input
               placeholder="Nama Anda"
               value={authorName}
-              onChange={(e) => setAuthorName(e.target.value)}
+              onChange={(e) => setCustomAuthorName(e.target.value)}
               disabled={isSubmittingNew}
               data-testid="drawer-author-input"
               className="h-7 text-xs bg-background/80"

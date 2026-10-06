@@ -40,19 +40,14 @@ export function TextSelectionCommentPopover({
   className,
 }: TextSelectionCommentPopoverProps) {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [authorName, setAuthorName] = useState(defaultAuthorName);
+  const [customAuthorName, setCustomAuthorName] = useState<string | null>(null);
+  const authorName = customAuthorName ?? defaultAuthorName;
   const [commentText, setCommentText] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-
-  const [prevDefaultAuthor, setPrevDefaultAuthor] = useState(defaultAuthorName);
-  if (defaultAuthorName !== prevDefaultAuthor) {
-    setPrevDefaultAuthor(defaultAuthorName);
-    setAuthorName(defaultAuthorName);
-  }
 
   useEffect(() => {
     if (isExpanded) {
@@ -99,6 +94,8 @@ export function TextSelectionCommentPopover({
 
   const handleSubmit = async (e?: React.FormEvent) => {
     e?.preventDefault();
+    if (isSubmitting) return;
+
     const trimmedText = commentText.trim();
     if (!trimmedText) {
       setErrorMessage('Komentar tidak boleh kosong.');
@@ -119,6 +116,7 @@ export function TextSelectionCommentPopover({
         author_name: trimmedAuthor,
       });
       setCommentText('');
+      setCustomAuthorName(null);
       setIsExpanded(false);
       onClose();
     } catch (err: unknown) {
@@ -204,7 +202,7 @@ export function TextSelectionCommentPopover({
               <Input
                 placeholder="Nama Anda (opsional jika sudah login)"
                 value={authorName}
-                onChange={(e) => setAuthorName(e.target.value)}
+                onChange={(e) => setCustomAuthorName(e.target.value)}
                 disabled={isSubmitting}
                 data-testid="comment-author-input"
                 className="h-8 text-xs bg-background/80"
