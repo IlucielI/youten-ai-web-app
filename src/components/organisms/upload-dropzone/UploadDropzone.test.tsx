@@ -97,4 +97,34 @@ describe('UploadDropzone Organism', () => {
       expect(handleComplete).toHaveBeenCalledWith('rec-123', 'guest-tok-abc');
     });
   });
+
+  it('does not show upload failure when onUploadComplete throws an error', async () => {
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const handleUploadFile = vi.fn().mockResolvedValue({
+      id: 'rec-456',
+      ownershipToken: 'tok-xyz',
+    });
+    const handleComplete = vi.fn().mockImplementation(() => {
+      throw new Error('Callback routing failure');
+    });
+
+    render(
+      <UploadDropzone
+        onUploadFile={handleUploadFile}
+        onUploadComplete={handleComplete}
+      />
+    );
+
+    const file = new File(['data'], 'presentation.mp3', { type: 'audio/mp3' });
+    fireEvent.change(screen.getByTestId('file-input'), { target: { files: [file] } });
+    fireEvent.click(screen.getByTestId('start-upload-btn'));
+
+    await waitFor(() => {
+      expect(handleUploadFile).toHaveBeenCalled();
+      expect(handleComplete).toHaveBeenCalled();
+    });
+
+    expect(screen.queryByText('Callback routing failure')).not.toBeInTheDocument();
+    consoleSpy.mockRestore();
+  });
 });

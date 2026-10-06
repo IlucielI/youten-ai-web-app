@@ -118,6 +118,7 @@ export function UploadDropzone({
   const handleSubmit = async () => {
     if (!selectedFile || isUploading) return;
 
+    let uploadResult: { id: string; ownershipToken?: string } | null = null;
     try {
       setIsUploading(true);
       setUploadProgress(15);
@@ -130,10 +131,7 @@ export function UploadDropzone({
           templateCategory,
         });
         setUploadProgress(100);
-
-        if (onUploadComplete) {
-          onUploadComplete(res.id, res.ownershipToken);
-        }
+        uploadResult = res;
       } else {
         // Fallback simulation
         setUploadProgress(100);
@@ -141,8 +139,17 @@ export function UploadDropzone({
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Gagal mengunggah file rekaman.';
       setErrorMessage(msg);
+      return;
     } finally {
       setIsUploading(false);
+    }
+
+    if (uploadResult && onUploadComplete) {
+      try {
+        onUploadComplete(uploadResult.id, uploadResult.ownershipToken);
+      } catch (err: unknown) {
+        console.error('Error in onUploadComplete callback:', err);
+      }
     }
   };
 
