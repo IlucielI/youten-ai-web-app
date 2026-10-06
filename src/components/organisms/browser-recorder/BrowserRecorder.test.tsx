@@ -140,4 +140,20 @@ describe('BrowserRecorder Organism', () => {
       expect(handleProcess).toHaveBeenCalled();
     });
   });
+
+  it('displays error message when onProcessRecording fails', async () => {
+    const handleProcess = vi.fn().mockRejectedValue(new Error('Network error saat upload'));
+    render(<BrowserRecorder onProcessRecording={handleProcess} />);
+
+    fireEvent.click(screen.getByTestId('start-record-btn'));
+    await waitFor(() => expect(screen.getByTestId('stop-record-btn')).toBeInTheDocument());
+    fireEvent.click(screen.getByTestId('stop-record-btn'));
+    await waitFor(() => expect(screen.getByTestId('process-record-btn')).toBeInTheDocument());
+
+    fireEvent.click(screen.getByTestId('process-record-btn'));
+
+    await waitFor(() => {
+      expect(screen.getByText('Network error saat upload')).toBeInTheDocument();
+    });
+  });
 });

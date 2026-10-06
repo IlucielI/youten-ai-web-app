@@ -143,7 +143,13 @@ export function BrowserRecorder({
 
   const handleProcess = async () => {
     if (!recordedBlob || isProcessing || !onProcessRecording) return;
-    await onProcessRecording(recordedBlob, duration);
+    try {
+      setErrorMessage(null);
+      await onProcessRecording(recordedBlob, duration);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Gagal memproses rekaman audio.';
+      setErrorMessage(msg);
+    }
   };
 
   return (
