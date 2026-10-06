@@ -79,6 +79,26 @@ describe('ShareDialog', () => {
     });
   });
 
+  it('displays error message when clipboard API is unavailable', async () => {
+    Object.assign(navigator, { clipboard: undefined });
+
+    render(
+      <ShareDialog
+        {...defaultProps}
+        isShared={true}
+        shareToken="token-xyz-123"
+      />
+    );
+
+    const copyBtn = screen.getByTestId('copy-share-url-btn');
+    fireEvent.click(copyBtn);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('share-error-message')).toBeInTheDocument();
+      expect(screen.getByText('Fitur papan klip tidak didukung di peramban ini.')).toBeInTheDocument();
+    });
+  });
+
   it('calls onClose when Tutup button is clicked', () => {
     const handleClose = vi.fn();
     render(<ShareDialog {...defaultProps} onClose={handleClose} />);

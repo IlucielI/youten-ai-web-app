@@ -74,10 +74,12 @@ export function ShareDialog({
     if (!shareUrl) return;
 
     try {
-      if (typeof navigator !== 'undefined' && navigator.clipboard) {
+      if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) {
         await navigator.clipboard.writeText(shareUrl);
         setIsCopied(true);
         setTimeout(() => setIsCopied(false), 2000);
+      } else {
+        setErrorMessage('Fitur papan klip tidak didukung di peramban ini.');
       }
     } catch {
       setErrorMessage('Gagal menyalin tautan ke papan klip.');
