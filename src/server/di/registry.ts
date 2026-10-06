@@ -12,6 +12,8 @@ import {
 } from '../repositories';
 import { recordingService } from '../services/recording.service';
 import { authService } from '../services/auth.service';
+import { workspaceService } from '../services/workspace.service';
+import { workspaceController } from '../controllers/workspace.controller';
 
 /**
  * Shared Infrastructure & Domain Singletons Registry
@@ -36,5 +38,6 @@ export {
   systemRepository,
 };
 
-// 4. Domain Services Singletons
-export { recordingService, authService };
+// 4. Domain Services & Controllers Singletons
+export { recordingService, authService, workspaceService, workspaceController };
+
