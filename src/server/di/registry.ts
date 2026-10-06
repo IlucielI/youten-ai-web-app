@@ -11,6 +11,7 @@ import {
   systemRepository,
 } from '../repositories';
 import { recordingService } from '../services/recording.service';
+import { authService } from '../services/auth.service';
 
 /**
  * Shared Infrastructure & Domain Singletons Registry
@@ -36,4 +37,4 @@ export {
 };
 
 // 4. Domain Services Singletons
-export { recordingService };
+export { recordingService, authService };
