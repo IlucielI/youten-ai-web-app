@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useMemo } from 'react';
 import { cn } from '@/lib/utils';
 import { usePlayerStore } from '@/stores/player.store';
 import type { WordResultDTO } from '@/server/dtos/recording.dto';
@@ -43,7 +43,7 @@ export const KaraokeText: React.FC<KaraokeTextProps> = ({
   const shouldAutoScroll =
     autoScroll !== undefined ? autoScroll : storeIsAutoScrollEnabled;
 
-  const wordList = words ?? [];
+  const wordList: WordResultDTO[] = useMemo(() => words ?? [], [words]);
 
   // Auto-scroll when active
   useEffect(() => {
