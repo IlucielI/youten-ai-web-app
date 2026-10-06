@@ -65,6 +65,28 @@ describe('claim helper', () => {
       expect(toast.success).toHaveBeenCalledWith('Berhasil menyimpan 2 rekaman tamu ke akun Anda!');
     });
 
+    it('does not clear guest tokens if claimed_count is 0', async () => {
+      vi.spyOn(apiClient, 'apiFetch').mockResolvedValue({
+        status: 'success',
+        code: 'SUCCESS',
+        message: 'No recordings claimed',
+        data: {
+          claimed_count: 0,
+          recording_ids: [],
+        },
+        timestamp: new Date().toISOString(),
+      });
+
+      const result = await claimGuestRecordings();
+
+      expect(result).toEqual({
+        claimedCount: 0,
+        recordingIds: [],
+      });
+      expect(useTokenStore.getState().guestTokens).toHaveLength(2);
+      expect(toast.success).not.toHaveBeenCalled();
+    });
+
     it('returns null and does not throw on api failure', async () => {
       vi.spyOn(apiClient, 'apiFetch').mockRejectedValue(new Error('Network error'));
 
