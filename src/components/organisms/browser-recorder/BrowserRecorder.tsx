@@ -133,9 +133,10 @@ export function BrowserRecorder({
 
   const handleReset = () => {
     clearTimer();
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
-      mediaRecorderRef.current.onstop = null;
-      mediaRecorderRef.current.stop();
+    const activeRecorder = mediaRecorderRef.current;
+    if (activeRecorder && activeRecorder.state !== 'inactive') {
+      activeRecorder.onstop = null;
+      activeRecorder.stop();
     }
     cleanupStream();
     setRecorderState('idle');
