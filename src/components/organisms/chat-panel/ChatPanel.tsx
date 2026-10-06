@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { useChatStore, ChatMessage } from '@/stores/chat.store';
+import { useChatStore } from '@/stores/chat.store';
 import { usePlayerStore } from '@/stores/player.store';
 import { ChatChips } from '@/components/molecules/chat-chips';
 import { CitationBadge } from '@/components/atoms/citation-badge';
