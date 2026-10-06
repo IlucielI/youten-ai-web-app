@@ -56,6 +56,7 @@ import {
   AlertTriangle,
   FolderOpen,
   Users,
+  User,
 } from 'lucide-react';
 
 const STATUS_OPTIONS = [
@@ -314,6 +315,17 @@ export default function DashboardPage() {
               >
                 <Users className="w-3.5 h-3.5 text-slate-400" />
                 <span>Pembicara</span>
+              </Button>
+            </Link>
+
+            <Link href="/settings">
+              <Button
+                variant="outline"
+                size="sm"
+                className="hidden sm:flex items-center gap-1.5 text-xs text-slate-600 border-slate-200 hover:text-blue-600 hover:border-blue-300"
+              >
+                <User className="w-3.5 h-3.5 text-slate-400" />
+                <span>Pengaturan</span>
               </Button>
             </Link>
 

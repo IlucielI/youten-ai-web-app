@@ -5,8 +5,11 @@ import {
   LogoutRequest,
   ForgotPasswordRequest,
   ResetPasswordRequest,
+  UpdateProfileRequest,
+  ChangePasswordRequest,
   AuthResponse,
   UserProfileResponse,
+  UserResponse,
 } from '../dtos';
 import { ApiResponse, BaseResponse } from '../dtos/response.dto';
 
@@ -18,4 +21,6 @@ export interface IAuthService {
   forgotPassword(payload: ForgotPasswordRequest): Promise<BaseResponse>;
   resetPassword(payload: ResetPasswordRequest): Promise<BaseResponse>;
   getMe(): Promise<ApiResponse<UserProfileResponse>>;
+  updateProfile(payload: UpdateProfileRequest): Promise<ApiResponse<UserResponse>>;
+  changePassword(payload: ChangePasswordRequest): Promise<BaseResponse>;
 }

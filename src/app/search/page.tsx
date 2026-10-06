@@ -344,6 +344,17 @@ export default function SearchPage() {
               </Button>
             </Link>
 
+            <Link href="/settings">
+              <Button
+                variant="outline"
+                size="sm"
+                className="hidden sm:flex items-center gap-1.5 text-xs text-slate-600 border-slate-200 hover:text-blue-600 hover:border-blue-300 h-9"
+              >
+                <User className="w-3.5 h-3.5 text-slate-400" />
+                <span>Pengaturan</span>
+              </Button>
+            </Link>
+
             <UserChip
               name={user?.full_name || 'Pengguna'}
               role={user?.email || 'Akun Terverifikasi'}

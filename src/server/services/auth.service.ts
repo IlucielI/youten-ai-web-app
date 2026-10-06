@@ -8,8 +8,11 @@ import {
   LogoutRequest,
   ForgotPasswordRequest,
   ResetPasswordRequest,
+  UpdateProfileRequest,
+  ChangePasswordRequest,
   AuthResponse,
   UserProfileResponse,
+  UserResponse,
 } from '../dtos';
 import { ApiResponse, BaseResponse } from '../dtos/response.dto';
 
@@ -44,6 +47,14 @@ export class AuthService implements IAuthService {
 
   async getMe(): Promise<ApiResponse<UserProfileResponse>> {
     return this.authRepo.getMe();
+  }
+
+  async updateProfile(payload: UpdateProfileRequest): Promise<ApiResponse<UserResponse>> {
+    return this.authRepo.updateProfile(payload);
+  }
+
+  async changePassword(payload: ChangePasswordRequest): Promise<BaseResponse> {
+    return this.authRepo.changePassword(payload);
   }
 }
 
