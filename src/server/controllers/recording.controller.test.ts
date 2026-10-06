@@ -233,4 +233,31 @@ describe('RecordingController', () => {
     const json = await res.json();
     expect(json.data.updated_count).toBe(2);
   });
+
+  it('handles getShared request and returns shared recording data', async () => {
+    mockService.getSharedRecording = vi.fn().mockResolvedValue({
+      status: ResponseStatus.SUCCESS,
+      code: ResponseCode.SUCCESS,
+      message: 'Shared recording retrieved',
+      data: {
+        id: 'rec-shared-123',
+        title: 'Shared Team Sync',
+        duration_seconds: 120,
+        selected_template: 'GENERAL',
+        output_language: 'id',
+        segments: [],
+        chapters: [],
+        highlights: [],
+        created_at: new Date().toISOString(),
+      },
+      timestamp: new Date().toISOString(),
+    });
+
+    const req = new Request('http://localhost/api/recordings/shared/token-xyz');
+    const res = await controller.getShared(req, 'token-xyz');
+    expect(res.status).toBe(200);
+    const json = await res.json();
+    expect(json.data.id).toBe('rec-shared-123');
+    expect(json.data.title).toBe('Shared Team Sync');
+  });
 });
