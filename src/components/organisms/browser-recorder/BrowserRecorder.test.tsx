@@ -224,4 +224,36 @@ describe('BrowserRecorder Organism', () => {
       expect(screen.getByTestId('start-record-btn')).toBeInTheDocument();
     });
   });
+
+  it('displays fallback error message when thrown Error has an empty message string', async () => {
+    const mockTrackStop = vi.fn();
+    Object.defineProperty(navigator, 'mediaDevices', {
+      value: {
+        getUserMedia: vi.fn().mockResolvedValue({
+          getTracks: vi.fn().mockReturnValue([{ stop: mockTrackStop }]),
+        }),
+      },
+      writable: true,
+      configurable: true,
+    });
+
+    Object.defineProperty(window, 'MediaRecorder', {
+      value: class {
+        static isTypeSupported = vi.fn().mockReturnValue(true);
+        constructor() {
+          throw new Error('   ');
+        }
+      },
+      writable: true,
+      configurable: true,
+    });
+
+    render(<BrowserRecorder />);
+    fireEvent.click(screen.getByTestId('start-record-btn'));
+
+    await waitFor(() => {
+      expect(mockTrackStop).toHaveBeenCalled();
+      expect(screen.getByText('Izin akses mikrofon ditolak atau mikrofon tidak ditemukan.')).toBeInTheDocument();
+    });
+  });
 });
