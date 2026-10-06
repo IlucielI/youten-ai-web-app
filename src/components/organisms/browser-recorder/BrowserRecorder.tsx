@@ -23,6 +23,13 @@ export interface BrowserRecorderProps {
   className?: string;
 }
 
+function extractErrorMessage(error: unknown, fallback: string): string {
+  if (error instanceof Error) {
+    return error.message;
+  }
+  return fallback;
+}
+
 export function BrowserRecorder({
   onProcessRecording,
   isProcessing = false,
@@ -100,10 +107,10 @@ export function BrowserRecorder({
       }, 1000);
     } catch (err: unknown) {
       cleanupStream();
-      const msg =
-        err instanceof Error
-          ? err.message
-          : 'Izin akses mikrofon ditolak atau mikrofon tidak ditemukan.';
+      const msg = extractErrorMessage(
+        err,
+        'Izin akses mikrofon ditolak atau mikrofon tidak ditemukan.'
+      );
       setErrorMessage(msg);
       setRecorderState('idle');
     }
@@ -153,7 +160,7 @@ export function BrowserRecorder({
       setErrorMessage(null);
       await onProcessRecording(recordedBlob, duration);
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Gagal memproses rekaman audio.';
+      const msg = extractErrorMessage(err, 'Gagal memproses rekaman audio.');
       setErrorMessage(msg);
     }
   };
