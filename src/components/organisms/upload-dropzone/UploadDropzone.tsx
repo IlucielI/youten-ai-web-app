@@ -61,7 +61,13 @@ export function UploadDropzone({
   const handleFile = (file: File) => {
     setErrorMessage(null);
 
-    if (!isSupportedExtension(file.name)) {
+    const isSupportedType =
+      !file.type ||
+      file.type.startsWith('audio/') ||
+      file.type.startsWith('video/') ||
+      file.type.startsWith('application/ogg');
+
+    if (!isSupportedExtension(file.name) || !isSupportedType) {
       setErrorMessage(
         `Format file tidak didukung. Harap unggah salah satu format berikut: ${SupportedMediaExtensions.join(', ')}`
       );

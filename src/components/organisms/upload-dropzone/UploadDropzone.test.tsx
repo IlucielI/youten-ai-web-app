@@ -35,6 +35,18 @@ describe('UploadDropzone Organism', () => {
     expect(screen.getByText(/Format file tidak didukung/)).toBeInTheDocument();
   });
 
+  it('rejects files with supported extension but unsupported MIME type', () => {
+    render(<UploadDropzone />);
+
+    const file = new File(['malicious payload'], 'malicious.mp3', { type: 'text/plain' });
+    const fileInput = screen.getByTestId('file-input');
+
+    fireEvent.change(fileInput, { target: { files: [file] } });
+
+    expect(screen.getByTestId('upload-error-alert')).toBeInTheDocument();
+    expect(screen.getByText(/Format file tidak didukung/)).toBeInTheDocument();
+  });
+
   it('accepts valid media file, populates title, and allows changing template', () => {
     render(<UploadDropzone />);
 
