@@ -141,4 +141,27 @@ describe('TextSelectionCommentPopover Molecule Component', () => {
     fireEvent.keyDown(window, { key: 'Escape' });
     expect(handleClose).toHaveBeenCalled();
   });
+
+  it('resets expanded state and closes when clicking outside', () => {
+    const handleClose = vi.fn();
+    const { rerender } = render(
+      <TextSelectionCommentPopover {...defaultProps} onClose={handleClose} />
+    );
+
+    // Expand
+    fireEvent.click(screen.getByTestId('open-comment-form-btn'));
+    expect(screen.getByTestId('comment-text-input')).toBeInTheDocument();
+
+    // Click outside
+    fireEvent.mouseDown(document.body);
+    expect(handleClose).toHaveBeenCalled();
+
+    // Reopen popover
+    rerender(
+      <TextSelectionCommentPopover {...defaultProps} isOpen={true} />
+    );
+    // Should be back to initial trigger button, not expanded form
+    expect(screen.getByTestId('open-comment-form-btn')).toBeInTheDocument();
+    expect(screen.queryByTestId('comment-text-input')).not.toBeInTheDocument();
+  });
 });

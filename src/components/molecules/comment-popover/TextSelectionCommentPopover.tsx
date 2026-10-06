@@ -55,6 +55,13 @@ export function TextSelectionCommentPopover({
     }
   }, [isExpanded]);
 
+  const handleClose = () => {
+    setIsExpanded(false);
+    setCommentText('');
+    setErrorMessage(null);
+    onClose();
+  };
+
   // Click outside to close
   useEffect(() => {
     if (!isOpen) return;
@@ -64,6 +71,9 @@ export function TextSelectionCommentPopover({
         containerRef.current &&
         !containerRef.current.contains(event.target as Node)
       ) {
+        setIsExpanded(false);
+        setCommentText('');
+        setErrorMessage(null);
         onClose();
       }
     };
@@ -80,6 +90,9 @@ export function TextSelectionCommentPopover({
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
+        setIsExpanded(false);
+        setCommentText('');
+        setErrorMessage(null);
         onClose();
       }
     };
@@ -250,7 +263,7 @@ export function TextSelectionCommentPopover({
                 type="button"
                 variant="ghost"
                 size="sm"
-                onClick={onClose}
+                onClick={handleClose}
                 disabled={isSubmitting}
                 className="h-7 px-2.5 text-xs text-muted-foreground hover:text-foreground"
               >
