@@ -99,4 +99,33 @@ describe('ChatPanel Organism', () => {
 
     expect(useChatStore.getState().messages.length).toBe(0);
   });
+
+  it('renders markdown formatting like bold text and timestamp range citations correctly', () => {
+    act(() => {
+      useChatStore.setState({
+        messages: [
+          {
+            id: 'msg-rag-1',
+            role: 'assistant',
+            content: 'Game Boy dibuat di **Jepang**. [01:06 - 01:24]',
+            timestamp: new Date().toISOString(),
+          },
+        ],
+      });
+    });
+
+    render(<ChatPanel isOpen={true} />);
+
+    // Bold text is rendered as strong element
+    const boldEl = screen.getByText('Jepang');
+    expect(boldEl.tagName.toLowerCase()).toBe('strong');
+
+    // Range citation badge is rendered and clickable
+    expect(screen.getByTestId('citation-badge')).toBeInTheDocument();
+    expect(screen.getByText('[01:06 - 01:24]')).toBeInTheDocument();
+
+    // Clicking seeks to start timestamp (01:06 = 66 seconds)
+    fireEvent.click(screen.getByTestId('citation-badge'));
+    expect(usePlayerStore.getState().currentTime).toBe(66);
+  });
 });

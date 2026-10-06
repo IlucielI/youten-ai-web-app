@@ -14,6 +14,7 @@ import { cn } from '@/lib/utils';
 
 export interface CitationBadgeProps {
   timestamp: number;
+  label?: string;
   snippet?: string;
   recordingTitle?: string;
   onClick?: (timestamp: number) => void;
@@ -22,12 +23,14 @@ export interface CitationBadgeProps {
 
 export function CitationBadge({
   timestamp,
+  label,
   snippet,
   recordingTitle,
   onClick,
   className,
 }: CitationBadgeProps) {
   const formattedTime = formatTime(timestamp);
+  const displayLabel = label ?? `[${formattedTime}]`;
 
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -50,10 +53,10 @@ export function CitationBadge({
         className
       )}
       data-testid="citation-badge"
-      aria-label={`Loncat ke waktu ${formattedTime}`}
+      aria-label={`Loncat ke waktu ${displayLabel}`}
     >
       <PlayCircle className="h-3 w-3 shrink-0" />
-      <span>[{formattedTime}]</span>
+      <span>{displayLabel}</span>
     </button>
   );
 
@@ -83,7 +86,7 @@ export function CitationBadge({
               </div>
             )}
             <div className="text-[10px] text-primary/80 font-medium pt-1 border-t border-border/40">
-              Klik untuk memutar dari [{formattedTime}]
+              Klik untuk memutar dari {displayLabel}
             </div>
           </div>
         </TooltipContent>
