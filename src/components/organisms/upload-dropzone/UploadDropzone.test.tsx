@@ -23,6 +23,24 @@ describe('UploadDropzone Organism', () => {
     expect(screen.getByText('.mp4')).toBeInTheDocument();
   });
 
+  it('manages dragOver and dragLeave states properly with child elements', () => {
+    render(<UploadDropzone />);
+
+    const dropArea = screen.getByTestId('drop-target-area');
+
+    fireEvent.dragOver(dropArea);
+    expect(dropArea.className).toContain('border-primary');
+
+    // Drag leave to internal child element (should stay dragOver)
+    const child = dropArea.querySelector('h3')!;
+    fireEvent.dragLeave(dropArea, { relatedTarget: child });
+    expect(dropArea.className).toContain('border-primary');
+
+    // Drag leave completely out of drop area
+    fireEvent.dragLeave(dropArea, { relatedTarget: document.body });
+    expect(dropArea.className).not.toContain('border-primary bg-primary/10');
+  });
+
   it('rejects unsupported file formats with error message', () => {
     render(<UploadDropzone />);
 

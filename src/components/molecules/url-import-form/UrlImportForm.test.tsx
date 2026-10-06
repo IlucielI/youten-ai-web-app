@@ -47,6 +47,12 @@ describe('UrlImportForm Molecule', () => {
     fireEvent.click(submitBtn);
     expect(screen.getByTestId('url-error-alert')).toBeInTheDocument();
     expect(handleSubmit).not.toHaveBeenCalled();
+
+    // Test private IPv6
+    fireEvent.change(urlInput, { target: { value: 'http://[fc00::1]/audio.mp3' } });
+    fireEvent.click(submitBtn);
+    expect(screen.getByTestId('url-error-alert')).toBeInTheDocument();
+    expect(handleSubmit).not.toHaveBeenCalled();
   });
 
   it('submits valid media URL with selected template and language', async () => {

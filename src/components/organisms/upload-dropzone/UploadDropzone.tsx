@@ -103,6 +103,9 @@ export function UploadDropzone({
 
   const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
+    if (e.relatedTarget && e.currentTarget.contains(e.relatedTarget as Node)) {
+      return;
+    }
     setIsDragOver(false);
   };
 

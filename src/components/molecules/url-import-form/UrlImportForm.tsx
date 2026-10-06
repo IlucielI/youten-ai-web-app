@@ -29,13 +29,18 @@ export function isValidMediaUrl(url: string): boolean {
   try {
     const parsed = new URL(url);
     const hostname = parsed.hostname.toLowerCase();
+    const normalizedHostname = hostname.replace(/^\[|\]$/g, '');
     const isPrivateHost =
-      hostname === 'localhost' ||
-      hostname === '::1' ||
-      /^127\./.test(hostname) ||
-      /^10\./.test(hostname) ||
-      /^192\.168\./.test(hostname) ||
-      /^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(hostname);
+      normalizedHostname === 'localhost' ||
+      /^127\./.test(normalizedHostname) ||
+      /^10\./.test(normalizedHostname) ||
+      /^192\.168\./.test(normalizedHostname) ||
+      /^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(normalizedHostname) ||
+      /^::1$/.test(normalizedHostname) ||
+      /^fc00:/i.test(normalizedHostname) ||
+      /^fd00:/i.test(normalizedHostname) ||
+      /^fe80:/i.test(normalizedHostname) ||
+      /^::ffff:(?:127\.|10\.|192\.168\.|172\.(?:1[6-9]|2[0-9]|3[0-1])\.)/i.test(normalizedHostname);
     return (parsed.protocol === 'http:' || parsed.protocol === 'https:') && !isPrivateHost;
   } catch {
     return false;
