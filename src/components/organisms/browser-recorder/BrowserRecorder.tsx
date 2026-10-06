@@ -73,16 +73,31 @@ export function BrowserRecorder({
     audioChunksRef.current = [];
 
     try {
-      if (typeof navigator === 'undefined' || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      if (
+        typeof navigator === 'undefined' ||
+        !navigator.mediaDevices ||
+        !navigator.mediaDevices.getUserMedia ||
+        typeof MediaRecorder === 'undefined'
+      ) {
         throw new Error('Perekaman audio tidak didukung oleh browser Anda.');
       }
 
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
 
-      const mimeType = MediaRecorder.isTypeSupported('audio/webm')
-        ? 'audio/webm'
-        : 'audio/mp4';
+      const supportedMimeTypes = ['audio/webm', 'audio/mp4', 'audio/ogg', 'audio/wav'];
+      const mimeType = supportedMimeTypes.find((type) => {
+        try {
+          return MediaRecorder.isTypeSupported(type);
+        } catch {
+          return false;
+        }
+      });
+
+      if (!mimeType) {
+        cleanupStream();
+        throw new Error('Format perekaman audio tidak didukung oleh browser Anda.');
+      }
 
       const mediaRecorder = new MediaRecorder(stream, { mimeType });
       mediaRecorderRef.current = mediaRecorder;
@@ -134,9 +149,12 @@ export function BrowserRecorder({
   };
 
   const handleStopRecording = () => {
-    if (!mediaRecorderRef.current) return;
+    const recorder = mediaRecorderRef.current;
+    if (!recorder) return;
     clearTimer();
-    mediaRecorderRef.current.stop();
+    if (recorder.state !== 'inactive') {
+      recorder.stop();
+    }
     setRecorderState('stopped');
   };
 

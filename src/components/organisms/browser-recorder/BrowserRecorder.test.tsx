@@ -206,4 +206,22 @@ describe('BrowserRecorder Organism', () => {
       expect(screen.getByTestId('start-record-btn')).toBeInTheDocument();
     });
   });
+
+  it('displays error when no supported recording MIME types are available', async () => {
+    Object.defineProperty(window, 'MediaRecorder', {
+      value: class {
+        static isTypeSupported = vi.fn().mockReturnValue(false);
+      },
+      writable: true,
+      configurable: true,
+    });
+
+    render(<BrowserRecorder />);
+    fireEvent.click(screen.getByTestId('start-record-btn'));
+
+    await waitFor(() => {
+      expect(screen.getByText('Format perekaman audio tidak didukung oleh browser Anda.')).toBeInTheDocument();
+      expect(screen.getByTestId('start-record-btn')).toBeInTheDocument();
+    });
+  });
 });
