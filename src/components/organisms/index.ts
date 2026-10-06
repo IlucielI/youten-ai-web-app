@@ -9,3 +9,6 @@ export * from './chat-panel';
 export * from './upload-dropzone';
 export * from './browser-recorder';
 export * from './comment-drawer';
+export * from './chapters-list';
+export * from './highlights-grid';
+export * from './analytics-cards';
