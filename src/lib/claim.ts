@@ -39,13 +39,18 @@ export async function claimGuestRecordings(): Promise<ClaimResult | null> {
 
     if (res && res.status === 'success' && res.data) {
       const count = res.data.claimed_count;
-      const claimedIds = new Set(res.data.recording_ids || []);
+      const claimedIds = new Set(res.data.recording_ids ?? []);
+      const shouldClearAll = count === tokens.length;
 
-      if (count === tokens.length) {
+      if (shouldClearAll) {
         store.clearGuestTokens();
       } else if (claimedIds.size > 0) {
         const remaining = guestTokens.filter((t) => !claimedIds.has(t.id));
         store.setGuestTokens(remaining);
+      } else if (count > 0) {
+        console.warn(
+          'Claim response missing recording_ids; guest tokens were not mutated to avoid deleting unconfirmed tokens.'
+        );
       }
 
       if (count > 0) {
