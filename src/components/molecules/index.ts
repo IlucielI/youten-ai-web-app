@@ -12,3 +12,4 @@ export * from './speaker-rename-dialog';
 export * from './transcript-search';
 export * from './transcript-segment';
 export * from './summary-version-tabs';
+export * from './chat-chips';
