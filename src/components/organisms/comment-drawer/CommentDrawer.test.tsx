@@ -191,4 +191,16 @@ describe('CommentDrawer Organism Component', () => {
       ).toBeInTheDocument();
     });
   });
+
+  it('updates authorName input when defaultAuthorName prop changes after initial mount', () => {
+    const { rerender } = render(
+      <CommentDrawer {...defaultProps} defaultAuthorName="Initial User" />
+    );
+    expect(screen.getByTestId('drawer-author-input')).toHaveValue('Initial User');
+
+    rerender(
+      <CommentDrawer {...defaultProps} defaultAuthorName="Updated User" />
+    );
+    expect(screen.getByTestId('drawer-author-input')).toHaveValue('Updated User');
+  });
 });

@@ -75,6 +75,12 @@ export function CommentDrawer({
 }: CommentDrawerProps) {
   const [sortBy, setSortBy] = useState<'timeline' | 'recent'>('timeline');
   const [authorName, setAuthorName] = useState(defaultAuthorName);
+  const [prevDefaultAuthor, setPrevDefaultAuthor] = useState(defaultAuthorName);
+
+  if (defaultAuthorName !== prevDefaultAuthor) {
+    setPrevDefaultAuthor(defaultAuthorName);
+    setAuthorName(defaultAuthorName);
+  }
   const [newCommentText, setNewCommentText] = useState('');
   const [isSubmittingNew, setIsSubmittingNew] = useState(false);
   const [replyingToId, setReplyingToId] = useState<string | null>(null);
