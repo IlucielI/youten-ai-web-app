@@ -9,9 +9,13 @@ export interface ISummaryRepository {
     recordingId: string,
     payload: RegenerateSummaryRequest
   ): Promise<ApiResponse<SummaryVersionResponse>>;
-  listSummaryVersions(recordingId: string): Promise<ApiResponse<SummaryVersionResponse[]>>;
+  listSummaryVersions(
+    recordingId: string,
+    ownershipToken?: string
+  ): Promise<ApiResponse<SummaryVersionResponse[]>>;
   activateSummaryVersion(
     recordingId: string,
-    versionId: string
+    versionId: string,
+    ownershipToken?: string
   ): Promise<ApiResponse<SummaryVersionResponse>>;
 }

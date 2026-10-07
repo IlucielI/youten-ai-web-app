@@ -62,6 +62,8 @@ describe('RecordingController', () => {
     listRecordings: vi.fn(),
     deleteRecording: vi.fn(),
     regenerateSummary: vi.fn(),
+    listSummaryVersions: vi.fn(),
+    activateSummaryVersion: vi.fn(),
     updateTranscriptSegment: vi.fn(),
   };
 
@@ -429,5 +431,67 @@ describe('RecordingController', () => {
         ownership_token: 'token-abc',
       })
     );
+  });
+
+  it('handles listSummaries request and returns summary versions', async () => {
+    mockService.listSummaryVersions = vi.fn().mockResolvedValue({
+      status: ResponseStatus.SUCCESS,
+      code: ResponseCode.SUCCESS,
+      message: 'Summary versions retrieved',
+      data: [
+        {
+          id: 'summary-1',
+          version: 1,
+          template_category: 'GENERAL',
+          is_active: false,
+          created_at: new Date().toISOString(),
+        },
+        {
+          id: 'summary-2',
+          version: 2,
+          template_category: 'INTERVIEW',
+          is_active: true,
+          created_at: new Date().toISOString(),
+        },
+      ],
+      timestamp: new Date().toISOString(),
+    });
+
+    const req = new Request('http://localhost/api/recordings/rec-123/summaries', {
+      headers: { 'x-ownership-token': 'token-xyz' },
+    });
+
+    const res = await controller.listSummaries(req, 'rec-123');
+    expect(res.status).toBe(200);
+    const json = await res.json();
+    expect(json.data).toHaveLength(2);
+    expect(mockService.listSummaryVersions).toHaveBeenCalledWith('rec-123', 'token-xyz');
+  });
+
+  it('handles activateSummary request and returns activated summary', async () => {
+    mockService.activateSummaryVersion = vi.fn().mockResolvedValue({
+      status: ResponseStatus.SUCCESS,
+      code: ResponseCode.SUCCESS,
+      message: 'Summary version activated',
+      data: {
+        id: 'summary-1',
+        version: 1,
+        template_category: 'GENERAL',
+        is_active: true,
+        created_at: new Date().toISOString(),
+      },
+      timestamp: new Date().toISOString(),
+    });
+
+    const req = new Request('http://localhost/api/recordings/rec-123/summaries/summary-1/activate', {
+      method: 'PATCH',
+      headers: { 'x-ownership-token': 'token-xyz' },
+    });
+
+    const res = await controller.activateSummary(req, 'rec-123', 'summary-1');
+    expect(res.status).toBe(200);
+    const json = await res.json();
+    expect(json.data.is_active).toBe(true);
+    expect(mockService.activateSummaryVersion).toHaveBeenCalledWith('rec-123', 'summary-1', 'token-xyz');
   });
 });

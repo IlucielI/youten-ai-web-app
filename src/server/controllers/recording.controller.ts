@@ -132,6 +132,22 @@ export class RecordingController extends BaseController {
       return this.recordingService.regenerateSummary(id, body, ownershipToken);
     });
   }
+
+  async listSummaries(req: Request, id: string): Promise<NextResponse> {
+    return this.handle(req, async () => {
+      const url = new URL(req.url);
+      const token = url.searchParams.get('token') || req.headers.get('x-ownership-token') || undefined;
+      return this.recordingService.listSummaryVersions(id, token);
+    });
+  }
+
+  async activateSummary(req: Request, id: string, versionId: string): Promise<NextResponse> {
+    return this.handle(req, async () => {
+      const url = new URL(req.url);
+      const token = url.searchParams.get('token') || req.headers.get('x-ownership-token') || undefined;
+      return this.recordingService.activateSummaryVersion(id, versionId, token);
+    });
+  }
 }
 
 /**

@@ -76,8 +76,10 @@ export default function RecordingDetailPage() {
   const [speakerLabels, setSpeakerLabels] = useState<Record<string, string>>({});
 
   // Summary versions & regenerate modal
+  const [allSummaries, setAllSummaries] = useState<SummaryData[]>([]);
   const [summaryVersions, setSummaryVersions] = useState<SummaryVersionItem[]>([]);
   const [selectedVersionId, setSelectedVersionId] = useState<string>('');
+  const [isActivatingVersion, setIsActivatingVersion] = useState<boolean>(false);
   const [isRegenerateOpen, setIsRegenerateOpen] = useState<boolean>(false);
   const [isRegenerating, setIsRegenerating] = useState<boolean>(false);
   const [activeSummaryData, setActiveSummaryData] = useState<SummaryData | null>(null);
@@ -180,7 +182,7 @@ export default function RecordingDetailPage() {
         if (data.active_summary) {
           const initialVerId = data.active_summary.id || 'ver-1';
           setSelectedVersionId(initialVerId);
-          setActiveSummaryData({
+          const initialSummary: SummaryData = {
             id: initialVerId,
             version: data.active_summary.version || 1,
             template_category: data.active_summary.template_category || data.selected_template,
@@ -188,7 +190,9 @@ export default function RecordingDetailPage() {
             markdown_content: data.active_summary.markdown_content,
             is_active: true,
             created_at: data.active_summary.created_at || data.created_at,
-          });
+          };
+          setActiveSummaryData(initialSummary);
+          setAllSummaries([initialSummary]);
 
           setSummaryVersions([
             {
@@ -200,6 +204,51 @@ export default function RecordingDetailPage() {
             },
           ]);
         }
+
+        // Fetch all historical summary versions from API
+        const ownershipToken = useTokenStore.getState().getGuestToken(recordingId);
+        const versionHeaders: Record<string, string> = {};
+        if (ownershipToken) {
+          versionHeaders['x-ownership-token'] = ownershipToken;
+        }
+        apiFetch<ApiResponse<SummaryVersionResponse[]>>(
+          `/api/recordings/${recordingId}/summaries`,
+          { headers: versionHeaders }
+        )
+          .then((versionsRes) => {
+            if (!isMounted) return;
+            if (versionsRes.data && versionsRes.data.length > 0) {
+              const fullSummaries: SummaryData[] = versionsRes.data.map((item) => ({
+                id: item.id,
+                version: item.version,
+                template_category: item.template_category,
+                custom_angle: item.custom_angle,
+                structured_data: item.structured_data,
+                markdown_content: item.markdown_content,
+                is_active: item.is_active,
+                created_at: item.created_at,
+              }));
+              setAllSummaries(fullSummaries);
+
+              const versionTabs: SummaryVersionItem[] = fullSummaries.map((s) => ({
+                id: s.id || '',
+                version: s.version || 1,
+                template_category: s.template_category,
+                is_active: !!s.is_active,
+                created_at: s.created_at,
+              }));
+              setSummaryVersions(versionTabs);
+
+              const activeVer = fullSummaries.find((s) => s.is_active) || fullSummaries[0];
+              if (activeVer) {
+                setSelectedVersionId(activeVer.id || '');
+                setActiveSummaryData(activeVer);
+              }
+            }
+          })
+          .catch(() => {
+            // Gracefully keep initial active summary
+          });
 
         // Initialize speaker labels map
         if (data.segments && data.segments.length > 0) {
@@ -260,10 +309,62 @@ export default function RecordingDetailPage() {
   };
 
   /**
-   * Handle summary version activation.
+   * Handle summary version selection.
    */
   const handleSelectVersion = (versionId: string) => {
     setSelectedVersionId(versionId);
+    const targetSummary = allSummaries.find((s) => s.id === versionId);
+    if (targetSummary) {
+      setActiveSummaryData(targetSummary);
+    }
+  };
+
+  /**
+   * Handle setting a historical summary version as the active version.
+   */
+  const handleActivateVersion = async (versionId: string) => {
+    if (!recordingId) return;
+    try {
+      setIsActivatingVersion(true);
+      const ownershipToken = useTokenStore.getState().getGuestToken(recordingId);
+      const headers: Record<string, string> = {};
+      if (ownershipToken) {
+        headers['x-ownership-token'] = ownershipToken;
+      }
+
+      const res = await apiFetch<ApiResponse<SummaryVersionResponse>>(
+        `/api/recordings/${recordingId}/summaries/${versionId}/activate`,
+        {
+          method: 'PATCH',
+          headers,
+        }
+      );
+
+      if (res.data) {
+        const activated = res.data;
+        setAllSummaries((prev) =>
+          prev.map((s) => ({
+            ...s,
+            is_active: s.id === versionId,
+          }))
+        );
+        setSummaryVersions((prev) =>
+          prev.map((v) => ({
+            ...v,
+            is_active: v.id === versionId,
+          }))
+        );
+        setActiveSummaryData((prev) =>
+          prev ? { ...prev, is_active: prev.id === versionId } : prev
+        );
+        toast.success(`Versi ${activated.version} berhasil dijadikan versi aktif!`);
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Gagal mengaktifkan versi ringkasan.';
+      toast.error(msg);
+    } finally {
+      setIsActivatingVersion(false);
+    }
   };
 
   /**
@@ -296,21 +397,7 @@ export default function RecordingDetailPage() {
 
       if (res.data) {
         const regenerated = res.data;
-        const newVersionItem: SummaryVersionItem = {
-          id: regenerated.id,
-          version: regenerated.version,
-          template_category: regenerated.template_category as TemplateKey,
-          is_active: true,
-          created_at: regenerated.created_at,
-        };
-
-        setSummaryVersions((prev) => [
-          ...prev.map((v) => ({ ...v, is_active: false })),
-          newVersionItem,
-        ]);
-        setSelectedVersionId(regenerated.id);
-
-        setActiveSummaryData({
+        const newSummary: SummaryData = {
           id: regenerated.id,
           version: regenerated.version,
           template_category: regenerated.template_category as TemplateKey,
@@ -319,7 +406,25 @@ export default function RecordingDetailPage() {
           markdown_content: regenerated.markdown_content,
           is_active: true,
           created_at: regenerated.created_at,
-        });
+        };
+        const newVersionItem: SummaryVersionItem = {
+          id: regenerated.id,
+          version: regenerated.version,
+          template_category: regenerated.template_category as TemplateKey,
+          is_active: true,
+          created_at: regenerated.created_at,
+        };
+
+        setAllSummaries((prev) => [
+          ...prev.map((s) => ({ ...s, is_active: false })),
+          newSummary,
+        ]);
+        setSummaryVersions((prev) => [
+          ...prev.map((v) => ({ ...v, is_active: false })),
+          newVersionItem,
+        ]);
+        setSelectedVersionId(regenerated.id);
+        setActiveSummaryData(newSummary);
 
         toast.success(`Versi ringkasan baru (${regenerated.version}) berhasil dibuat!`);
       }
@@ -872,6 +977,8 @@ export default function RecordingDetailPage() {
                     versions={summaryVersions}
                     selectedVersionId={selectedVersionId}
                     onSelectVersion={handleSelectVersion}
+                    onActivateVersion={handleActivateVersion}
+                    isActivating={isActivatingVersion}
                     onOpenRegenerate={() => setIsRegenerateOpen(true)}
                   />
                 )}
