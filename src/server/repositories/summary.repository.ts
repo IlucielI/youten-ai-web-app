@@ -39,19 +39,28 @@ export class SummaryRepository implements ISummaryRepository {
     );
   }
 
-  async listSummaryVersions(recordingId: string): Promise<ApiResponse<SummaryVersionResponse[]>> {
+  async listSummaryVersions(
+    recordingId: string,
+    ownershipToken?: string
+  ): Promise<ApiResponse<SummaryVersionResponse[]>> {
     if (this.useMock) {
       const data = this.mock.listSummaryVersions(recordingId);
       return this.successResponse(data, 'Summary versions listed successfully');
     }
+    const headers: Record<string, string> = {};
+    if (ownershipToken) {
+      headers['x-ownership-token'] = ownershipToken;
+    }
     return this.http.get<ApiResponse<SummaryVersionResponse[]>>(
-      `/v1/recordings/${recordingId}/summaries`
+      `/v1/recordings/${recordingId}/summaries`,
+      { headers, ownershipToken }
     );
   }
 
   async activateSummaryVersion(
     recordingId: string,
-    versionId: string
+    versionId: string,
+    ownershipToken?: string
   ): Promise<ApiResponse<SummaryVersionResponse>> {
     if (this.useMock) {
       const data = this.mock.activateSummaryVersion(recordingId, versionId);
@@ -60,8 +69,14 @@ export class SummaryRepository implements ISummaryRepository {
       }
       return this.successResponse(data, 'Summary version activated successfully');
     }
+    const headers: Record<string, string> = {};
+    if (ownershipToken) {
+      headers['x-ownership-token'] = ownershipToken;
+    }
     return this.http.patch<ApiResponse<SummaryVersionResponse>>(
-      `/v1/recordings/${recordingId}/summaries/${versionId}/activate`
+      `/v1/recordings/${recordingId}/summaries/${versionId}/activate`,
+      {},
+      { headers, ownershipToken }
     );
   }
 

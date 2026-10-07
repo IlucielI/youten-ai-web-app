@@ -45,4 +45,13 @@ export interface IRecordingService {
     payload: RegenerateSummaryRequest,
     ownershipToken?: string
   ): Promise<ApiResponse<SummaryVersionResponse>>;
+  listSummaryVersions(
+    id: string,
+    ownershipToken?: string
+  ): Promise<ApiResponse<SummaryVersionResponse[]>>;
+  activateSummaryVersion(
+    id: string,
+    versionId: string,
+    ownershipToken?: string
+  ): Promise<ApiResponse<SummaryVersionResponse>>;
 }

@@ -198,4 +198,42 @@ describe('RecordingService', () => {
     });
     expect(res.data?.text).toBe('Bekerja di bawah tekanan');
   });
+
+  it('delegates listSummaryVersions to summary repository', async () => {
+    const mockSummaryRepo = {
+      regenerateSummary: vi.fn(),
+      listSummaryVersions: vi.fn().mockResolvedValue({
+        status: ResponseStatus.SUCCESS,
+        code: ResponseCode.SUCCESS,
+        message: 'Listed',
+        data: [],
+        timestamp: new Date().toISOString(),
+      }),
+      activateSummaryVersion: vi.fn(),
+    };
+
+    const svc = new RecordingService(mockRepo, mockSummaryRepo);
+    const res = await svc.listSummaryVersions('rec-123', 'tok-abc');
+    expect(mockSummaryRepo.listSummaryVersions).toHaveBeenCalledWith('rec-123', 'tok-abc');
+    expect(res.status).toBe(ResponseStatus.SUCCESS);
+  });
+
+  it('delegates activateSummaryVersion to summary repository', async () => {
+    const mockSummaryRepo = {
+      regenerateSummary: vi.fn(),
+      listSummaryVersions: vi.fn(),
+      activateSummaryVersion: vi.fn().mockResolvedValue({
+        status: ResponseStatus.SUCCESS,
+        code: ResponseCode.SUCCESS,
+        message: 'Activated',
+        data: { id: 'ver-1', version: 1, is_active: true },
+        timestamp: new Date().toISOString(),
+      }),
+    };
+
+    const svc = new RecordingService(mockRepo, mockSummaryRepo);
+    const res = await svc.activateSummaryVersion('rec-123', 'ver-1', 'tok-abc');
+    expect(mockSummaryRepo.activateSummaryVersion).toHaveBeenCalledWith('rec-123', 'ver-1', 'tok-abc');
+    expect(res.data?.is_active).toBe(true);
+  });
 });

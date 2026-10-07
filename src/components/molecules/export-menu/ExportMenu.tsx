@@ -23,6 +23,7 @@ import {
 
 export interface ExportMenuProps {
   recordingId?: string;
+  currentVersion?: number;
   onExport?: (format: ExportFormat) => Promise<void> | void;
   disabled?: boolean;
   className?: string;
@@ -71,6 +72,7 @@ const EXPORT_OPTIONS: ExportItemConfig[] = [
 
 export function ExportMenu({
   recordingId,
+  currentVersion,
   onExport,
   disabled = false,
   className,
@@ -125,9 +127,9 @@ export function ExportMenu({
           </Button>
         </DropdownMenuTrigger>
 
-        <DropdownMenuContent align="end" className="w-64 p-1.5 space-y-0.5">
+        <DropdownMenuContent align="end" className="w-64 p-1.5 space-y-0.5 bg-popover text-popover-foreground shadow-2xl border border-border z-50">
           <DropdownMenuLabel className="text-[11px] font-semibold text-muted-foreground px-2 py-1">
-            PILIH FORMAT EKSPOR
+            {currentVersion ? `PILIH FORMAT EKSPOR (VERSI ${currentVersion})` : 'PILIH FORMAT EKSPOR'}
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
 

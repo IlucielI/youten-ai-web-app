@@ -32,6 +32,12 @@
   --muted: #f1f5f9;
   --muted-foreground: #64748b;
 
+  /* Popover & Card Tokens */
+  --popover: #ffffff;
+  --popover-foreground: #0f172a;
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+
   /* Rounded Corner Tokens */
   --radius-sm: 0.375rem;
   --radius-md: 0.5rem;
@@ -97,6 +103,10 @@
     --border-subtle: #1e293b;
     --muted: #1e293b;
     --muted-foreground: #94a3b8;
+    --popover: #131b2e;
+    --popover-foreground: #f8fafc;
+    --card: #131b2e;
+    --card-foreground: #f8fafc;
   }
 }
 
@@ -120,6 +130,11 @@
   --color-surface: var(--surface);
   --color-surface-hover: var(--surface-hover);
   --color-surface-subtle: var(--surface-subtle);
+
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
 
   --color-border: var(--border);
   --color-border-subtle: var(--border-subtle);

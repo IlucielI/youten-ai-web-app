@@ -1,6 +1,8 @@
 import { IRecordingService } from './recording.service.interface';
 import { IRecordingRepository } from '../repositories/recording.repository.interface';
 import { recordingRepository as defaultRecordingRepository } from '../repositories/recording.repository';
+import { ISummaryRepository } from '../repositories/summary.repository.interface';
+import { summaryRepository as defaultSummaryRepository } from '../repositories/summary.repository';
 import {
   PresignUploadRequest,
   PresignUploadResponse,
@@ -27,7 +29,8 @@ import { ApiResponse, PaginatedResponse, BaseResponse } from '../dtos/response.d
 
 export class RecordingService implements IRecordingService {
   constructor(
-    private readonly recordingRepo: IRecordingRepository = defaultRecordingRepository
+    private readonly recordingRepo: IRecordingRepository = defaultRecordingRepository,
+    private readonly summaryRepo: ISummaryRepository = defaultSummaryRepository
   ) {}
 
   async presignUpload(payload: PresignUploadRequest): Promise<ApiResponse<PresignUploadResponse>> {
@@ -92,6 +95,21 @@ export class RecordingService implements IRecordingService {
     ownershipToken?: string
   ): Promise<ApiResponse<SummaryVersionResponse>> {
     return this.recordingRepo.regenerateSummary(id, payload, ownershipToken);
+  }
+
+  async listSummaryVersions(
+    id: string,
+    ownershipToken?: string
+  ): Promise<ApiResponse<SummaryVersionResponse[]>> {
+    return this.summaryRepo.listSummaryVersions(id, ownershipToken);
+  }
+
+  async activateSummaryVersion(
+    id: string,
+    versionId: string,
+    ownershipToken?: string
+  ): Promise<ApiResponse<SummaryVersionResponse>> {
+    return this.summaryRepo.activateSummaryVersion(id, versionId, ownershipToken);
   }
 }
 
