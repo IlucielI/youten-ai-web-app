@@ -587,6 +587,11 @@ export default function RecordingDetailPage() {
       }
 
       const params = new URLSearchParams({ format });
+      if (activeSummaryData?.version !== undefined && activeSummaryData.version > 0) {
+        params.set('version', String(activeSummaryData.version));
+      } else if (activeSummaryData?.id) {
+        params.set('version_id', activeSummaryData.id);
+      }
       if (ownershipToken) {
         params.set('token', ownershipToken);
       }
@@ -856,6 +861,7 @@ export default function RecordingDetailPage() {
             {/* Export Menu */}
             <ExportMenu
               recordingId={recording.id}
+              currentVersion={activeSummaryData?.version}
               onExport={handleExport}
               open={isExportOpen}
               onOpenChange={setIsExportOpen}

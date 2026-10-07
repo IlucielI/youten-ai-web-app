@@ -55,11 +55,13 @@ export async function GET(
   const url = new URL(req.url);
   const format = (url.searchParams.get('format') || 'markdown').toLowerCase();
   const token = url.searchParams.get('token') || req.headers.get('x-ownership-token') || undefined;
+  const version = url.searchParams.get('version') || url.searchParams.get('version_id') || undefined;
 
   // Upstream Core API export forwarding (when not in mock/test mode and CORE_API_URL is configured)
   if (!isTest && !env.MOCK_CORE_API && env.CORE_API_URL) {
     const queryParams = new URLSearchParams({ format });
     if (token) queryParams.set('token', token);
+    if (version) queryParams.set('version', version);
     const upstreamUrl = `${env.CORE_API_URL.replace(/\/$/, '')}/v1/recordings/${id}/export?${queryParams.toString()}`;
 
     const headers: Record<string, string> = {};

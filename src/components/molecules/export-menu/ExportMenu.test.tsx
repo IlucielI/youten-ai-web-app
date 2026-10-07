@@ -47,4 +47,9 @@ describe('ExportMenu', () => {
     render(<ExportMenu disabled={true} />);
     expect(screen.getByTestId('export-menu-trigger')).toBeDisabled();
   });
+
+  it('displays version number in header when currentVersion is provided', () => {
+    render(<ExportMenu open={true} currentVersion={2} />);
+    expect(screen.getByText('PILIH FORMAT EKSPOR (VERSI 2)')).toBeInTheDocument();
+  });
 });
