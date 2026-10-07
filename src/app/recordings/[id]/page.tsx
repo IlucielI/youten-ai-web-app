@@ -205,8 +205,23 @@ export default function RecordingDetailPage() {
         if (data.segments && data.segments.length > 0) {
           const map: Record<string, string> = {};
           for (const s of data.segments) {
-            if (s.speaker_label && !map[s.speaker_label]) {
-              map[s.speaker_label] = s.speaker_name || s.speaker_label;
+            if (s.speaker_label) {
+              const currentVal = map[s.speaker_label];
+              const isGeneric =
+                !currentVal ||
+                currentVal.toLowerCase().startsWith('speaker') ||
+                currentVal.toLowerCase().startsWith('pembicara');
+              const newName = s.speaker_name?.trim();
+              const isNewNameReal =
+                newName &&
+                !newName.toLowerCase().startsWith('speaker') &&
+                !newName.toLowerCase().startsWith('pembicara');
+
+              if (isNewNameReal && isGeneric) {
+                map[s.speaker_label] = newName;
+              } else if (!currentVal) {
+                map[s.speaker_label] = s.speaker_name || s.speaker_label;
+              }
             }
           }
           setSpeakerLabels(map);
