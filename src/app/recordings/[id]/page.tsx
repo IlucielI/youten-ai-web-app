@@ -320,11 +320,15 @@ export default function RecordingDetailPage() {
           is_active: true,
           created_at: regenerated.created_at,
         });
+
+        toast.success(`Versi ringkasan baru (${regenerated.version}) berhasil dibuat!`);
       }
 
       setIsRegenerateOpen(false);
     } catch (err: unknown) {
       console.error('Failed to regenerate summary:', err);
+      const msg = err instanceof Error ? err.message : 'Gagal membuat versi ringkasan baru';
+      toast.error(msg);
     } finally {
       setIsRegenerating(false);
     }

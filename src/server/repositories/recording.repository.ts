@@ -243,6 +243,7 @@ export class RecordingRepository implements IRecordingRepository {
     return this.http.post<ApiResponse<SummaryVersionResponse>>(`/v1/recordings/${id}/regenerate`, payload, {
       headers,
       ownershipToken,
+      timeoutMs: 120000,
     });
   }
 
