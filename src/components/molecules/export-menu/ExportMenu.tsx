@@ -125,7 +125,7 @@ export function ExportMenu({
           </Button>
         </DropdownMenuTrigger>
 
-        <DropdownMenuContent align="end" className="w-64 p-1.5 space-y-0.5">
+        <DropdownMenuContent align="end" className="w-64 p-1.5 space-y-0.5 bg-popover text-popover-foreground shadow-2xl border border-border z-50">
           <DropdownMenuLabel className="text-[11px] font-semibold text-muted-foreground px-2 py-1">
             PILIH FORMAT EKSPOR
           </DropdownMenuLabel>
