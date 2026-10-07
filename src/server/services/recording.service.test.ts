@@ -62,6 +62,7 @@ describe('RecordingService', () => {
     retryRecording: vi.fn(),
     updateSpeakers: vi.fn(),
     regenerateSummary: vi.fn(),
+    updateTranscriptSegment: vi.fn(),
   };
 
   const service = new RecordingService(mockRepo);
@@ -168,5 +169,33 @@ describe('RecordingService', () => {
     const res = await service.deleteRecording('rec-123');
     expect(mockRepo.deleteRecording).toHaveBeenCalledWith('rec-123');
     expect(res.status).toBe(ResponseStatus.SUCCESS);
+  });
+
+  it('delegates updateTranscriptSegment to repository', async () => {
+    mockRepo.updateTranscriptSegment = vi.fn().mockResolvedValue({
+      status: ResponseStatus.SUCCESS,
+      code: ResponseCode.SUCCESS,
+      message: 'Segment updated',
+      data: {
+        id: 'seg-123',
+        speaker_label: 'Speaker 0',
+        speaker_name: 'Budi',
+        start_time: 10,
+        end_time: 15,
+        text: 'Bekerja di bawah tekanan',
+        sequence_order: 1,
+      },
+      timestamp: new Date().toISOString(),
+    });
+
+    const res = await service.updateTranscriptSegment('rec-123', 'seg-123', {
+      text: 'Bekerja di bawah tekanan',
+      ownership_token: 'token-abc',
+    });
+    expect(mockRepo.updateTranscriptSegment).toHaveBeenCalledWith('rec-123', 'seg-123', {
+      text: 'Bekerja di bawah tekanan',
+      ownership_token: 'token-abc',
+    });
+    expect(res.data?.text).toBe('Bekerja di bawah tekanan');
   });
 });

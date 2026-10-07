@@ -42,6 +42,7 @@ import { cn } from '@/lib/utils';
 import { RecordingStatus } from '@/server/constants';
 import { TemplateKey } from '@/server/constants/template.constant';
 import { ExportFormat } from '@/server/constants/recording.constant';
+import { toast } from 'sonner';
 import { usePlayerStore } from '@/stores/player.store';
 import { useChatStore } from '@/stores/chat.store';
 import { useTokenStore } from '@/stores/token.store';
@@ -547,6 +548,63 @@ export default function RecordingDetailPage() {
     setComments((prev) => [newComment, ...prev]);
   };
 
+  /**
+   * Handle updating a single transcript segment's text inline.
+   */
+  const handleSaveSegmentText = async (segmentId: string, newText: string) => {
+    if (!recordingId) return;
+
+    let ownershipToken: string | undefined;
+    try {
+      const raw = localStorage.getItem('youten_guest_tokens');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        const tokens = parsed?.state?.guestTokens || [];
+        const item = tokens.find((t: { id: string }) => t.id === recordingId);
+        if (item?.ownership_token) {
+          ownershipToken = item.ownership_token;
+        }
+      }
+    } catch {
+      // Ignore storage parse errors
+    }
+
+    try {
+      const res = await fetch(`/api/recordings/${recordingId}/segments/${segmentId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(ownershipToken ? { 'x-ownership-token': ownershipToken } : {}),
+        },
+        body: JSON.stringify({
+          text: newText,
+          ownership_token: ownershipToken,
+        }),
+      });
+
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        throw new Error(errJson.message || 'Gagal menyimpan perubahan teks');
+      }
+
+      setRecording((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          segments: (prev.segments || []).map((seg) =>
+            seg.id === segmentId ? { ...seg, text: newText } : seg
+          ),
+        };
+      });
+
+      toast.success('Transkrip berhasil diperbarui');
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Gagal memperbarui segmen';
+      toast.error(msg);
+      throw err;
+    }
+  };
+
   // Filtered transcript segments
   const segments = recording?.segments;
   const filteredSegments = useMemo(() => {
@@ -850,6 +908,7 @@ export default function RecordingDetailPage() {
                             addUserMessage(prompt);
                             void handleSendMessage(prompt);
                           }}
+                          onSaveText={handleSaveSegmentText}
                         />
                       );
                     })

@@ -21,6 +21,8 @@ import {
   UpdateSpeakersResponse,
   SummaryVersionResponse,
   RegenerateSummaryRequest,
+  UpdateTranscriptSegmentRequest,
+  TranscriptSegmentDTO,
 } from '../dtos';
 import { ApiResponse, PaginatedResponse, BaseResponse } from '../dtos/response.dto';
 import { ResponseStatus, ResponseCode } from '../constants';
@@ -183,6 +185,37 @@ export class RecordingRepository implements IRecordingRepository {
       return this.successResponse(data, 'Speakers updated successfully');
     }
     return this.http.put<ApiResponse<UpdateSpeakersResponse>>(`/v1/recordings/${id}/speakers`, payload);
+  }
+
+  async updateTranscriptSegment(
+    recordingId: string,
+    segmentId: string,
+    payload: UpdateTranscriptSegmentRequest
+  ): Promise<ApiResponse<TranscriptSegmentDTO>> {
+    if (this.useMock) {
+      const mockResult: TranscriptSegmentDTO = {
+        id: segmentId,
+        speaker_label: 'Speaker 0',
+        speaker_name: 'Speaker 0',
+        start_time: 0,
+        end_time: 5,
+        text: payload.text,
+        sequence_order: 1,
+      };
+      return this.successResponse(mockResult, 'Transcript segment updated successfully');
+    }
+    const headers: Record<string, string> = {};
+    if (payload.ownership_token) {
+      headers['x-ownership-token'] = payload.ownership_token;
+    }
+    return this.http.patch<ApiResponse<TranscriptSegmentDTO>>(
+      `/v1/recordings/${recordingId}/segments/${segmentId}`,
+      payload,
+      {
+        headers,
+        ownershipToken: payload.ownership_token,
+      }
+    );
   }
 
   async regenerateSummary(

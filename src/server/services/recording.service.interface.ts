@@ -17,6 +17,8 @@ import {
   RecordingFilterQuery,
   SummaryVersionResponse,
   RegenerateSummaryRequest,
+  UpdateTranscriptSegmentRequest,
+  TranscriptSegmentDTO,
 } from '../dtos';
 import { ApiResponse, PaginatedResponse, BaseResponse } from '../dtos/response.dto';
 
@@ -31,6 +33,11 @@ export interface IRecordingService {
   toggleShare(id: string, payload: ShareToggleRequest): Promise<ApiResponse<ShareToggleResponse>>;
   getSharedRecording(token: string): Promise<ApiResponse<SharedRecordingResponse>>;
   updateSpeakers(id: string, payload: UpdateSpeakersRequest): Promise<ApiResponse<UpdateSpeakersResponse>>;
+  updateTranscriptSegment(
+    recordingId: string,
+    segmentId: string,
+    payload: UpdateTranscriptSegmentRequest
+  ): Promise<ApiResponse<TranscriptSegmentDTO>>;
   claimRecording(id: string): Promise<ApiResponse<{ claimed: boolean }>>;
   claimBulk(payload: BulkClaimRequest): Promise<ApiResponse<BulkClaimResponse>>;
   regenerateSummary(

@@ -62,6 +62,7 @@ describe('RecordingController', () => {
     listRecordings: vi.fn(),
     deleteRecording: vi.fn(),
     regenerateSummary: vi.fn(),
+    updateTranscriptSegment: vi.fn(),
   };
 
   const controller = new RecordingController(mockService);
@@ -385,6 +386,48 @@ describe('RecordingController', () => {
       'rec-123',
       expect.objectContaining({ template_category: 'MOM' }),
       'token-abc'
+    );
+  });
+
+  it('handles updateSegment request and returns 200 with updated segment', async () => {
+    mockService.updateTranscriptSegment = vi.fn().mockResolvedValue({
+      status: ResponseStatus.SUCCESS,
+      code: ResponseCode.SUCCESS,
+      message: 'Transcript segment updated successfully',
+      data: {
+        id: 'seg-123',
+        speaker_label: 'Speaker 0',
+        speaker_name: 'Budi',
+        start_time: 10,
+        end_time: 15,
+        text: 'Bekerja di bawah tekanan',
+        sequence_order: 1,
+      },
+      timestamp: new Date().toISOString(),
+    });
+
+    const req = new Request('http://localhost/api/recordings/rec-123/segments/seg-123', {
+      method: 'PATCH',
+      headers: {
+        'content-type': 'application/json',
+        'x-ownership-token': 'token-abc',
+      },
+      body: JSON.stringify({
+        text: 'Bekerja di bawah tekanan',
+      }),
+    });
+
+    const res = await controller.updateSegment(req, 'rec-123', 'seg-123');
+    expect(res.status).toBe(200);
+    const json = await res.json();
+    expect(json.data.text).toBe('Bekerja di bawah tekanan');
+    expect(mockService.updateTranscriptSegment).toHaveBeenCalledWith(
+      'rec-123',
+      'seg-123',
+      expect.objectContaining({
+        text: 'Bekerja di bawah tekanan',
+        ownership_token: 'token-abc',
+      })
     );
   });
 });

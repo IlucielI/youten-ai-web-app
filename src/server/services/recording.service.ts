@@ -20,6 +20,8 @@ import {
   RecordingFilterQuery,
   SummaryVersionResponse,
   RegenerateSummaryRequest,
+  UpdateTranscriptSegmentRequest,
+  TranscriptSegmentDTO,
 } from '../dtos';
 import { ApiResponse, PaginatedResponse, BaseResponse } from '../dtos/response.dto';
 
@@ -66,6 +68,14 @@ export class RecordingService implements IRecordingService {
 
   async updateSpeakers(id: string, payload: UpdateSpeakersRequest): Promise<ApiResponse<UpdateSpeakersResponse>> {
     return this.recordingRepo.updateSpeakers(id, payload);
+  }
+
+  async updateTranscriptSegment(
+    recordingId: string,
+    segmentId: string,
+    payload: UpdateTranscriptSegmentRequest
+  ): Promise<ApiResponse<TranscriptSegmentDTO>> {
+    return this.recordingRepo.updateTranscriptSegment(recordingId, segmentId, payload);
   }
 
   async claimRecording(id: string): Promise<ApiResponse<{ claimed: boolean }>> {

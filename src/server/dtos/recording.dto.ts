@@ -204,5 +204,10 @@ export interface UpdateSpeakersResponse {
   speakers: Record<string, string>;
 }
 
+export interface UpdateTranscriptSegmentRequest {
+  text: string;
+  ownership_token?: string;
+}
+
 export type ImportUrlRequest = ImportURLRequest;
 export type RecordingListItem = RecordingListItemDTO;

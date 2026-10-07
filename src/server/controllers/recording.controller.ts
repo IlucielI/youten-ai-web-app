@@ -8,6 +8,7 @@ import {
   ImportUrlRequestSchema,
   ShareToggleRequestSchema,
   UpdateSpeakersRequestSchema,
+  UpdateTranscriptSegmentRequestSchema,
   BulkClaimRequestSchema,
   RecordingFilterQuerySchema,
 } from '../schemas/recording.schema';
@@ -91,6 +92,17 @@ export class RecordingController extends BaseController {
     return this.handle(req, async () => {
       const body = await this.getBody(req, UpdateSpeakersRequestSchema);
       return this.recordingService.updateSpeakers(id, body);
+    });
+  }
+
+  async updateSegment(req: Request, id: string, segmentId: string): Promise<NextResponse> {
+    return this.handle(req, async () => {
+      const body = await this.getBody(req, UpdateTranscriptSegmentRequestSchema);
+      const ownershipToken = req.headers.get('x-ownership-token') || body.ownership_token || undefined;
+      return this.recordingService.updateTranscriptSegment(id, segmentId, {
+        ...body,
+        ownership_token: ownershipToken,
+      });
     });
   }
 
