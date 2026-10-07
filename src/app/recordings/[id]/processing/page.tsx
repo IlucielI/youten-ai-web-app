@@ -10,6 +10,7 @@ import { Button } from '@/components/atoms/button';
 import { Badge } from '@/components/atoms/badge';
 import { RecordingStatus } from '@/server/constants';
 import { usePipelineStore, PipelineProgressPayload } from '@/stores/pipeline.store';
+import { useTokenStore } from '@/stores/token.store';
 import { apiFetch } from '@/lib/api-client';
 import { ApiResponse } from '@/server/dtos/response.dto';
 import { RecordingDetailDto, RetryRecordingResponseDto } from '@/server/schemas/recording.schema';
@@ -22,6 +23,25 @@ export default function RecordingProcessingPage() {
   const [recordingTitle, setRecordingTitle] = useState<string>('Memuat Rekaman...');
   const [isRetrying, setIsRetrying] = useState<boolean>(false);
   const eventSourceRef = useRef<EventSource | null>(null);
+
+  // Persistent elapsed timer state across page refreshes
+  const [startedAt, setStartedAt] = useState<string | null>(() => {
+    if (typeof window === 'undefined') return null;
+    // Priority 1: Guest Token store created_at
+    const guestItem = useTokenStore.getState().guestTokens.find((t) => t.id === recordingId);
+    if (guestItem?.created_at) {
+      return guestItem.created_at;
+    }
+    // Priority 2: SessionStorage
+    const stored = sessionStorage.getItem(`pipeline_started_${recordingId}`);
+    if (stored) {
+      return stored;
+    }
+    // Priority 3: Initialize current time
+    const nowIso = new Date().toISOString();
+    sessionStorage.setItem(`pipeline_started_${recordingId}`, nowIso);
+    return nowIso;
+  });
 
   // Zustand pipeline store selectors (granular to avoid unnecessary rerenders)
   const status = usePipelineStore((state) => state.status);
@@ -54,20 +74,33 @@ export default function RecordingProcessingPage() {
       return;
     }
 
-    const eventSource = new EventSource(`/api/recordings/${id}/progress`);
+    const guestToken = useTokenStore.getState().getGuestToken(id);
+    const sseUrl = guestToken
+      ? `/api/recordings/${id}/progress?token=${encodeURIComponent(guestToken)}`
+      : `/api/recordings/${id}/progress`;
+
+    const eventSource = new EventSource(sseUrl);
     eventSourceRef.current = eventSource;
 
-    eventSource.onmessage = (event) => {
+    const handleProgressEvent = (event: MessageEvent) => {
       try {
         const payload = JSON.parse(event.data) as PipelineProgressPayload & {
+          recording_id?: string;
+          error_code?: string;
+          error_message?: string;
           errorCode?: string;
           errorMessage?: string;
         };
 
+        const errCode = payload.error_code || payload.errorCode || 'ERR_PIPELINE_FAILED';
+        const errMsg = payload.error_message || payload.errorMessage || payload.message || 'Pemrosesan rekaman gagal.';
+
         if (payload.status === RecordingStatus.COMPLETED) {
           usePipelineStore.getState().setCompleted(payload.message || 'Pemrosesan rekaman selesai');
-          eventSource.close();
-          eventSourceRef.current = null;
+          if (eventSourceRef.current) {
+            eventSourceRef.current.close();
+            eventSourceRef.current = null;
+          }
 
           // Smooth redirect transition to review detail screen
           setTimeout(() => {
@@ -75,11 +108,13 @@ export default function RecordingProcessingPage() {
           }, 1200);
         } else if (payload.status === RecordingStatus.FAILED) {
           usePipelineStore.getState().setFailure({
-            code: payload.errorCode || 'ERR_PIPELINE_FAILED',
-            message: payload.errorMessage || payload.message || 'Pemrosesan rekaman gagal.',
+            code: errCode,
+            message: errMsg,
           });
-          eventSource.close();
-          eventSourceRef.current = null;
+          if (eventSourceRef.current) {
+            eventSourceRef.current.close();
+            eventSourceRef.current = null;
+          }
         } else {
           usePipelineStore.getState().updateProgress(payload);
         }
@@ -87,6 +122,12 @@ export default function RecordingProcessingPage() {
         // Ignore parse errors on ping/comments
       }
     };
+
+    // Support both default message events and named 'progress' events
+    eventSource.onmessage = handleProgressEvent;
+    if (typeof eventSource.addEventListener === 'function') {
+      eventSource.addEventListener('progress', handleProgressEvent as EventListener);
+    }
 
     eventSource.onerror = () => {
       // Handle connection termination
@@ -108,13 +149,22 @@ export default function RecordingProcessingPage() {
     }
 
     let isMounted = true;
+    const guestToken = useTokenStore.getState().getGuestToken(recordingId);
 
     // Fetch initial recording metadata
-    apiFetch<ApiResponse<RecordingDetailDto>>(`/api/recordings/${recordingId}`)
+    apiFetch<ApiResponse<RecordingDetailDto>>(`/api/recordings/${recordingId}`, {
+      headers: guestToken ? { 'x-ownership-token': guestToken } : undefined,
+    })
       .then((res) => {
         if (!isMounted) return;
         if (res.data?.title) {
           setRecordingTitle(res.data.title);
+        }
+        if (res.data?.created_at) {
+          setStartedAt(res.data.created_at);
+          if (typeof window !== 'undefined') {
+            sessionStorage.setItem(`pipeline_started_${recordingId}`, res.data.created_at);
+          }
         }
         if (res.data?.status === RecordingStatus.COMPLETED) {
           usePipelineStore.getState().setCompleted('Rekaman sudah selesai diproses.');
@@ -155,10 +205,15 @@ export default function RecordingProcessingPage() {
     setIsRetrying(true);
 
     try {
+      const guestToken = useTokenStore.getState().getGuestToken(recordingId);
+
       // Call BFF retry endpoint
       const res = await apiFetch<ApiResponse<RetryRecordingResponseDto>>(
         `/api/recordings/${recordingId}/retry`,
-        { method: 'POST' }
+        {
+          method: 'POST',
+          headers: guestToken ? { 'x-ownership-token': guestToken } : undefined,
+        }
       );
 
       if (res.data) {
@@ -266,6 +321,7 @@ export default function RecordingProcessingPage() {
               errorCode={errorCode}
               errorMessage={errorMessage}
               onRetry={handleRetry}
+              startedAt={startedAt}
             />
           </div>
 

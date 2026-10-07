@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { useChatStore } from '@/stores/chat.store';
 import { usePlayerStore } from '@/stores/player.store';
 import { ChatChips } from '@/components/molecules/chat-chips';
@@ -30,40 +32,138 @@ export interface ChatPanelProps {
 }
 
 /**
- * Parses inline timestamp tags like [12:45] or [01:15:30] and replaces them with CitationBadge components.
+ * Transforms timestamp patterns like [01:06] or [01:06 - 01:24] into special markdown links
+ * e.g. [01:06](timestamp:01:06?label=%5B01%3A06%5D) or [01:06 - 01:24](timestamp:01:06?label=%5B01%3A06+-+01%3A24%5D)
+ * while preserving code fences and inline code.
  */
-function renderMessageContent(content: string, onSeek?: (timestamp: number) => void) {
-  const timestampRegex = /\[(\d{1,2}:\d{2}(?::\d{2})?)\]/g;
-  const parts: React.ReactNode[] = [];
-  let lastIndex = 0;
-  let match: RegExpExecArray | null;
+export function linkifyTimestamps(content: string): string {
+  if (!content) return '';
 
-  while ((match = timestampRegex.exec(content)) !== null) {
-    const matchIndex = match.index;
-    if (matchIndex > lastIndex) {
-      parts.push(content.substring(lastIndex, matchIndex));
-    }
+  const codeBlocks: string[] = [];
+  const placeholder = (idx: number) => `___CODE_BLOCK_${idx}___`;
 
-    const timeStr = match[1];
-    if (timeStr) {
-      const seconds = parseTimestamp(timeStr);
-      parts.push(
-        <CitationBadge
-          key={`citation-${matchIndex}-${timeStr}`}
-          timestamp={seconds}
-          onClick={onSeek}
-          className="mx-0.5 inline-flex align-middle"
-        />
-      );
-    }
-    lastIndex = timestampRegex.lastIndex;
-  }
+  // Protect code blocks and inline code from timestamp substitution
+  let preserved = content.replace(/(```[\s\S]*?```|`[^`\n]+`)/g, (match) => {
+    codeBlocks.push(match);
+    return placeholder(codeBlocks.length - 1);
+  });
 
-  if (lastIndex < content.length) {
-    parts.push(content.substring(lastIndex));
-  }
+  const timestampRegex = /\[(\d{1,2}:\d{2}(?::\d{2})?)(?:\s*-\s*(\d{1,2}:\d{2}(?::\d{2})?))?\](?!\()/g;
 
-  return parts.length > 0 ? parts : content;
+  preserved = preserved.replace(timestampRegex, (fullMatch, startTimeStr, endTimeStr) => {
+    const label = fullMatch.slice(1, -1).trim();
+    const endQuery = endTimeStr ? `&end=${encodeURIComponent(endTimeStr)}` : '';
+    return `[${label}](timestamp:${startTimeStr}?label=${encodeURIComponent(fullMatch)}${endQuery})`;
+  });
+
+  return preserved.replace(/___CODE_BLOCK_(\d+)___/g, (_, idx) => codeBlocks[Number(idx)] || '');
+}
+
+/**
+ * Sanitizes URLs in markdown while preserving custom timestamp: protocols.
+ */
+export function safeUrlTransform(url: string): string {
+  if (url.startsWith('timestamp:')) return url;
+  if (/^(https?|mailto|tel):/i.test(url) || url.startsWith('/') || url.startsWith('#')) return url;
+  return '';
+}
+
+/**
+ * Parses markdown message content (including bold, italics, lists, code) and renders
+ * inline timestamp citations like [01:06] or [01:06 - 01:24] as interactive CitationBadge components.
+ */
+export function renderMessageContent(content: string, onSeek?: (timestamp: number) => void) {
+  if (!content) return null;
+
+  const processed = linkifyTimestamps(content);
+
+  return (
+    <div className="prose prose-xs dark:prose-invert max-w-none text-foreground leading-relaxed font-sans break-words space-y-1.5 [&>p]:mb-1.5 [&>p:last-child]:mb-0">
+      <ReactMarkdown
+        remarkPlugins={[remarkGfm]}
+        urlTransform={safeUrlTransform}
+        components={{
+          a: ({ href, children }) => {
+            if (href?.startsWith('timestamp:')) {
+              const url = href.replace('timestamp:', '');
+              const [timePart, queryPart] = url.split('?');
+              const startSeconds = timePart.includes(':')
+                ? parseTimestamp(timePart)
+                : Number(timePart) || 0;
+
+              let label: string | undefined;
+              if (queryPart) {
+                const params = new URLSearchParams(queryPart);
+                label = params.get('label') || undefined;
+              }
+              const displayLabel =
+                label || (typeof children === 'string' ? `[${children}]` : undefined);
+
+              return (
+                <CitationBadge
+                  timestamp={startSeconds}
+                  label={displayLabel}
+                  onClick={onSeek}
+                  className="mx-0.5 inline-flex align-middle"
+                />
+              );
+            }
+            return (
+              <a
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary underline hover:text-primary/80"
+              >
+                {children}
+              </a>
+            );
+          },
+          p: ({ children }) => (
+            <p className="leading-relaxed mb-1.5 last:mb-0">{children}</p>
+          ),
+          strong: ({ children }) => (
+            <strong className="font-semibold text-foreground">{children}</strong>
+          ),
+          em: ({ children }) => (
+            <em className="italic text-foreground/90">{children}</em>
+          ),
+          ul: ({ children }) => (
+            <ul className="list-disc list-outside pl-4 space-y-1 my-1 marker:text-primary/70">{children}</ul>
+          ),
+          ol: ({ children }) => (
+            <ol className="list-decimal list-outside pl-4 space-y-1 my-1 marker:text-primary/70">{children}</ol>
+          ),
+          li: ({ children }) => (
+            <li className="leading-relaxed">{children}</li>
+          ),
+          code: ({ children, className }) => {
+            const isInline = !className?.includes('language-');
+            if (isInline) {
+              return (
+                <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-[11px] text-foreground border border-border/40">
+                  {children}
+                </code>
+              );
+            }
+            return <code className={className}>{children}</code>;
+          },
+          pre: ({ children }) => (
+            <pre className="rounded-lg bg-muted/80 p-2 my-1.5 overflow-x-auto text-[11px] font-mono border border-border/50">
+              {children}
+            </pre>
+          ),
+          blockquote: ({ children }) => (
+            <blockquote className="border-l-2 border-primary/60 pl-2.5 italic my-1 text-muted-foreground">
+              {children}
+            </blockquote>
+          ),
+        }}
+      >
+        {processed}
+      </ReactMarkdown>
+    </div>
+  );
 }
 
 export function ChatPanel({
@@ -200,7 +300,9 @@ export function ChatPanel({
           </div>
         ) : (
           <>
-            {messages.map((msg) => {
+            {messages
+              .filter((msg) => !msg.isStreaming && Boolean(msg.content?.trim()))
+              .map((msg) => {
               const isUser = msg.role === 'user';
               return (
                 <div
@@ -222,9 +324,11 @@ export function ChatPanel({
                         : 'bg-secondary/70 text-foreground border border-border/50 rounded-tl-sm'
                     )}
                   >
-                    <div className="whitespace-pre-line">
-                      {isUser ? msg.content : renderMessageContent(msg.content, seek)}
-                    </div>
+                    {isUser ? (
+                      <div className="whitespace-pre-wrap break-words">{msg.content}</div>
+                    ) : (
+                      renderMessageContent(msg.content, seek)
+                    )}
 
                     {/* Attached Citations if any */}
                     {!isUser && msg.citations && msg.citations.length > 0 && (
@@ -261,11 +365,24 @@ export function ChatPanel({
                 <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/20 text-primary mt-0.5">
                   <Bot className="h-3.5 w-3.5" />
                 </div>
-                <div className="max-w-[85%] rounded-2xl rounded-tl-sm bg-secondary/70 text-foreground border border-border/50 px-3.5 py-2.5 leading-relaxed space-y-1.5 shadow-sm">
-                  <div className="whitespace-pre-line">
-                    {renderMessageContent(streamingContent, seek)}
-                    <span className="inline-block animate-pulse text-primary font-bold ml-0.5">▍</span>
-                  </div>
+                <div className="max-w-[85%] min-w-[140px] rounded-2xl rounded-tl-sm bg-secondary/70 text-foreground border border-border/50 px-3.5 py-2.5 leading-relaxed space-y-1.5 shadow-sm">
+                  {streamingContent.trim() ? (
+                    <div className="relative">
+                      {renderMessageContent(streamingContent, seek)}
+                      <span className="inline-block animate-pulse text-primary font-bold ml-0.5" aria-hidden="true">▍</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2 py-0.5" data-testid="chat-thinking-indicator">
+                      <div className="flex items-center gap-1">
+                        <span className="h-1.5 w-1.5 rounded-full bg-primary animate-bounce [animation-delay:-0.3s]" />
+                        <span className="h-1.5 w-1.5 rounded-full bg-primary animate-bounce [animation-delay:-0.15s]" />
+                        <span className="h-1.5 w-1.5 rounded-full bg-primary animate-bounce" />
+                      </div>
+                      <span className="text-[11px] text-muted-foreground font-medium animate-pulse select-none">
+                        Sedang berpikir...
+                      </span>
+                    </div>
+                  )}
 
                   {streamingCitations.length > 0 && (
                     <div className="flex flex-wrap gap-1 pt-1.5 border-t border-border/30">

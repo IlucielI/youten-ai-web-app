@@ -99,4 +99,74 @@ describe('ChatPanel Organism', () => {
 
     expect(useChatStore.getState().messages.length).toBe(0);
   });
+
+  it('renders markdown formatting like bold text and timestamp range citations correctly', () => {
+    act(() => {
+      useChatStore.setState({
+        messages: [
+          {
+            id: 'msg-rag-1',
+            role: 'assistant',
+            content: 'Game Boy dibuat di **Jepang**. [01:06 - 01:24]',
+            timestamp: new Date().toISOString(),
+          },
+        ],
+      });
+    });
+
+    render(<ChatPanel isOpen={true} />);
+
+    // Bold text is rendered as strong element
+    const boldEl = screen.getByText('Jepang');
+    expect(boldEl.tagName.toLowerCase()).toBe('strong');
+
+    // Range citation badge is rendered and clickable
+    expect(screen.getByTestId('citation-badge')).toBeInTheDocument();
+    expect(screen.getByText('[01:06 - 01:24]')).toBeInTheDocument();
+
+    // Clicking seeks to start timestamp (01:06 = 66 seconds)
+    fireEvent.click(screen.getByTestId('citation-badge'));
+    expect(usePlayerStore.getState().currentTime).toBe(66);
+  });
+
+  it('renders thinking animation indicator when streaming starts with empty content', () => {
+    act(() => {
+      useChatStore.setState({
+        isStreaming: true,
+        streamingContent: '',
+      });
+    });
+
+    render(<ChatPanel isOpen={true} />);
+
+    expect(screen.getByTestId('chat-streaming-indicator')).toBeInTheDocument();
+    expect(screen.getByTestId('chat-thinking-indicator')).toBeInTheDocument();
+    expect(screen.getByText('Sedang berpikir...')).toBeInTheDocument();
+  });
+
+  it('does not render blank bubbles for messages with empty content', () => {
+    act(() => {
+      useChatStore.setState({
+        messages: [
+          {
+            id: 'empty-msg-1',
+            role: 'assistant',
+            content: '',
+            timestamp: new Date().toISOString(),
+          },
+          {
+            id: 'valid-msg-2',
+            role: 'assistant',
+            content: 'Pesan valid.',
+            timestamp: new Date().toISOString(),
+          },
+        ],
+      });
+    });
+
+    render(<ChatPanel isOpen={true} />);
+
+    expect(screen.queryByTestId('chat-message-empty-msg-1')).not.toBeInTheDocument();
+    expect(screen.getByTestId('chat-message-valid-msg-2')).toBeInTheDocument();
+  });
 });

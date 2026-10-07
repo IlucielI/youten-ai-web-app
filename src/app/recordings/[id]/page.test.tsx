@@ -249,6 +249,7 @@ describe('RecordingDetailPage', () => {
 
     await waitFor(() => {
       expect(screen.getByTestId('guest-warning-banner')).toBeInTheDocument();
+      expect(screen.getByTestId('claim-account-btn')).not.toHaveAttribute('href');
     });
 
     const claimBtn = screen.getByTestId('claim-account-btn');
@@ -257,6 +258,57 @@ describe('RecordingDetailPage', () => {
     await waitFor(() => {
       expect(claimSpy).toHaveBeenCalledWith('rec-detail-123');
       expect(screen.queryByTestId('guest-warning-banner')).not.toBeInTheDocument();
+    });
+  });
+
+  it('sends message via chat panel and streams assistant response', async () => {
+    const encoder = new TextEncoder();
+    const stream = new ReadableStream({
+      start(controller) {
+        controller.enqueue(
+          encoder.encode('event: token\ndata: {"token":"Halo dari "}\n\n')
+        );
+        controller.enqueue(
+          encoder.encode('event: token\ndata: {"token":"asisten AI"}\n\n')
+        );
+        controller.enqueue(
+          encoder.encode(
+            'event: done\ndata: {"message_id":"msg-123","content":"Halo dari asisten AI","citations":["00:15"],"retrieved_chunk_ids":["c1"]}\n\n'
+          )
+        );
+        controller.close();
+      },
+    });
+
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: true,
+      body: stream,
+    } as unknown as Response);
+
+    render(<RecordingDetailPage />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('recording-title')).toBeInTheDocument();
+    });
+
+    // Open chat panel
+    fireEvent.click(screen.getByTestId('toggle-chat-panel-btn'));
+    expect(screen.getByTestId('recording-chat-panel')).toBeInTheDocument();
+
+    // Type and send message
+    const textarea = screen.getByTestId('chat-input-textarea');
+    fireEvent.change(textarea, { target: { value: 'Apa agenda sprint?' } });
+    const sendBtn = screen.getByTestId('send-chat-btn');
+    fireEvent.click(sendBtn);
+
+    await waitFor(() => {
+      expect(fetchSpy).toHaveBeenCalledWith(
+        '/api/recordings/rec-detail-123/chat',
+        expect.objectContaining({
+          method: 'POST',
+        })
+      );
+      expect(screen.getByText(/Halo dari asisten AI/i)).toBeInTheDocument();
     });
   });
 });

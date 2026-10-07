@@ -323,4 +323,35 @@ describe('SummaryViewer Organism', () => {
 
     expect(screen.getByText(/Sorot aspek keamanan dan audit finansial/i)).toBeInTheDocument();
   });
+
+  it('renders rich markdown and strips AI artifact directives cleanly', () => {
+    const rawAiMarkdown = `Ringkasan eksekutif dibuat dari materi tersedia.
+
+:::writing{variant="document" title="Executive Memo — Sintesis Diskusi Eksekutif" id="58391"}
+# Executive Memo
+
+## Topik Utama
+Peran individu terhadap negara dan organisasi.
+
+| Cue | Catatan |
+|---|---|
+| Pertanyaan Kunci | Apa ekspektasi warga? |
+
+:::`;
+
+    render(
+      <SummaryViewer
+        summary={{
+          template_category: TemplateKey.GENERAL,
+          markdown_content: rawAiMarkdown,
+        }}
+      />
+    );
+
+    expect(screen.getByRole('heading', { level: 1, name: 'Executive Memo' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 2, name: 'Topik Utama' })).toBeInTheDocument();
+    expect(screen.getByText('Apa ekspektasi warga?')).toBeInTheDocument();
+    // Directive tag should NOT be rendered in document
+    expect(screen.queryByText(/:::writing/)).not.toBeInTheDocument();
+  });
 });

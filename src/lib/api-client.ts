@@ -27,6 +27,30 @@ export async function apiFetch<T>(
     ...(options.headers as Record<string, string>),
   };
 
+  // Automatically attach guest ownership token if available in localStorage for this recording
+  if (typeof window !== 'undefined' && !headers['x-ownership-token']) {
+    try {
+      const match = endpoint.match(/\/api\/recordings\/([a-zA-Z0-9_-]+)/);
+      if (match && match[1]) {
+        const recId = match[1];
+        const reserved = ['presign', 'upload', 'import-url', 'search', 'ask', 'claim', 'shared'];
+        if (!reserved.includes(recId)) {
+          const raw = localStorage.getItem('youten_guest_tokens');
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            const tokens = parsed?.state?.guestTokens || [];
+            const item = tokens.find((t: { id: string }) => t.id === recId);
+            if (item?.ownership_token) {
+              headers['x-ownership-token'] = item.ownership_token;
+            }
+          }
+        }
+      }
+    } catch {
+      // Ignore storage access errors
+    }
+  }
+
   if (options.body && typeof options.body === 'string' && !headers['Content-Type']) {
     headers['Content-Type'] = 'application/json';
   }

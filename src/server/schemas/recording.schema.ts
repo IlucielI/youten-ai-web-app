@@ -299,3 +299,10 @@ export const UpdateSpeakersResponseSchema = z.object({
   speakers: z.record(z.string(), z.string()),
 });
 export type UpdateSpeakersResponseDto = z.infer<typeof UpdateSpeakersResponseSchema>;
+
+export const UpdateTranscriptSegmentRequestSchema = z.object({
+  text: z.string().trim().min(1, 'Teks segmen tidak boleh kosong').max(10000, 'Teks segmen maksimal 10.000 karakter'),
+  ownership_token: z.string().trim().optional(),
+});
+export type UpdateTranscriptSegmentRequestInput = z.infer<typeof UpdateTranscriptSegmentRequestSchema>;
+

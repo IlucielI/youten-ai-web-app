@@ -8,9 +8,11 @@ import {
   ImportUrlRequestSchema,
   ShareToggleRequestSchema,
   UpdateSpeakersRequestSchema,
+  UpdateTranscriptSegmentRequestSchema,
   BulkClaimRequestSchema,
   RecordingFilterQuerySchema,
 } from '../schemas/recording.schema';
+import { RegenerateSummaryRequestSchema } from '../schemas/summary.schema';
 import { ILogger } from '../logger/logger.interface';
 
 export class RecordingController extends BaseController {
@@ -59,7 +61,9 @@ export class RecordingController extends BaseController {
 
   async getDetail(req: Request, id: string): Promise<NextResponse> {
     return this.handle(req, async () => {
-      return this.recordingService.getRecordingDetail(id);
+      const url = new URL(req.url);
+      const token = url.searchParams.get('token') || req.headers.get('x-ownership-token') || undefined;
+      return this.recordingService.getRecordingDetail(id, token);
     });
   }
 
@@ -71,7 +75,9 @@ export class RecordingController extends BaseController {
 
   async retry(req: Request, id: string): Promise<NextResponse> {
     return this.handle(req, async () => {
-      return this.recordingService.retryRecording(id);
+      const url = new URL(req.url);
+      const token = url.searchParams.get('token') || req.headers.get('x-ownership-token') || undefined;
+      return this.recordingService.retryRecording(id, token);
     });
   }
 
@@ -86,6 +92,17 @@ export class RecordingController extends BaseController {
     return this.handle(req, async () => {
       const body = await this.getBody(req, UpdateSpeakersRequestSchema);
       return this.recordingService.updateSpeakers(id, body);
+    });
+  }
+
+  async updateSegment(req: Request, id: string, segmentId: string): Promise<NextResponse> {
+    return this.handle(req, async () => {
+      const body = await this.getBody(req, UpdateTranscriptSegmentRequestSchema);
+      const ownershipToken = req.headers.get('x-ownership-token') || body.ownership_token || undefined;
+      return this.recordingService.updateTranscriptSegment(id, segmentId, {
+        ...body,
+        ownership_token: ownershipToken,
+      });
     });
   }
 
@@ -105,6 +122,14 @@ export class RecordingController extends BaseController {
     return this.handle(req, async () => {
       const body = await this.getBody(req, BulkClaimRequestSchema);
       return this.recordingService.claimBulk(body);
+    });
+  }
+
+  async regenerateSummary(req: Request, id: string): Promise<NextResponse> {
+    return this.handle(req, async () => {
+      const ownershipToken = req.headers.get('x-ownership-token') || undefined;
+      const body = await this.getBody(req, RegenerateSummaryRequestSchema);
+      return this.recordingService.regenerateSummary(id, body, ownershipToken);
     });
   }
 }

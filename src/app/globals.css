@@ -28,9 +28,9 @@
   --border: #e2e8f0;
   --border-subtle: #f1f5f9;
 
-  /* Muted Text */
-  --muted: #64748b;
-  --muted-foreground: #94a3b8;
+  /* Muted Background & Text */
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b;
 
   /* Rounded Corner Tokens */
   --radius-sm: 0.375rem;
@@ -95,8 +95,8 @@
     --surface-subtle: #1a2236;
     --border: #232f48;
     --border-subtle: #1e293b;
-    --muted: #94a3b8;
-    --muted-foreground: #64748b;
+    --muted: #1e293b;
+    --muted-foreground: #94a3b8;
   }
 }
 

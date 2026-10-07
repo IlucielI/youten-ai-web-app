@@ -37,20 +37,24 @@ import { AudioPlayer } from '@/components/organisms/audio-player';
 import { ChatPanel } from '@/components/organisms/chat-panel';
 import { ShareDialog } from '@/components/molecules/share-dialog';
 import { ExportMenu } from '@/components/molecules/export-menu';
-import { formatTime } from '@/lib/time';
+import { formatTime, parseTimestamp } from '@/lib/time';
 import { cn } from '@/lib/utils';
 import { RecordingStatus } from '@/server/constants';
 import { TemplateKey } from '@/server/constants/template.constant';
 import { ExportFormat } from '@/server/constants/recording.constant';
+import { toast } from 'sonner';
 import { usePlayerStore } from '@/stores/player.store';
 import { useChatStore } from '@/stores/chat.store';
+import { useTokenStore } from '@/stores/token.store';
 import { apiFetch } from '@/lib/api-client';
 import { claimSingleRecording } from '@/lib/claim';
 import { ApiResponse } from '@/server/dtos/response.dto';
 import { RecordingDetailDto } from '@/server/schemas/recording.schema';
+import type { SummaryVersionResponse } from '@/server/dtos/summary.dto';
 import type { TranscriptSegmentDTO } from '@/server/dtos/recording.dto';
 import type { CommentResponse, CreateCommentRequest } from '@/server/dtos/comment.dto';
 import type { RecordingAnalyticsDTO } from '@/server/dtos/analytics.dto';
+import type { MeetingSourceCitationDTO } from '@/server/dtos/workspace.dto';
 
 export default function RecordingDetailPage() {
   const params = useParams();
@@ -75,6 +79,7 @@ export default function RecordingDetailPage() {
   const [summaryVersions, setSummaryVersions] = useState<SummaryVersionItem[]>([]);
   const [selectedVersionId, setSelectedVersionId] = useState<string>('');
   const [isRegenerateOpen, setIsRegenerateOpen] = useState<boolean>(false);
+  const [isRegenerating, setIsRegenerating] = useState<boolean>(false);
   const [activeSummaryData, setActiveSummaryData] = useState<SummaryData | null>(null);
 
   // Share Dialog State
@@ -103,6 +108,10 @@ export default function RecordingDetailPage() {
   const setAudioUrl = usePlayerStore((state) => state.setAudioUrl);
   const setRecordingIdChat = useChatStore((state) => state.setRecordingId);
   const addUserMessage = useChatStore((state) => state.addUserMessage);
+  const startAssistantStream = useChatStore((state) => state.startAssistantStream);
+  const appendStreamChunk = useChatStore((state) => state.appendStreamChunk);
+  const finalizeAssistantMessage = useChatStore((state) => state.finalizeAssistantMessage);
+  const setChatError = useChatStore((state) => state.setChatError);
 
   const routerRef = useRef(router);
   useEffect(() => {
@@ -196,8 +205,23 @@ export default function RecordingDetailPage() {
         if (data.segments && data.segments.length > 0) {
           const map: Record<string, string> = {};
           for (const s of data.segments) {
-            if (s.speaker_label && !map[s.speaker_label]) {
-              map[s.speaker_label] = s.speaker_name || s.speaker_label;
+            if (s.speaker_label) {
+              const currentVal = map[s.speaker_label];
+              const isGeneric =
+                !currentVal ||
+                currentVal.toLowerCase().startsWith('speaker') ||
+                currentVal.toLowerCase().startsWith('pembicara');
+              const newName = s.speaker_name?.trim();
+              const isNewNameReal =
+                newName &&
+                !newName.toLowerCase().startsWith('speaker') &&
+                !newName.toLowerCase().startsWith('pembicara');
+
+              if (isNewNameReal && isGeneric) {
+                map[s.speaker_label] = newName;
+              } else if (!currentVal) {
+                map[s.speaker_label] = s.speaker_name || s.speaker_label;
+              }
             }
           }
           setSpeakerLabels(map);
@@ -249,34 +273,159 @@ export default function RecordingDetailPage() {
     if (!recordingId) return;
 
     try {
-      const nextVerNum = summaryVersions.length + 1;
-      const newVerId = `ver-${nextVerNum}`;
+      setIsRegenerating(true);
+      const ownershipToken = useTokenStore.getState().getGuestToken(recordingId);
 
-      const newVersionItem: SummaryVersionItem = {
-        id: newVerId,
-        version: nextVerNum,
-        template_category: payload.templateCategory,
-        is_active: true,
-        created_at: new Date().toISOString(),
-      };
+      const headers: Record<string, string> = {};
+      if (ownershipToken) {
+        headers['x-ownership-token'] = ownershipToken;
+      }
 
-      setSummaryVersions((prev) => [...prev, newVersionItem]);
-      setSelectedVersionId(newVerId);
+      const res = await apiFetch<ApiResponse<SummaryVersionResponse>>(
+        `/api/recordings/${recordingId}/regenerate`,
+        {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({
+            template_category: payload.templateCategory,
+            custom_angle: payload.customAngle,
+            ownership_token: ownershipToken,
+          }),
+        }
+      );
 
-      setActiveSummaryData({
-        id: newVerId,
-        version: nextVerNum,
-        template_category: payload.templateCategory,
-        custom_angle: payload.customAngle,
-        structured_data: recording?.active_summary?.structured_data || null,
-        markdown_content: recording?.active_summary?.markdown_content,
-        is_active: true,
-        created_at: new Date().toISOString(),
-      });
+      if (res.data) {
+        const regenerated = res.data;
+        const newVersionItem: SummaryVersionItem = {
+          id: regenerated.id,
+          version: regenerated.version,
+          template_category: regenerated.template_category as TemplateKey,
+          is_active: true,
+          created_at: regenerated.created_at,
+        };
+
+        setSummaryVersions((prev) => [
+          ...prev.map((v) => ({ ...v, is_active: false })),
+          newVersionItem,
+        ]);
+        setSelectedVersionId(regenerated.id);
+
+        setActiveSummaryData({
+          id: regenerated.id,
+          version: regenerated.version,
+          template_category: regenerated.template_category as TemplateKey,
+          custom_angle: regenerated.custom_angle,
+          structured_data: regenerated.structured_data,
+          markdown_content: regenerated.markdown_content,
+          is_active: true,
+          created_at: regenerated.created_at,
+        });
+      }
 
       setIsRegenerateOpen(false);
     } catch (err: unknown) {
       console.error('Failed to regenerate summary:', err);
+    } finally {
+      setIsRegenerating(false);
+    }
+  };
+
+  /**
+   * Handle sending message in AI Chat panel with real-time SSE streaming.
+   */
+  const handleSendMessage = async (text: string) => {
+    if (!recordingId) return;
+
+    const assistantMsgId = startAssistantStream();
+    let fullContent = '';
+    let rawCitations: string[] = [];
+
+    try {
+      const ownershipToken = useTokenStore.getState().getGuestToken(recordingId);
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+      if (ownershipToken) {
+        headers['x-ownership-token'] = ownershipToken;
+      }
+
+      const res = await fetch(`/api/recordings/${recordingId}/chat`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          message: text,
+          ownership_token: ownershipToken,
+        }),
+      });
+
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        throw new Error(errJson.error || errJson.message || 'Gagal menghubungi asisten AI');
+      }
+
+      if (!res.body) {
+        throw new Error('Respon tidak memiliki data streaming');
+      }
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+
+        for (let i = 0; i < lines.length; i++) {
+          const line = lines[i]?.trim() || '';
+          if (line.startsWith('event:')) {
+            const eventType = line.slice(6).trim();
+            const nextLine = lines[i + 1]?.trim() || '';
+            if (nextLine.startsWith('data:')) {
+              i++;
+              const rawData = nextLine.slice(5).trim();
+              if (!rawData) continue;
+
+              try {
+                const data = JSON.parse(rawData);
+                if (eventType === 'token' && data.token) {
+                  fullContent += data.token;
+                  appendStreamChunk(data.token);
+                } else if (eventType === 'done') {
+                  if (data.content && !fullContent) {
+                    fullContent = data.content;
+                  }
+                  if (Array.isArray(data.citations)) {
+                    rawCitations = data.citations;
+                  }
+                } else if (eventType === 'error') {
+                  throw new Error(data.error || 'Terjadi kesalahan pada respon AI');
+                }
+              } catch (parseErr) {
+                if (eventType === 'error') throw parseErr;
+              }
+            }
+          }
+        }
+      }
+
+      const mappedCitations: MeetingSourceCitationDTO[] = rawCitations.map((c, idx) => ({
+        recording_id: recordingId,
+        recording_title: recording?.title || '',
+        chunk_index: idx,
+        snippet: c,
+        start_time: parseTimestamp(c),
+        end_time: parseTimestamp(c),
+      }));
+
+      finalizeAssistantMessage(assistantMsgId, fullContent, mappedCitations);
+    } catch (err: unknown) {
+      const errMsg = err instanceof Error ? err.message : 'Terjadi kesalahan koneksi AI';
+      setChatError(errMsg);
+      finalizeAssistantMessage(assistantMsgId, fullContent || `Maaf, terjadi kesalahan: ${errMsg}`);
     }
   };
 
@@ -310,28 +459,88 @@ export default function RecordingDetailPage() {
   const handleExport = async (format: ExportFormat) => {
     if (!recording) return;
 
-    // Generate export file and trigger browser download
-    const filename = `${recording.title.replace(/[^a-zA-Z0-9_-]/g, '_')}.${format}`;
-    let content = '';
+    try {
+      let ownershipToken = '';
+      if (typeof window !== 'undefined') {
+        try {
+          const raw = localStorage.getItem('youten_guest_tokens');
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            const tokens = parsed?.state?.guestTokens || [];
+            const item = tokens.find((t: { id: string }) => t.id === recordingId);
+            if (item?.ownership_token) {
+              ownershipToken = item.ownership_token;
+            }
+          }
+        } catch {
+          // Ignore storage parse errors
+        }
+      }
 
-    if (format === ExportFormat.TXT) {
-      content = `# ${recording.title}\n\n${recording.active_summary?.markdown_content || ''}\n\n## Transkrip\n` +
-        (recording.segments || []).map((s) => `[${formatTime(s.start_time)}] ${speakerLabels[s.speaker_label] || s.speaker_name || s.speaker_label}: ${s.text}`).join('\n');
-    } else if (format === ExportFormat.JSON) {
-      content = JSON.stringify(recording, null, 2);
-    } else {
-      content = recording.active_summary?.markdown_content || recording.title;
+      const params = new URLSearchParams({ format });
+      if (ownershipToken) {
+        params.set('token', ownershipToken);
+      }
+
+      const headers: Record<string, string> = {};
+      if (ownershipToken) {
+        headers['x-ownership-token'] = ownershipToken;
+      }
+
+      const res = await fetch(`/api/recordings/${recordingId}/export?${params.toString()}`, {
+        method: 'GET',
+        headers,
+      });
+
+      if (!res.ok) {
+        throw new Error(`Export request failed with status ${res.status}`);
+      }
+
+      const blob = await res.blob();
+      const disposition = res.headers.get('content-disposition');
+      let filename = `${recording.title.replace(/[^a-zA-Z0-9_-]/g, '_')}.${format === ExportFormat.MARKDOWN ? 'md' : format}`;
+      if (disposition && disposition.includes('filename=')) {
+        const match = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+        if (match && match[1]) {
+          filename = match[1].replace(/['"]/g, '');
+        }
+      }
+
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (err: unknown) {
+      console.warn('Backend export failed, falling back to local exporter:', err);
+      // Fallback for offline mode
+      const ext = format === ExportFormat.MARKDOWN ? 'md' : format;
+      const filename = `${recording.title.replace(/[^a-zA-Z0-9_-]/g, '_')}.${ext}`;
+      let content = '';
+
+      if (format === ExportFormat.TXT) {
+        content = `# ${recording.title}\n\n${recording.active_summary?.markdown_content || ''}\n\n## Transkrip\n` +
+          (recording.segments || []).map((s) => `[${formatTime(s.start_time)}] ${speakerLabels[s.speaker_label] || s.speaker_name || s.speaker_label}: ${s.text}`).join('\n');
+      } else if (format === ExportFormat.JSON) {
+        content = JSON.stringify(recording, null, 2);
+      } else {
+        content = recording.active_summary?.markdown_content || recording.title;
+      }
+
+      const mimeType = format === ExportFormat.JSON ? 'application/json' : 'text/plain;charset=utf-8';
+      const blob = new Blob([content], { type: mimeType });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
     }
-
-    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
   };
 
   /**
@@ -352,6 +561,63 @@ export default function RecordingDetailPage() {
     };
 
     setComments((prev) => [newComment, ...prev]);
+  };
+
+  /**
+   * Handle updating a single transcript segment's text inline.
+   */
+  const handleSaveSegmentText = async (segmentId: string, newText: string) => {
+    if (!recordingId) return;
+
+    let ownershipToken: string | undefined;
+    try {
+      const raw = localStorage.getItem('youten_guest_tokens');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        const tokens = parsed?.state?.guestTokens || [];
+        const item = tokens.find((t: { id: string }) => t.id === recordingId);
+        if (item?.ownership_token) {
+          ownershipToken = item.ownership_token;
+        }
+      }
+    } catch {
+      // Ignore storage parse errors
+    }
+
+    try {
+      const res = await fetch(`/api/recordings/${recordingId}/segments/${segmentId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(ownershipToken ? { 'x-ownership-token': ownershipToken } : {}),
+        },
+        body: JSON.stringify({
+          text: newText,
+          ownership_token: ownershipToken,
+        }),
+      });
+
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        throw new Error(errJson.message || 'Gagal menyimpan perubahan teks');
+      }
+
+      setRecording((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          segments: (prev.segments || []).map((seg) =>
+            seg.id === segmentId ? { ...seg, text: newText } : seg
+          ),
+        };
+      });
+
+      toast.success('Transkrip berhasil diperbarui');
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Gagal memperbarui segmen';
+      toast.error(msg);
+      throw err;
+    }
   };
 
   // Filtered transcript segments
@@ -653,8 +919,11 @@ export default function RecordingDetailPage() {
                           }}
                           onAskAI={(seg) => {
                             setIsChatOpen(true);
-                            addUserMessage(`Jelaskan pernyataan berikut: "${seg.text}"`);
+                            const prompt = `Jelaskan pernyataan berikut: "${seg.text}"`;
+                            addUserMessage(prompt);
+                            void handleSendMessage(prompt);
                           }}
+                          onSaveText={handleSaveSegmentText}
                         />
                       );
                     })
@@ -708,6 +977,7 @@ export default function RecordingDetailPage() {
                 recordingId={recording.id}
                 isOpen={isChatOpen}
                 onClose={() => setIsChatOpen(false)}
+                onSendMessage={handleSendMessage}
                 onSeekAudio={(timestamp) => seek(timestamp)}
               />
             </aside>
@@ -747,6 +1017,7 @@ export default function RecordingDetailPage() {
         }}
         defaultTemplate={recording.selected_template as TemplateKey}
         currentVersionsCount={summaryVersions.length}
+        isLoading={isRegenerating}
       />
 
       {/* Share Dialog */}

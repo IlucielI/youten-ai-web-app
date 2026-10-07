@@ -30,4 +30,9 @@ describe('CitationBadge Atom', () => {
     fireEvent.click(badge);
     expect(usePlayerStore.getState().currentTime).toBe(200);
   });
+
+  it('renders custom label when provided (e.g. timestamp range)', () => {
+    render(<CitationBadge timestamp={66} label="[01:06 - 01:24]" />);
+    expect(screen.getByText('[01:06 - 01:24]')).toBeInTheDocument();
+  });
 });

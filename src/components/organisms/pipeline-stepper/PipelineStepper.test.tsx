@@ -82,4 +82,19 @@ describe('PipelineStepper Component', () => {
     });
     expect(onRetry).toHaveBeenCalledTimes(1);
   });
+
+  it('calculates initial elapsed time accurately when startedAt is provided', () => {
+    // 65 seconds in the past
+    const startedAt = new Date(Date.now() - 65 * 1000).toISOString();
+    render(
+      <PipelineStepper
+        status={RecordingStatus.TRANSCRIBING}
+        progress={55}
+        startedAt={startedAt}
+      />
+    );
+
+    const timerBadge = screen.getByTestId('live-timer-badge');
+    expect(timerBadge.textContent).toBe('01:05');
+  });
 });

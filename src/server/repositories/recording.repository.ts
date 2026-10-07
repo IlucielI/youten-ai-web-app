@@ -19,6 +19,10 @@ import {
   RetryRecordingResponse,
   UpdateSpeakersRequest,
   UpdateSpeakersResponse,
+  SummaryVersionResponse,
+  RegenerateSummaryRequest,
+  UpdateTranscriptSegmentRequest,
+  TranscriptSegmentDTO,
 } from '../dtos';
 import { ApiResponse, PaginatedResponse, BaseResponse } from '../dtos/response.dto';
 import { ResponseStatus, ResponseCode } from '../constants';
@@ -63,7 +67,7 @@ export class RecordingRepository implements IRecordingRepository {
     return this.http.post<ApiResponse<RecordingUploadResponse>>('/v1/recordings/import-url', payload);
   }
 
-  async getRecordingDetail(id: string): Promise<ApiResponse<RecordingDetailResponse>> {
+  async getRecordingDetail(id: string, ownershipToken?: string): Promise<ApiResponse<RecordingDetailResponse>> {
     if (this.useMock) {
       const data = this.mock.getRecordingDetail(id);
       if (!data) {
@@ -71,7 +75,14 @@ export class RecordingRepository implements IRecordingRepository {
       }
       return this.successResponse(data, 'Recording detail retrieved successfully');
     }
-    return this.http.get<ApiResponse<RecordingDetailResponse>>(`/v1/recordings/${id}`);
+    const headers: Record<string, string> = {};
+    if (ownershipToken) {
+      headers['x-ownership-token'] = ownershipToken;
+    }
+    return this.http.get<ApiResponse<RecordingDetailResponse>>(`/v1/recordings/${id}`, {
+      headers,
+      ownershipToken,
+    });
   }
 
   async listRecordings(query?: RecordingFilterQuery): Promise<PaginatedResponse<RecordingListItem>> {
@@ -153,12 +164,19 @@ export class RecordingRepository implements IRecordingRepository {
     return this.http.get<ApiResponse<SharedRecordingResponse>>(`/v1/recordings/shared/${token}`);
   }
 
-  async retryRecording(id: string): Promise<ApiResponse<RetryRecordingResponse>> {
+  async retryRecording(id: string, ownershipToken?: string): Promise<ApiResponse<RetryRecordingResponse>> {
     if (this.useMock) {
       const data = this.mock.retryRecording(id);
       return this.successResponse(data, 'Pipeline retry initiated');
     }
-    return this.http.post<ApiResponse<RetryRecordingResponse>>(`/v1/recordings/${id}/retry`);
+    const headers: Record<string, string> = {};
+    if (ownershipToken) {
+      headers['x-ownership-token'] = ownershipToken;
+    }
+    return this.http.post<ApiResponse<RetryRecordingResponse>>(`/v1/recordings/${id}/retry`, undefined, {
+      headers,
+      ownershipToken,
+    });
   }
 
   async updateSpeakers(id: string, payload: UpdateSpeakersRequest): Promise<ApiResponse<UpdateSpeakersResponse>> {
@@ -167,6 +185,65 @@ export class RecordingRepository implements IRecordingRepository {
       return this.successResponse(data, 'Speakers updated successfully');
     }
     return this.http.put<ApiResponse<UpdateSpeakersResponse>>(`/v1/recordings/${id}/speakers`, payload);
+  }
+
+  async updateTranscriptSegment(
+    recordingId: string,
+    segmentId: string,
+    payload: UpdateTranscriptSegmentRequest
+  ): Promise<ApiResponse<TranscriptSegmentDTO>> {
+    if (this.useMock) {
+      const mockResult: TranscriptSegmentDTO = {
+        id: segmentId,
+        speaker_label: 'Speaker 0',
+        speaker_name: 'Speaker 0',
+        start_time: 0,
+        end_time: 5,
+        text: payload.text,
+        sequence_order: 1,
+      };
+      return this.successResponse(mockResult, 'Transcript segment updated successfully');
+    }
+    const headers: Record<string, string> = {};
+    if (payload.ownership_token) {
+      headers['x-ownership-token'] = payload.ownership_token;
+    }
+    return this.http.patch<ApiResponse<TranscriptSegmentDTO>>(
+      `/v1/recordings/${recordingId}/segments/${segmentId}`,
+      payload,
+      {
+        headers,
+        ownershipToken: payload.ownership_token,
+      }
+    );
+  }
+
+  async regenerateSummary(
+    id: string,
+    payload: RegenerateSummaryRequest,
+    ownershipToken?: string
+  ): Promise<ApiResponse<SummaryVersionResponse>> {
+    if (this.useMock) {
+      const mockResult: SummaryVersionResponse = {
+        id: `summary-${Date.now()}`,
+        version: 2,
+        template_category: payload.template_category || 'GENERAL',
+        custom_angle: payload.custom_angle,
+        structured_data: {},
+        markdown_content: 'Mock regenerated summary content',
+        is_active: true,
+        created_at: new Date().toISOString(),
+      };
+      return this.successResponse(mockResult, 'Summary regenerated successfully');
+    }
+    const headers: Record<string, string> = {};
+    if (ownershipToken) {
+      headers['x-ownership-token'] = ownershipToken;
+    }
+    return this.http.post<ApiResponse<SummaryVersionResponse>>(`/v1/recordings/${id}/regenerate`, payload, {
+      headers,
+      ownershipToken,
+    });
   }
 
   private successResponse<T>(data: T, message: string): ApiResponse<T> {

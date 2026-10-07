@@ -121,4 +121,30 @@ describe('TranscriptSegment Component', () => {
     fireEvent.click(askBtn);
     expect(onAskAI).toHaveBeenCalledWith(mockSegment);
   });
+
+  it('allows inline editing of segment text and calls onSaveText', async () => {
+    const onSaveText = vi.fn().mockResolvedValue(undefined);
+
+    render(
+      <TranscriptSegment
+        segment={mockSegment}
+        onSaveText={onSaveText}
+      />
+    );
+
+    const editBtn = screen.getByTestId('edit-segment-button');
+    fireEvent.click(editBtn);
+
+    const textarea = screen.getByTestId('edit-segment-textarea') as HTMLTextAreaElement;
+    expect(textarea.value).toBe(mockSegment.text);
+
+    fireEvent.change(textarea, { target: { value: 'Teks yang sudah dikoreksi.' } });
+
+    const saveBtn = screen.getByTestId('save-segment-edit-button');
+    await act(async () => {
+      fireEvent.click(saveBtn);
+    });
+
+    expect(onSaveText).toHaveBeenCalledWith(mockSegment.id, 'Teks yang sudah dikoreksi.');
+  });
 });

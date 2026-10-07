@@ -18,6 +18,10 @@ import {
   BulkClaimResponse,
   RecordingListItem,
   RecordingFilterQuery,
+  SummaryVersionResponse,
+  RegenerateSummaryRequest,
+  UpdateTranscriptSegmentRequest,
+  TranscriptSegmentDTO,
 } from '../dtos';
 import { ApiResponse, PaginatedResponse, BaseResponse } from '../dtos/response.dto';
 
@@ -38,8 +42,8 @@ export class RecordingService implements IRecordingService {
     return this.recordingRepo.importUrl(payload);
   }
 
-  async getRecordingDetail(id: string): Promise<ApiResponse<RecordingDetailResponse>> {
-    return this.recordingRepo.getRecordingDetail(id);
+  async getRecordingDetail(id: string, ownershipToken?: string): Promise<ApiResponse<RecordingDetailResponse>> {
+    return this.recordingRepo.getRecordingDetail(id, ownershipToken);
   }
 
   async listRecordings(query?: RecordingFilterQuery): Promise<PaginatedResponse<RecordingListItem>> {
@@ -50,8 +54,8 @@ export class RecordingService implements IRecordingService {
     return this.recordingRepo.deleteRecording(id);
   }
 
-  async retryRecording(id: string): Promise<ApiResponse<RetryRecordingResponse>> {
-    return this.recordingRepo.retryRecording(id);
+  async retryRecording(id: string, ownershipToken?: string): Promise<ApiResponse<RetryRecordingResponse>> {
+    return this.recordingRepo.retryRecording(id, ownershipToken);
   }
 
   async toggleShare(id: string, payload: ShareToggleRequest): Promise<ApiResponse<ShareToggleResponse>> {
@@ -66,12 +70,28 @@ export class RecordingService implements IRecordingService {
     return this.recordingRepo.updateSpeakers(id, payload);
   }
 
+  async updateTranscriptSegment(
+    recordingId: string,
+    segmentId: string,
+    payload: UpdateTranscriptSegmentRequest
+  ): Promise<ApiResponse<TranscriptSegmentDTO>> {
+    return this.recordingRepo.updateTranscriptSegment(recordingId, segmentId, payload);
+  }
+
   async claimRecording(id: string): Promise<ApiResponse<{ claimed: boolean }>> {
     return this.recordingRepo.claimRecording(id);
   }
 
   async claimBulk(payload: BulkClaimRequest): Promise<ApiResponse<BulkClaimResponse>> {
     return this.recordingRepo.claimBulk(payload);
+  }
+
+  async regenerateSummary(
+    id: string,
+    payload: RegenerateSummaryRequest,
+    ownershipToken?: string
+  ): Promise<ApiResponse<SummaryVersionResponse>> {
+    return this.recordingRepo.regenerateSummary(id, payload, ownershipToken);
   }
 }
 
