@@ -8,5 +8,6 @@ export * from './http.client';
 
 export const httpClient: IHttpClient = new HttpClient({
   baseUrl: env.CORE_API_URL,
+  defaultTimeoutMs: 60000,
   logger: logger.forClass ? logger.forClass(HttpClient) : logger.child({ module: HttpClient.name }),
 });
