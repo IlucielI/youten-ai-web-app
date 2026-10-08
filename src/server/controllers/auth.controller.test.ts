@@ -3,7 +3,7 @@ import { AuthController } from './auth.controller';
 import { IAuthService } from '../services/auth.service.interface';
 import { ResponseStatus, ResponseCode } from '../constants';
 import { UserStatus } from '../constants/recording.constant';
-import { AUTH_COOKIE_NAME, REFRESH_COOKIE_NAME } from '../constants/auth.constant';
+import { AUTH_COOKIE_NAME, REFRESH_COOKIE_NAME, GUEST_COOKIE_NAME } from '../constants/auth.constant';
 
 describe('AuthController', () => {
   let controller: AuthController;
@@ -30,6 +30,20 @@ describe('AuthController', () => {
 
   beforeEach(() => {
     mockService = {
+      anonToken: vi.fn().mockResolvedValue({
+        status: ResponseStatus.SUCCESS,
+        code: ResponseCode.SUCCESS,
+        message: 'Anonymous session initialized',
+        data: {
+          anon_token: 'anon-jwt-token',
+          session_id: '00000000-0000-0000-0000-000000000002',
+          client_id: 'client-app',
+          token_type: 'Bearer',
+          expires_in: 604800,
+          scopes: ['recordings:create'],
+        },
+        timestamp: new Date().toISOString(),
+      }),
       register: vi.fn().mockResolvedValue({
         status: ResponseStatus.SUCCESS,
         code: ResponseCode.SUCCESS,
@@ -95,6 +109,20 @@ describe('AuthController', () => {
     };
 
     controller = new AuthController(mockService);
+  });
+
+  describe('anonToken', () => {
+    it('returns 201 and sets guest cookie on handshake', async () => {
+      const req = new Request('http://localhost/api/auth/anon', {
+        method: 'POST',
+      });
+
+      const res = await controller.anonToken(req);
+      expect(res.status).toBe(201);
+      const setCookie = res.headers.get('set-cookie');
+      expect(setCookie).toContain(GUEST_COOKIE_NAME);
+      expect(setCookie).toContain('anon-jwt-token');
+    });
   });
 
   describe('register', () => {

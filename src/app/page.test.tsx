@@ -16,7 +16,15 @@ vi.mock('next/navigation', () => ({
 describe('LandingPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    useTokenStore.setState({ guestTokens: [] });
+    useTokenStore.setState({
+      guestTokens: [],
+      anonSession: {
+        anon_token: 'mock-anon-jwt',
+        session_id: 'mock-session-id',
+        client_id: 'client-app',
+        expires_at: Date.now() + 3600000,
+      },
+    });
   });
 
   it('renders hero title and subtitle', () => {

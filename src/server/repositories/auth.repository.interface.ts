@@ -10,10 +10,12 @@ import {
   AuthResponse,
   UserProfileResponse,
   UserResponse,
+  AnonTokenResponse,
 } from '../dtos';
 import { ApiResponse, BaseResponse } from '../dtos/response.dto';
 
 export interface IAuthRepository {
+  anonToken(): Promise<ApiResponse<AnonTokenResponse>>;
   register(payload: RegisterRequest): Promise<ApiResponse<AuthResponse>>;
   login(payload: LoginRequest): Promise<ApiResponse<AuthResponse>>;
   refreshToken(payload: RefreshTokenRequest): Promise<ApiResponse<AuthResponse>>;

@@ -19,4 +19,10 @@ describe('Navbar Component', () => {
     expect(screen.getByText('Home')).toBeDefined();
     expect(screen.getByText('About')).toBeDefined();
   });
+
+  it('renders userTier badge when userTier is provided', () => {
+    render(<Navbar brandName="Youten AI" userTier="PRO" />);
+    expect(screen.getByTestId('navbar-tier-badge')).toHaveTextContent('PRO');
+  });
 });
+

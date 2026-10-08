@@ -14,6 +14,7 @@ export interface NavbarProps {
   brandName?: string;
   brandHref?: string;
   brandTag?: string;
+  userTier?: string;
   links?: NavLinkItem[];
   currentPath?: string;
   showStatus?: boolean;
@@ -34,6 +35,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   brandName = 'NextBase',
   brandHref = '/',
   brandTag = 'Starter',
+  userTier,
   links = defaultLinks,
   currentPath = '/',
   showStatus = true,
@@ -56,11 +58,22 @@ export const Navbar: React.FC<NavbarProps> = ({
             <span className="font-extrabold text-base tracking-tight text-slate-900 group-hover:text-primary transition-colors">
               {brandName}
             </span>
-            {brandTag && (
+            {userTier ? (
+              <span
+                data-testid="navbar-tier-badge"
+                className={`text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full border ${
+                  userTier.toUpperCase().includes('PRO')
+                    ? 'bg-amber-100 text-amber-800 border-amber-300'
+                    : 'bg-primary-subtle text-primary border-primary/20'
+                }`}
+              >
+                {userTier}
+              </span>
+            ) : brandTag ? (
               <span className="text-[10px] font-bold text-primary bg-primary-subtle px-2 py-0.5 rounded-full border border-primary/20">
                 {brandTag}
               </span>
-            )}
+            ) : null}
           </div>
         </Link>
 

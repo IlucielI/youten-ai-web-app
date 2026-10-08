@@ -39,6 +39,16 @@ describe('BFF Domain Repositories (Mock & Transport Layer)', () => {
   });
 
   describe('AuthRepository', () => {
+    it('should generate an anonymous token session', async () => {
+      const resp = await authRepo.anonToken();
+
+      expect(resp.status).toBe(ResponseStatus.SUCCESS);
+      expect(resp.code).toBe(ResponseCode.SUCCESS);
+      expect(resp.data?.anon_token).toBeDefined();
+      expect(resp.data?.session_id).toBeDefined();
+      expect(resp.data?.scopes).toContain('recordings:create');
+    });
+
     it('should register a new user and return auth response', async () => {
       const resp = await authRepo.register({
         email: 'newuser@example.com',

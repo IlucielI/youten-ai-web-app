@@ -3,6 +3,8 @@ import { ILogger } from '../../logger/logger.interface';
 import { REQUEST_ID_HEADER } from '../../context/request.context';
 import {
   AUTH_COOKIE_NAME,
+  GUEST_COOKIE_NAME,
+  ANON_TOKEN_HEADER,
   OWNERSHIP_TOKEN_HEADER,
   FORWARDED_FOR_HEADER,
   REAL_IP_HEADER,
@@ -104,19 +106,33 @@ export class HttpClient implements IHttpClient {
         const token = cookieStore.get(AUTH_COOKIE_NAME)?.value;
         if (token) {
           headers['Authorization'] = `Bearer ${token}`;
+        } else {
+          // If no user auth token, check for guest session token
+          const guestToken = cookieStore.get(GUEST_COOKIE_NAME)?.value;
+          if (guestToken) {
+            headers['Authorization'] = `Bearer ${guestToken}`;
+            if (!headers[ANON_TOKEN_HEADER]) {
+              headers[ANON_TOKEN_HEADER] = guestToken;
+            }
+          }
         }
       } catch {
         // Outside Next.js request context (tests, background jobs)
       }
     }
 
-    // 2. Explicit client IP resolution:
+    // 2. Explicit anonymous token resolution:
+    if (options?.anonToken) {
+      headers[ANON_TOKEN_HEADER] = options.anonToken;
+    }
+
+    // 3. Explicit client IP resolution:
     if (options?.clientIp) {
       headers[FORWARDED_FOR_HEADER] = options.clientIp;
       headers[REAL_IP_HEADER] = options.clientIp;
     }
 
-    // 3. Explicit guest ownership token resolution:
+    // 4. Explicit guest ownership token resolution:
     if (options?.ownershipToken) {
       headers[OWNERSHIP_TOKEN_HEADER] = options.ownershipToken;
     }
@@ -153,6 +169,13 @@ export class HttpClient implements IHttpClient {
           const guestToken = incomingHeaders.get(OWNERSHIP_TOKEN_HEADER);
           if (guestToken) {
             headers[OWNERSHIP_TOKEN_HEADER] = guestToken;
+          }
+        }
+
+        if (!headers[ANON_TOKEN_HEADER]) {
+          const incomingAnonToken = incomingHeaders.get(ANON_TOKEN_HEADER);
+          if (incomingAnonToken) {
+            headers[ANON_TOKEN_HEADER] = incomingAnonToken;
           }
         }
       } catch {

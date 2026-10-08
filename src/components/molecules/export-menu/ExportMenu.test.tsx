@@ -52,4 +52,31 @@ describe('ExportMenu', () => {
     render(<ExportMenu open={true} currentVersion={2} />);
     expect(screen.getByText('PILIH FORMAT EKSPOR (VERSI 2)')).toBeInTheDocument();
   });
+
+  it('renders PRO badge on PDF export option', () => {
+    render(<ExportMenu open={true} />);
+    expect(screen.getByTestId('pdf-pro-badge')).toBeInTheDocument();
+    expect(screen.getByTestId('pdf-pro-badge')).toHaveTextContent('PRO');
+  });
+
+  it('prompts upgrade when isPro is false and PDF is selected', async () => {
+    const handleExport = vi.fn();
+    const handleUpgradePrompt = vi.fn();
+
+    render(
+      <ExportMenu
+        open={true}
+        isPro={false}
+        onExport={handleExport}
+        onUpgradePrompt={handleUpgradePrompt}
+      />
+    );
+
+    const pdfOption = screen.getByTestId(`export-option-${ExportFormat.PDF}`);
+    fireEvent.click(pdfOption);
+
+    expect(handleUpgradePrompt).toHaveBeenCalledTimes(1);
+    expect(handleExport).not.toHaveBeenCalled();
+  });
 });
+

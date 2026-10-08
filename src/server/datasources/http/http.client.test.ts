@@ -237,4 +237,25 @@ describe('HttpClient DataSource', () => {
       })
     );
   });
+
+  it('should auto-forward x-anon-token when anonToken is provided', async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ success: true }),
+    });
+
+    const client = new HttpClient({ baseUrl: 'https://api.internal.com' });
+    await client.post('/v1/recordings/presign', {}, { anonToken: 'guest-anon-jwt-token' });
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      'https://api.internal.com/v1/recordings/presign',
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          'x-anon-token': 'guest-anon-jwt-token',
+        }),
+      })
+    );
+  });
 });
+

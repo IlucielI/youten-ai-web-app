@@ -13,9 +13,11 @@ import {
 import {
   AUTH_COOKIE_NAME,
   REFRESH_COOKIE_NAME,
+  GUEST_COOKIE_NAME,
   AUTH_COOKIE_CONFIG,
   ACCESS_TOKEN_MAX_AGE,
   REFRESH_TOKEN_MAX_AGE,
+  GUEST_TOKEN_MAX_AGE,
 } from '../constants/auth.constant';
 
 export class AuthController extends BaseController {
@@ -25,11 +27,38 @@ export class AuthController extends BaseController {
     super();
   }
 
+  async anonToken(req: Request): Promise<NextResponse> {
+    const requestId = this.getRequestId(req);
+    try {
+      const result = await this.authService.anonToken();
+      const response = this.success(result, { requestId, status: 201 });
+      if (result.data) {
+        response.cookies.set(GUEST_COOKIE_NAME, result.data.anon_token, {
+          ...AUTH_COOKIE_CONFIG,
+          maxAge: result.data.expires_in || GUEST_TOKEN_MAX_AGE,
+        });
+      }
+      return response;
+    } catch (error) {
+      const action = this.resolveActionName(error, 'AuthController.anonToken');
+      return this.error(error, { requestId, action });
+    }
+  }
+
   async register(req: Request): Promise<NextResponse> {
     const requestId = this.getRequestId(req);
     try {
       const body = await this.getBody(req, RegisterRequestSchema);
-      const result = await this.authService.register(body);
+      const cookieHeader = req.headers.get('cookie') || '';
+      const match = cookieHeader.match(new RegExp(`${GUEST_COOKIE_NAME}=([^;]+)`));
+      const guestCookieToken = match ? match[1] : undefined;
+
+      const payload = {
+        ...body,
+        anon_token: body.anon_token || guestCookieToken,
+      };
+
+      const result = await this.authService.register(payload);
 
       const response = this.success(result, { requestId, status: 201 });
       if (result.data) {
@@ -40,6 +69,11 @@ export class AuthController extends BaseController {
         response.cookies.set(REFRESH_COOKIE_NAME, result.data.refresh_token, {
           ...AUTH_COOKIE_CONFIG,
           maxAge: result.data.refresh_expires_in || REFRESH_TOKEN_MAX_AGE,
+        });
+        // Clear guest cookie upon successful registration/claim
+        response.cookies.set(GUEST_COOKIE_NAME, '', {
+          ...AUTH_COOKIE_CONFIG,
+          maxAge: 0,
         });
       }
       return response;
@@ -53,7 +87,16 @@ export class AuthController extends BaseController {
     const requestId = this.getRequestId(req);
     try {
       const body = await this.getBody(req, LoginRequestSchema);
-      const result = await this.authService.login(body);
+      const cookieHeader = req.headers.get('cookie') || '';
+      const match = cookieHeader.match(new RegExp(`${GUEST_COOKIE_NAME}=([^;]+)`));
+      const guestCookieToken = match ? match[1] : undefined;
+
+      const payload = {
+        ...body,
+        anon_token: body.anon_token || guestCookieToken,
+      };
+
+      const result = await this.authService.login(payload);
 
       const response = this.success(result, { requestId });
       if (result.data) {
@@ -64,6 +107,11 @@ export class AuthController extends BaseController {
         response.cookies.set(REFRESH_COOKIE_NAME, result.data.refresh_token, {
           ...AUTH_COOKIE_CONFIG,
           maxAge: result.data.refresh_expires_in || REFRESH_TOKEN_MAX_AGE,
+        });
+        // Clear guest cookie upon successful login/claim
+        response.cookies.set(GUEST_COOKIE_NAME, '', {
+          ...AUTH_COOKIE_CONFIG,
+          maxAge: 0,
         });
       }
       return response;

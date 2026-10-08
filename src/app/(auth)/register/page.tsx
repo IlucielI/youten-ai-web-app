@@ -20,6 +20,7 @@ import { apiFetch } from '@/lib/api-client';
 import { ApiResponse } from '@/server/dtos/response.dto';
 import { AuthResponse } from '@/server/dtos/auth.dto';
 import { claimGuestRecordings, claimSingleRecording } from '@/lib/claim';
+import { useTokenStore } from '@/stores/token.store';
 
 function RegisterForm() {
   const router = useRouter();
@@ -49,6 +50,7 @@ function RegisterForm() {
     setErrorMessage(null);
 
     try {
+      const anonToken = useTokenStore.getState().getAnonToken();
       const response = await apiFetch<ApiResponse<AuthResponse>>('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -56,10 +58,14 @@ function RegisterForm() {
           full_name: fullName.trim(),
           email: email.trim(),
           password,
+          anon_token: anonToken,
         }),
       });
 
       if (response && response.status === 'success') {
+        // Clear anonymous session on successful registration
+        useTokenStore.getState().clearAnonSession();
+
         // Auto-claim any guest recordings stored in localStorage
         await claimGuestRecordings();
 
