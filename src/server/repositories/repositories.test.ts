@@ -6,6 +6,7 @@ import {
   CommentRepository,
   WorkspaceRepository,
   WaitlistRepository,
+  MeetingBotRepository,
 } from './index';
 import { MockDataService } from '../datasources/mock';
 import { HttpClient } from '../datasources/http';
@@ -15,6 +16,7 @@ import {
   WaitlistStatus,
   ResponseStatus,
   ResponseCode,
+  BotProvider,
 } from '../constants';
 
 describe('BFF Domain Repositories (Mock & Transport Layer)', () => {
@@ -25,6 +27,7 @@ describe('BFF Domain Repositories (Mock & Transport Layer)', () => {
   let commentRepo: CommentRepository;
   let workspaceRepo: WorkspaceRepository;
   let waitlistRepo: WaitlistRepository;
+  let meetingBotRepo: MeetingBotRepository;
 
   beforeEach(() => {
     mockService = new MockDataService();
@@ -36,6 +39,7 @@ describe('BFF Domain Repositories (Mock & Transport Layer)', () => {
     commentRepo = new CommentRepository(fakeHttp, mockService, true);
     workspaceRepo = new WorkspaceRepository(fakeHttp, mockService, true);
     waitlistRepo = new WaitlistRepository(fakeHttp, mockService, true);
+    meetingBotRepo = new MeetingBotRepository(fakeHttp, mockService, true);
   });
 
   describe('AuthRepository', () => {
@@ -341,6 +345,40 @@ describe('BFF Domain Repositories (Mock & Transport Layer)', () => {
       expect(resp.status).toBe(ResponseStatus.SUCCESS);
       expect(resp.data?.email).toBe('lead@startup.io');
       expect(resp.data?.status).toBe(WaitlistStatus.PENDING);
+    });
+  });
+
+  describe('MeetingBotRepository', () => {
+    it('should get meeting bot capabilities', async () => {
+      const resp = await meetingBotRepo.getCapabilities();
+      expect(resp.status).toBe(ResponseStatus.SUCCESS);
+      expect(resp.data?.meeting_bot.google_meet).toBe('available');
+    });
+
+    it('should dispatch bot session successfully', async () => {
+      const resp = await meetingBotRepo.dispatch({
+        provider: BotProvider.GOOGLE_MEET,
+        meeting_url: 'https://meet.google.com/abc-defg-hij',
+      });
+      expect(resp.status).toBe(ResponseStatus.SUCCESS);
+      expect(resp.data?.session_id).toBeDefined();
+      expect(resp.data?.provider).toBe('google_meet');
+    });
+
+    it('should get session status and stop session', async () => {
+      const dispatchResp = await meetingBotRepo.dispatch({
+        provider: BotProvider.ZOOM,
+        meeting_url: 'https://zoom.us/j/123456789',
+      });
+      const sessionId = dispatchResp.data!.session_id;
+
+      const statusResp = await meetingBotRepo.getStatus(sessionId);
+      expect(statusResp.status).toBe(ResponseStatus.SUCCESS);
+      expect(statusResp.data?.session_id).toBe(sessionId);
+
+      const stopResp = await meetingBotRepo.stop(sessionId);
+      expect(stopResp.status).toBe(ResponseStatus.SUCCESS);
+      expect(stopResp.data?.status).toBe('COMPLETED');
     });
   });
 });

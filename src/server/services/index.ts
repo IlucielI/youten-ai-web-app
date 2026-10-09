@@ -8,3 +8,5 @@ export * from './workspace.service.interface';
 export * from './workspace.service';
 export * from './waitlist.service.interface';
 export * from './waitlist.service';
+export * from './meeting-bot.service.interface';
+export * from './meeting-bot.service';

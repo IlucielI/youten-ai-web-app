@@ -31,9 +31,32 @@ export type PipelineErrorCode = (typeof PipelineErrorCode)[keyof typeof Pipeline
 export const SourceType = {
   UPLOAD: 'UPLOAD',
   LINK: 'LINK',
+  LIVE_RECORDING: 'LIVE_RECORDING',
+  MEETING_BOT: 'MEETING_BOT',
 } as const;
 
 export type SourceType = (typeof SourceType)[keyof typeof SourceType];
+
+export const BotProvider = {
+  DISCORD: 'discord',
+  GOOGLE_MEET: 'google_meet',
+  MS_TEAMS: 'ms_teams',
+  ZOOM: 'zoom',
+} as const;
+
+export type BotProvider = (typeof BotProvider)[keyof typeof BotProvider];
+
+export const BotSessionStatus = {
+  DISPATCHED: 'DISPATCHED',
+  WAITING_ADMIT: 'WAITING_ADMIT',
+  JOINED: 'JOINED',
+  RECORDING: 'RECORDING',
+  COMPLETED: 'COMPLETED',
+  FAILED: 'FAILED',
+  CANCELLED: 'CANCELLED',
+} as const;
+
+export type BotSessionStatus = (typeof BotSessionStatus)[keyof typeof BotSessionStatus];
 
 export const HighlightSource = {
   MANUAL: 'manual',

@@ -35,6 +35,11 @@ import {
   SpeakerDirectoryResponse,
   WaitlistRequest,
   WaitlistResponse,
+  DispatchMeetingBotRequest,
+  DispatchMeetingBotResponse,
+  MeetingBotSessionStatusResponse,
+  StopMeetingBotSessionResponse,
+  CapabilitiesResponse,
 } from '../../dtos';
 import {
   RecordingStatus,
@@ -598,6 +603,77 @@ export class MockDataService {
     };
     this.waitlistApplicants.push(resp);
     return resp;
+  }
+
+  // --- Meeting Bot Handlers ---
+  private botSessions: Map<string, MeetingBotSessionStatusResponse> = new Map();
+
+  getCapabilities(): CapabilitiesResponse {
+    return {
+      meeting_bot: {
+        discord: 'available',
+        google_meet: 'available',
+        ms_teams: 'available',
+        zoom: 'available',
+      },
+    };
+  }
+
+  dispatchMeetingBot(payload: DispatchMeetingBotRequest): DispatchMeetingBotResponse {
+    const sessionId = '11111111-2222-3333-4444-555555555555';
+    const recordingId = '22222222-3333-4444-5555-666666666666';
+    const session: MeetingBotSessionStatusResponse = {
+      session_id: sessionId,
+      recording_id: recordingId,
+      provider: payload.provider,
+      status: 'RECORDING',
+      meeting_url: payload.meeting_url,
+      started_at: new Date().toISOString(),
+      ended_at: null,
+      error_message: null,
+    };
+    this.botSessions.set(sessionId, session);
+    this.botSessions.set(recordingId, session);
+
+    return {
+      recording_id: recordingId,
+      session_id: sessionId,
+      provider: payload.provider,
+      status: 'DISPATCHED',
+      meeting_url: payload.meeting_url,
+      message: 'Bot dispatched successfully',
+    };
+  }
+
+  getMeetingBotStatus(id: string): MeetingBotSessionStatusResponse {
+    const existing = this.botSessions.get(id);
+    if (existing) {
+      return existing;
+    }
+    return {
+      session_id: id,
+      recording_id: id,
+      provider: 'google_meet',
+      status: 'RECORDING',
+      meeting_url: 'https://meet.google.com/abc-defg-hij',
+      started_at: new Date().toISOString(),
+      ended_at: null,
+      error_message: null,
+    };
+  }
+
+  stopMeetingBotSession(id: string): StopMeetingBotSessionResponse {
+    const session = this.botSessions.get(id);
+    if (session) {
+      session.status = 'COMPLETED';
+      session.ended_at = new Date().toISOString();
+    }
+    return {
+      session_id: id,
+      recording_id: session?.recording_id || id,
+      status: 'COMPLETED',
+      message: 'Bot leave command dispatched successfully',
+    };
   }
 }
 

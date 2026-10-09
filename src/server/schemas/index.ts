@@ -9,3 +9,4 @@ export * from './comment.schema';
 export * from './chat.schema';
 export * from './workspace.schema';
 export * from './waitlist.schema';
+export * from './meeting-bot.schema';
