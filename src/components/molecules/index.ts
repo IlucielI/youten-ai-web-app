@@ -21,3 +21,4 @@ export * from './recording-card';
 export * from './search-result-card';
 export * from './speaker-card';
 export * from './waitlist-card';
+export * from './provider-selector';
