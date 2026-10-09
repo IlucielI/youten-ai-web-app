@@ -1,7 +1,6 @@
 import React from 'react';
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { CustomerUserRole } from '@/server/constants/auth.constant';
 import { Navbar } from './Navbar';
 
 describe('Navbar Component', () => {
@@ -21,10 +20,17 @@ describe('Navbar Component', () => {
     expect(screen.getByText('About')).toBeDefined();
   });
 
-  it('renders userTier badge when userTier is provided as enum', () => {
-    render(<Navbar brandName="Youten AI" userTier={CustomerUserRole.PRO} />);
+  it('renders userTier badge with default styling', () => {
+    render(<Navbar brandName="Youten AI" userTier="Free Member" />);
     const badge = screen.getByTestId('navbar-tier-badge');
-    expect(badge).toHaveTextContent(CustomerUserRole.PRO);
+    expect(badge).toHaveTextContent('Free Member');
+    expect(badge.className).toContain('text-primary');
+  });
+
+  it('renders userTier badge with premium styling when tierVariant is premium', () => {
+    render(<Navbar brandName="Youten AI" userTier="Pro Member" tierVariant="premium" />);
+    const badge = screen.getByTestId('navbar-tier-badge');
+    expect(badge).toHaveTextContent('Pro Member');
     expect(badge.className).toContain('text-amber-800');
   });
 });

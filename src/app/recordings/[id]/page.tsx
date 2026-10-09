@@ -123,7 +123,7 @@ export default function RecordingDetailPage() {
   });
 
   const [currentUser, setCurrentUser] = useState<UserProfileResponse | null>(null);
-  const { isPro } = usePermissions(currentUser);
+  const { canExportPdf } = usePermissions(currentUser);
 
   useEffect(() => {
     if (!recording?.is_guest) return;
@@ -872,7 +872,7 @@ export default function RecordingDetailPage() {
               onExport={handleExport}
               open={isExportOpen}
               onOpenChange={setIsExportOpen}
-              isPro={isLoggedIn ? isPro : false}
+              isPro={isLoggedIn ? canExportPdf : false}
             />
 
             {/* AI Assistant Chat Panel Toggle */}
