@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import LandingPage from './page';
 import { useTokenStore } from '@/stores/token.store';
+import { useMeetingBotStore } from '@/stores/meeting-bot.store';
 import * as apiClient from '@/lib/api-client';
 
 const mockPush = vi.fn();
@@ -16,6 +17,15 @@ vi.mock('next/navigation', () => ({
 describe('LandingPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    useMeetingBotStore.setState({
+      selectedProvider: 'google_meet',
+      capabilities: null,
+      activeSession: null,
+      isLoadingCapabilities: false,
+      isDispatching: false,
+      isStopping: false,
+      error: null,
+    });
     useTokenStore.setState({
       guestTokens: [],
       anonSession: {
@@ -68,13 +78,31 @@ describe('LandingPage', () => {
     expect(screen.getByTestId('browser-recorder')).toBeInTheDocument();
   });
 
-  it('switches to meeting bot preview tab and shows waitlist CTA', () => {
+  it('switches to meeting bot tab and renders meeting bot form', () => {
     render(<LandingPage />);
 
     fireEvent.click(screen.getByTestId('tab-bot'));
     expect(screen.getByTestId('voice-bot-tab-content')).toBeInTheDocument();
-    expect(screen.getByTestId('bot-waitlist-btn')).toBeInTheDocument();
-    expect(screen.getByText('Asisten Bot Notula Otomatis')).toBeInTheDocument();
+    expect(screen.getByTestId('meeting-bot-form')).toBeInTheDocument();
+  });
+
+  it('renders live bot tracker when active bot session exists', () => {
+    useMeetingBotStore.setState({
+      activeSession: {
+        sessionId: 'sess-active-123',
+        recordingId: 'rec-123',
+        provider: 'google_meet',
+        meetingUrl: 'https://meet.google.com/abc-defg-hij',
+        status: 'JOINED',
+        startedAt: new Date().toISOString(),
+      },
+    });
+
+    render(<LandingPage />);
+
+    fireEvent.click(screen.getByTestId('tab-bot'));
+    expect(screen.getByTestId('voice-bot-tab-content')).toBeInTheDocument();
+    expect(screen.getByTestId('live-bot-tracker')).toBeInTheDocument();
   });
 
   it('handles URL import successfully and saves guest token before redirect', async () => {

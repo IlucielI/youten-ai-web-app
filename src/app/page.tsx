@@ -8,7 +8,9 @@ import { UploadDropzone } from '@/components/organisms/upload-dropzone';
 import { UrlImportForm } from '@/components/molecules/url-import-form';
 import { BrowserRecorder } from '@/components/organisms/browser-recorder';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/atoms/tabs';
-import { Button } from '@/components/atoms/button';
+import { MeetingBotForm } from '@/components/organisms/meeting-bot-form';
+import { LiveBotTracker } from '@/components/organisms/live-bot-tracker';
+import { useMeetingBotStore } from '@/stores/meeting-bot.store';
 import { TemplateKey, DefaultTemplateKey } from '@/server/constants/template.constant';
 import { useTokenStore } from '@/stores/token.store';
 import { apiFetch, ApiClientError } from '@/lib/api-client';
@@ -39,6 +41,7 @@ export default function LandingPage() {
 
   const addGuestToken = useTokenStore((state) => state.addGuestToken);
   const ensureAnonSession = useTokenStore((state) => state.ensureAnonSession);
+  const activeBotSession = useMeetingBotStore((state) => state.activeSession);
 
   /**
    * Complete 3-step file upload flow (Presign -> Direct PUT -> Confirm Upload).
@@ -386,36 +389,14 @@ export default function LandingPage() {
               <BrowserRecorder onProcessRecording={handleProcessLiveRecording} />
             </TabsContent>
 
-            {/* Tab 4: Meeting Voice Bot Preview */}
+            {/* Tab 4: Meeting Voice Bot */}
             <TabsContent value="bot" className="outline-none">
-              <div
-                data-testid="voice-bot-tab-content"
-                className="rounded-xl border border-dashed border-border/80 bg-muted/20 p-8 text-center space-y-4"
-              >
-                <div className="w-12 h-12 rounded-2xl bg-primary/10 text-primary mx-auto flex items-center justify-center">
-                  <Bot className="h-6 w-6" />
-                </div>
-
-                <div className="space-y-1.5">
-                  <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
-                    Segera Hadir • Beta Waitlist
-                  </div>
-                  <h3 className="text-lg font-bold text-foreground">
-                    Asisten Bot Notula Otomatis
-                  </h3>
-                  <p className="text-xs sm:text-sm text-muted-foreground max-w-md mx-auto leading-relaxed">
-                    Undang Bot Youten langsung ke Google Meet, Zoom, atau Microsoft Teams.
-                    Bot akan merekam percakapan dan menghasilkan ringkasan terstruktur saat rapat berakhir.
-                  </p>
-                </div>
-
-                <div className="pt-2">
-                  <Button asChild size="sm" className="gap-2 text-xs">
-                    <Link href="/waitlist" data-testid="bot-waitlist-btn">
-                      Daftar Waitlist Beta <ArrowRight className="h-3.5 w-3.5" />
-                    </Link>
-                  </Button>
-                </div>
+              <div data-testid="voice-bot-tab-content">
+                {activeBotSession ? (
+                  <LiveBotTracker />
+                ) : (
+                  <MeetingBotForm />
+                )}
               </div>
             </TabsContent>
           </Tabs>
