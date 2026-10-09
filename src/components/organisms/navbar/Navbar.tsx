@@ -62,7 +62,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               <span
                 data-testid="navbar-tier-badge"
                 className={`text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full border ${
-                  userTier.toUpperCase().includes('PRO')
+                  String(userTier).toUpperCase().includes('PRO')
                     ? 'bg-amber-100 text-amber-800 border-amber-300'
                     : 'bg-primary-subtle text-primary border-primary/20'
                 }`}
