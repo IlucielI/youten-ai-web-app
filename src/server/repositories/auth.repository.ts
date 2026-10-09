@@ -14,6 +14,7 @@ import {
   AuthResponse,
   UserProfileResponse,
   UserResponse,
+  AnonTokenResponse,
 } from '../dtos';
 import { ApiResponse, BaseResponse } from '../dtos/response.dto';
 import { ResponseStatus, ResponseCode } from '../constants';
@@ -31,6 +32,19 @@ export class AuthRepository implements IAuthRepository {
     this.http = http;
     this.mock = mock;
     this.useMock = useMock;
+  }
+
+  async anonToken(): Promise<ApiResponse<AnonTokenResponse>> {
+    if (this.useMock) {
+      const data = this.mock.anonToken();
+      return this.successResponse(data, 'Anonymous session created successfully');
+    }
+    const credentials = Buffer.from(`${env.CLIENT_APP_ID}:${env.CLIENT_APP_SECRET}`).toString('base64');
+    return this.http.post<ApiResponse<AnonTokenResponse>>('/v1/auth/anon', undefined, {
+      headers: {
+        Authorization: `Basic ${credentials}`,
+      },
+    });
   }
 
   async register(payload: RegisterRequest): Promise<ApiResponse<AuthResponse>> {

@@ -43,6 +43,8 @@ import { RecordingStatus } from '@/server/constants';
 import { TemplateKey } from '@/server/constants/template.constant';
 import { ExportFormat } from '@/server/constants/recording.constant';
 import { toast } from 'sonner';
+import { usePermissions } from '@/hooks';
+import type { UserProfileResponse } from '@/server/dtos/auth.dto';
 import { usePlayerStore } from '@/stores/player.store';
 import { useChatStore } from '@/stores/chat.store';
 import { useTokenStore } from '@/stores/token.store';
@@ -120,16 +122,21 @@ export default function RecordingDetailPage() {
     routerRef.current = router;
   });
 
+  const [currentUser, setCurrentUser] = useState<UserProfileResponse | null>(null);
+  const { canExportPdf } = usePermissions(currentUser);
+
   useEffect(() => {
     if (!recording?.is_guest) return;
-    apiFetch<ApiResponse<unknown>>('/api/auth/me')
+    apiFetch<ApiResponse<UserProfileResponse>>('/api/auth/me')
       .then((res) => {
-        if (res && (res.status === 'success' || (res.status as string) === 'SUCCESS')) {
+        if (res && (res.status === 'success' || (res.status as string) === 'SUCCESS') && res.data) {
           setIsLoggedIn(true);
+          setCurrentUser(res.data);
         }
       })
       .catch(() => {
         setIsLoggedIn(false);
+        setCurrentUser(null);
       });
   }, [recording?.is_guest]);
 
@@ -865,6 +872,7 @@ export default function RecordingDetailPage() {
               onExport={handleExport}
               open={isExportOpen}
               onOpenChange={setIsExportOpen}
+              isPro={isLoggedIn ? canExportPdf : false}
             />
 
             {/* AI Assistant Chat Panel Toggle */}

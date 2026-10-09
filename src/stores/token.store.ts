@@ -1,5 +1,8 @@
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
+import { apiFetch } from '@/lib/api-client';
+import { ApiResponse } from '@/server/dtos/response.dto';
+import { AnonTokenResponse } from '@/server/dtos/auth.dto';
 
 /**
  * Guest Ownership Token Item.
@@ -8,7 +11,7 @@ import { devtools, persist } from 'zustand/middleware';
  * Authenticated JWTs (access & refresh tokens) MUST NEVER be stored in localStorage.
  * JWT auth tokens are strictly encapsulated in HTTP-only, Secure SameSite cookies.
  * This store ONLY retains guest unauthenticated ownership tokens for recordings
- * created before user registration/login.
+ * created before user registration/login and the anonymous handshake session token.
  */
 export interface GuestTokenItem {
   id: string;
@@ -17,8 +20,16 @@ export interface GuestTokenItem {
   created_at: string;
 }
 
+export interface AnonSessionItem {
+  anon_token: string;
+  session_id: string;
+  client_id: string;
+  expires_at: number;
+}
+
 export interface TokenState {
   guestTokens: GuestTokenItem[];
+  anonSession: AnonSessionItem | null;
 }
 
 export interface TokenActions {
@@ -28,12 +39,17 @@ export interface TokenActions {
   getGuestTokens: () => GuestTokenItem[];
   clearGuestTokens: () => void;
   setGuestTokens: (tokens: GuestTokenItem[]) => void;
+  setAnonSession: (session: AnonSessionItem | null) => void;
+  getAnonToken: () => string | undefined;
+  clearAnonSession: () => void;
+  ensureAnonSession: () => Promise<string | null>;
 }
 
 export type TokenStore = TokenState & TokenActions;
 
 const initialTokenState: TokenState = {
   guestTokens: [],
+  anonSession: null,
 };
 
 export const useTokenStore = create<TokenStore>()(
@@ -65,8 +81,43 @@ export const useTokenStore = create<TokenStore>()(
           return item?.ownership_token;
         },
         getGuestTokens: () => get().guestTokens,
-        clearGuestTokens: () => set(initialTokenState, false, 'token/clearGuestTokens'),
+        clearGuestTokens: () => set((state) => ({ ...state, guestTokens: [] }), false, 'token/clearGuestTokens'),
         setGuestTokens: (tokens: GuestTokenItem[]) => set({ guestTokens: tokens }, false, 'token/setGuestTokens'),
+        setAnonSession: (session: AnonSessionItem | null) =>
+          set({ anonSession: session }, false, 'token/setAnonSession'),
+        getAnonToken: () => {
+          const session = get().anonSession;
+          if (session && Date.now() < session.expires_at) {
+            return session.anon_token;
+          }
+          return undefined;
+        },
+        clearAnonSession: () =>
+          set({ anonSession: null }, false, 'token/clearAnonSession'),
+        ensureAnonSession: async () => {
+          const current = get().anonSession;
+          if (current && Date.now() < current.expires_at - 60000) {
+            return current.anon_token;
+          }
+          try {
+            const res = await apiFetch<ApiResponse<AnonTokenResponse>>('/api/auth/anon', {
+              method: 'POST',
+            });
+            if (res && res.status === 'success' && res.data) {
+              const session: AnonSessionItem = {
+                anon_token: res.data.anon_token,
+                session_id: res.data.session_id,
+                client_id: res.data.client_id,
+                expires_at: Date.now() + (res.data.expires_in || 604800) * 1000,
+              };
+              set({ anonSession: session }, false, 'token/setAnonSession');
+              return session.anon_token;
+            }
+          } catch (err) {
+            console.error('Failed to initialize anonymous handshake session:', err);
+          }
+          return null;
+        },
       }),
       {
         name: 'youten_guest_tokens',
@@ -75,3 +126,4 @@ export const useTokenStore = create<TokenStore>()(
     { name: 'TokenStore' }
   )
 );
+

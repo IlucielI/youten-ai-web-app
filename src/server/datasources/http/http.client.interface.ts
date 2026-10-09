@@ -11,6 +11,7 @@ export interface HttpRequestOptions<T = unknown> {
   timeoutMs?: number;
   requestId?: string;
   token?: string;
+  anonToken?: string;
   ownershipToken?: string;
   clientIp?: string;
   schema?: z.ZodType<T>;

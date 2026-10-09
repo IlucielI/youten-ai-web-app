@@ -20,6 +20,7 @@ import { apiFetch } from '@/lib/api-client';
 import { ApiResponse } from '@/server/dtos/response.dto';
 import { AuthResponse } from '@/server/dtos/auth.dto';
 import { claimGuestRecordings, claimSingleRecording } from '@/lib/claim';
+import { useTokenStore } from '@/stores/token.store';
 
 function LoginForm() {
   const router = useRouter();
@@ -43,16 +44,21 @@ function LoginForm() {
     setErrorMessage(null);
 
     try {
+      const anonToken = useTokenStore.getState().getAnonToken();
       const response = await apiFetch<ApiResponse<AuthResponse>>('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email: email.trim(),
           password,
+          anon_token: anonToken,
         }),
       });
 
       if (response && response.status === 'success') {
+        // Clear anonymous session on successful login
+        useTokenStore.getState().clearAnonSession();
+
         // Auto-claim any guest recordings stored in localStorage
         await claimGuestRecordings();
 

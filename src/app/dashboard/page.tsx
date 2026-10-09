@@ -8,6 +8,7 @@ import { ApiResponse, PaginatedResponse, BaseResponse } from '@/server/dtos/resp
 import { UserProfileResponse } from '@/server/dtos/auth.dto';
 import { RecordingListItemDTO } from '@/server/dtos/recording.dto';
 import { RecordingStatus } from '@/server/constants/recording.constant';
+import { CustomerUserRole } from '@/server/constants/auth.constant';
 import { formatTime } from '@/lib/time';
 import { Button } from '@/components/atoms/button';
 import { Badge } from '@/components/atoms/badge';
@@ -362,10 +363,22 @@ export default function DashboardPage() {
         {/* Hero Welcome & Quota Header */}
         <section className="bg-white rounded-3xl border border-slate-200/80 p-6 sm:p-8 shadow-xs relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-2 max-w-xl">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2.5 flex-wrap">
               <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
                 Halo, {user?.full_name || 'Pengguna'} 👋
               </h1>
+              {user?.role_code && (
+                <span
+                  data-testid="user-tier-badge"
+                  className={`text-[11px] font-extrabold uppercase px-2.5 py-0.5 rounded-full border ${
+                    user.role_code === CustomerUserRole.PRO || user.role_code === CustomerUserRole.ENTERPRISE
+                      ? 'bg-amber-100 text-amber-800 border-amber-300'
+                      : 'bg-slate-100 text-slate-700 border-slate-300'
+                  }`}
+                >
+                  {user.role_name || user.role_code}
+                </span>
+              )}
             </div>
             <p className="text-sm text-slate-500 leading-relaxed">
               Selamat datang di perpustakaan rekaman cerdas Anda. Akses transkrip, notulen rapat otomatis, dan intisari AI kapan saja.

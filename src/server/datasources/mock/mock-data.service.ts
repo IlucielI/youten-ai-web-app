@@ -1,5 +1,6 @@
 import {
   AuthResponse,
+  AnonTokenResponse,
   UserProfileResponse,
   UserResponse,
   RegisterRequest,
@@ -41,11 +42,14 @@ import {
   TemplateKey,
   WaitlistStatus,
   UserStatus,
+  CustomerUserRole,
+  CustomerUserPermission,
 } from '../../constants';
 import {
   mockUser,
   mockUserProfile,
   mockAuthResponse,
+  mockAnonTokenResponse,
   mockRecordingDetail,
   mockRecordingListItems,
   mockComments,
@@ -103,12 +107,27 @@ export class MockDataService {
   }
 
   // --- Auth Handlers ---
+  anonToken(): AnonTokenResponse {
+    return {
+      ...mockAnonTokenResponse,
+      session_id: crypto.randomUUID(),
+    };
+  }
+
   register(payload: RegisterRequest): AuthResponse {
     this.user = {
       id: crypto.randomUUID(),
       email: payload.email,
       full_name: payload.full_name,
       status: UserStatus.ACTIVE,
+      role_id: '11111111-1111-1111-1111-111111111111',
+      role_code: CustomerUserRole.FREE,
+      role_name: 'Free Member',
+      permissions: [
+        CustomerUserPermission.RECORDINGS_READ,
+        CustomerUserPermission.RECORDINGS_CREATE,
+        CustomerUserPermission.EXPORT_MARKDOWN,
+      ],
       daily_quota: 5,
       daily_quota_override: null,
       email_verified: true,
@@ -122,6 +141,7 @@ export class MockDataService {
     return {
       ...mockAuthResponse,
       user: this.user,
+      claimed_recordings_count: payload.anon_token ? 1 : 0,
     };
   }
 
@@ -137,6 +157,7 @@ export class MockDataService {
     return {
       ...mockAuthResponse,
       user: this.user,
+      claimed_recordings_count: payload.anon_token ? 1 : 0,
     };
   }
 

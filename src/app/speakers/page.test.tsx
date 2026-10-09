@@ -108,11 +108,11 @@ describe('SpeakersPage Component', () => {
     expect(await screen.findByText('Developer Youten')).toBeInTheDocument();
     expect(screen.getByRole('heading', { level: 1, name: 'Direktori Pembicara' })).toBeInTheDocument();
 
-    // Check summary statistics rendered
-    expect(screen.getByText('Total Pembicara Unik')).toBeInTheDocument();
-    expect(screen.getByText('3')).toBeInTheDocument(); // 3 speakers
-    expect(screen.getByText('Total Sesi Kehadiran')).toBeInTheDocument();
-    expect(screen.getByText('34')).toBeInTheDocument(); // 14 + 12 + 8 = 34
+    // Check summary statistics rendered (async data fetch)
+    expect(await screen.findByText('Total Pembicara Unik')).toBeInTheDocument();
+    expect(await screen.findByText('3')).toBeInTheDocument(); // 3 speakers
+    expect(await screen.findByText('Total Sesi Kehadiran')).toBeInTheDocument();
+    expect(await screen.findByText('34')).toBeInTheDocument(); // 14 + 12 + 8 = 34
 
     // Check speaker cards rendered
     expect(await screen.findByText('Alice Johnson')).toBeInTheDocument();

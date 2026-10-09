@@ -38,6 +38,7 @@ export default function LandingPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const addGuestToken = useTokenStore((state) => state.addGuestToken);
+  const ensureAnonSession = useTokenStore((state) => state.ensureAnonSession);
 
   /**
    * Complete 3-step file upload flow (Presign -> Direct PUT -> Confirm Upload).
@@ -50,6 +51,9 @@ export default function LandingPage() {
     setQuotaExhausted(false);
 
     try {
+      // Step 0: Ensure anonymous handshake session
+      await ensureAnonSession();
+
       // Step 1: Request presigned upload URL from BFF
       const presignRes = await apiFetch<ApiResponse<PresignUploadResponseDto>>(
         '/api/recordings/presign',
@@ -162,6 +166,9 @@ export default function LandingPage() {
     setIsUrlImporting(true);
 
     try {
+      // Step 0: Ensure anonymous handshake session
+      await ensureAnonSession();
+
       const res = await apiFetch<ApiResponse<RecordingUploadResponseDto>>(
         '/api/recordings/import-url',
         {

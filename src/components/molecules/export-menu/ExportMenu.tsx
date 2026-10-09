@@ -20,6 +20,7 @@ import {
   Loader2,
   ChevronDown,
 } from 'lucide-react';
+import { toast } from 'sonner';
 
 export interface ExportMenuProps {
   recordingId?: string;
@@ -29,6 +30,8 @@ export interface ExportMenuProps {
   className?: string;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
+  isPro?: boolean;
+  onUpgradePrompt?: () => void;
 }
 
 interface ExportItemConfig {
@@ -78,11 +81,23 @@ export function ExportMenu({
   className,
   open,
   onOpenChange,
+  isPro,
+  onUpgradePrompt,
 }: ExportMenuProps) {
   const [exportingFormat, setExportingFormat] = useState<ExportFormat | null>(null);
 
   const handleSelectFormat = async (format: ExportFormat) => {
     if (exportingFormat || disabled) return;
+
+    // Gated feature: PDF export is reserved for Pro members (fail-closed security default)
+    if (format === ExportFormat.PDF && !isPro) {
+      if (onUpgradePrompt) {
+        onUpgradePrompt();
+      } else {
+        toast.info('Ekspor format PDF memerlukan langganan paket Pro.');
+      }
+      return;
+    }
 
     try {
       setExportingFormat(format);
@@ -136,6 +151,7 @@ export function ExportMenu({
           {EXPORT_OPTIONS.map((item) => {
             const IconComponent = item.icon;
             const isCurrentExporting = exportingFormat === item.format;
+            const isPdf = item.format === ExportFormat.PDF;
 
             return (
               <DropdownMenuItem
@@ -155,8 +171,16 @@ export function ExportMenu({
 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-semibold text-foreground">
+                    <span className="text-xs font-semibold text-foreground flex items-center gap-1.5">
                       {item.label}
+                      {isPdf && (
+                        <span
+                          data-testid="pdf-pro-badge"
+                          className="text-[9px] font-bold tracking-wider uppercase px-1.5 py-0.2 rounded bg-amber-500/15 text-amber-600 border border-amber-500/30"
+                        >
+                          PRO
+                        </span>
+                      )}
                     </span>
                     <span className="text-[10px] font-mono text-muted-foreground bg-muted px-1.5 py-0.2 rounded">
                       {item.extension}

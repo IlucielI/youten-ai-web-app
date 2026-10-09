@@ -11,12 +11,13 @@ import { MeetingSourceCitationDTO } from '../server/dtos';
 describe('Client State Stores (Zustand)', () => {
   beforeEach(() => {
     useTokenStore.getState().clearGuestTokens();
+    useTokenStore.getState().clearAnonSession();
     usePlayerStore.getState().resetPlayer();
     usePipelineStore.getState().resetPipeline();
     useChatStore.getState().clearChat();
   });
 
-  describe('useTokenStore (Guest Ownership Tokens)', () => {
+  describe('useTokenStore (Guest Ownership Tokens & Anonymous Handshake)', () => {
     it('should add, retrieve, and remove guest ownership tokens', () => {
       const store = useTokenStore.getState();
 
@@ -55,6 +56,32 @@ describe('Client State Stores (Zustand)', () => {
 
       useTokenStore.getState().clearGuestTokens();
       expect(useTokenStore.getState().guestTokens.length).toBe(0);
+    });
+
+    it('should set, retrieve, and clear anonymous handshake session', () => {
+      const store = useTokenStore.getState();
+      expect(store.getAnonToken()).toBeUndefined();
+
+      store.setAnonSession({
+        anon_token: 'anon-tok-xyz',
+        session_id: 'sess-123',
+        client_id: 'client-app',
+        expires_at: Date.now() + 3600000,
+      });
+
+      expect(useTokenStore.getState().getAnonToken()).toBe('anon-tok-xyz');
+
+      // Expired token check
+      useTokenStore.getState().setAnonSession({
+        anon_token: 'expired-token',
+        session_id: 'sess-old',
+        client_id: 'client-app',
+        expires_at: Date.now() - 1000,
+      });
+      expect(useTokenStore.getState().getAnonToken()).toBeUndefined();
+
+      useTokenStore.getState().clearAnonSession();
+      expect(useTokenStore.getState().anonSession).toBeNull();
     });
   });
 

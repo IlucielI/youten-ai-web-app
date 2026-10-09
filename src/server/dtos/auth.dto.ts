@@ -9,6 +9,7 @@ export interface RegisterRequest {
   email: string;
   password: string;
   full_name: string;
+  anon_token?: string;
 }
 
 export interface UserResponse {
@@ -16,6 +17,10 @@ export interface UserResponse {
   email: string;
   full_name: string;
   status: UserStatus;
+  role_id?: string | null;
+  role_code?: string;
+  role_name?: string;
+  permissions?: string[];
   daily_quota: number;
   daily_quota_override?: number | null;
   email_verified: boolean;
@@ -27,6 +32,10 @@ export interface UserProfileResponse {
   email: string;
   full_name: string;
   status: UserStatus;
+  role_id?: string | null;
+  role_code?: string;
+  role_name?: string;
+  permissions?: string[];
   daily_quota: number;
   quota_used_today: number;
   quota_remaining: number;
@@ -46,6 +55,7 @@ export interface ChangePasswordRequest {
 export interface LoginRequest {
   email: string;
   password: string;
+  anon_token?: string;
 }
 
 export interface AuthResponse {
@@ -55,6 +65,16 @@ export interface AuthResponse {
   expires_in: number;
   refresh_expires_in: number;
   user: UserResponse;
+  claimed_recordings_count?: number;
+}
+
+export interface AnonTokenResponse {
+  anon_token: string;
+  session_id: string;
+  client_id: string;
+  token_type: string;
+  expires_in: number;
+  scopes: string[];
 }
 
 export interface RefreshTokenRequest {
@@ -73,3 +93,4 @@ export interface ResetPasswordRequest {
   token: string;
   new_password: string;
 }
+

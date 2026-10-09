@@ -29,12 +29,14 @@ export const RegisterRequestSchema = z.object({
   email: EmailSchema,
   password: PasswordSchema,
   full_name: FullNameSchema,
+  anon_token: z.string().trim().optional(),
 });
 export type RegisterRequestInput = z.infer<typeof RegisterRequestSchema>;
 
 export const LoginRequestSchema = z.object({
   email: EmailSchema,
   password: z.string().min(1, 'Password is required'),
+  anon_token: z.string().trim().optional(),
 });
 export type LoginRequestInput = z.infer<typeof LoginRequestSchema>;
 
@@ -80,6 +82,10 @@ export const UserResponseSchema = z.object({
   email: z.string().email(),
   full_name: z.string(),
   status: z.enum([UserStatus.ACTIVE, UserStatus.SUSPENDED]),
+  role_id: z.string().uuid().nullable().optional(),
+  role_code: z.string().optional(),
+  role_name: z.string().optional(),
+  permissions: z.array(z.string()).optional(),
   daily_quota: z.number().int().nonnegative(),
   daily_quota_override: z.number().int().positive().nullable().optional(),
   email_verified: z.boolean(),
@@ -92,6 +98,10 @@ export const UserProfileResponseSchema = z.object({
   email: z.string().email(),
   full_name: z.string(),
   status: z.enum([UserStatus.ACTIVE, UserStatus.SUSPENDED]),
+  role_id: z.string().uuid().nullable().optional(),
+  role_code: z.string().optional(),
+  role_name: z.string().optional(),
+  permissions: z.array(z.string()).optional(),
   daily_quota: z.number().int().nonnegative(),
   quota_used_today: z.number().int().nonnegative(),
   quota_remaining: z.number().int().nonnegative(),
@@ -107,5 +117,17 @@ export const AuthResponseSchema = z.object({
   expires_in: z.number().int().positive(),
   refresh_expires_in: z.number().int().positive(),
   user: UserResponseSchema,
+  claimed_recordings_count: z.number().int().nonnegative().optional(),
 });
 export type AuthResponseDto = z.infer<typeof AuthResponseSchema>;
+
+export const AnonTokenResponseSchema = z.object({
+  anon_token: z.string(),
+  session_id: z.string().uuid(),
+  client_id: z.string(),
+  token_type: z.string().default('Bearer'),
+  expires_in: z.number().int().positive(),
+  scopes: z.array(z.string()),
+});
+export type AnonTokenResponseDto = z.infer<typeof AnonTokenResponseSchema>;
+

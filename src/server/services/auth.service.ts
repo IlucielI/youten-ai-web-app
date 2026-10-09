@@ -13,6 +13,7 @@ import {
   AuthResponse,
   UserProfileResponse,
   UserResponse,
+  AnonTokenResponse,
 } from '../dtos';
 import { ApiResponse, BaseResponse } from '../dtos/response.dto';
 
@@ -20,6 +21,10 @@ export class AuthService implements IAuthService {
   constructor(
     private readonly authRepo: IAuthRepository = defaultAuthRepository
   ) {}
+
+  async anonToken(): Promise<ApiResponse<AnonTokenResponse>> {
+    return this.authRepo.anonToken();
+  }
 
   async register(payload: RegisterRequest): Promise<ApiResponse<AuthResponse>> {
     return this.authRepo.register(payload);

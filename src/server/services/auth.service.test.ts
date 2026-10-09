@@ -29,6 +29,20 @@ describe('AuthService', () => {
 
   beforeEach(() => {
     mockRepo = {
+      anonToken: vi.fn().mockResolvedValue({
+        status: ResponseStatus.SUCCESS,
+        code: ResponseCode.SUCCESS,
+        message: 'Anonymous session created',
+        data: {
+          anon_token: 'anon-jwt-token',
+          session_id: '00000000-0000-0000-0000-000000000002',
+          client_id: 'client-app',
+          token_type: 'Bearer',
+          expires_in: 604800,
+          scopes: ['recordings:create'],
+        },
+        timestamp: new Date().toISOString(),
+      }),
       register: vi.fn().mockResolvedValue({
         status: ResponseStatus.SUCCESS,
         code: ResponseCode.SUCCESS,
@@ -83,6 +97,12 @@ describe('AuthService', () => {
     };
 
     service = new AuthService(mockRepo as unknown as IAuthRepository);
+  });
+
+  it('delegates anonToken to repository', async () => {
+    const res = await service.anonToken();
+    expect(mockRepo.anonToken).toHaveBeenCalledTimes(1);
+    expect(res.data?.anon_token).toBe('anon-jwt-token');
   });
 
   it('delegates register to repository', async () => {
