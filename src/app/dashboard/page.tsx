@@ -8,6 +8,7 @@ import { ApiResponse, PaginatedResponse, BaseResponse } from '@/server/dtos/resp
 import { UserProfileResponse } from '@/server/dtos/auth.dto';
 import { RecordingListItemDTO } from '@/server/dtos/recording.dto';
 import { RecordingStatus } from '@/server/constants/recording.constant';
+import { CustomerUserRole } from '@/server/constants/auth.constant';
 import { formatTime } from '@/lib/time';
 import { Button } from '@/components/atoms/button';
 import { Badge } from '@/components/atoms/badge';
@@ -370,7 +371,7 @@ export default function DashboardPage() {
                 <span
                   data-testid="user-tier-badge"
                   className={`text-[11px] font-extrabold uppercase px-2.5 py-0.5 rounded-full border ${
-                    user.role_code === 'PRO' || user.role_code === 'ENTERPRISE'
+                    user.role_code === CustomerUserRole.PRO || user.role_code === CustomerUserRole.ENTERPRISE
                       ? 'bg-amber-100 text-amber-800 border-amber-300'
                       : 'bg-slate-100 text-slate-700 border-slate-300'
                   }`}

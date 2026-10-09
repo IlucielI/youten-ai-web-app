@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { StatusPill } from '@/components/molecules/status-pill';
+import { CustomerUserRole } from '@/server/constants/auth.constant';
 
 export interface NavLinkItem {
   label: string;
@@ -14,7 +15,7 @@ export interface NavbarProps {
   brandName?: string;
   brandHref?: string;
   brandTag?: string;
-  userTier?: string;
+  userTier?: CustomerUserRole | string;
   links?: NavLinkItem[];
   currentPath?: string;
   showStatus?: boolean;
@@ -62,7 +63,10 @@ export const Navbar: React.FC<NavbarProps> = ({
               <span
                 data-testid="navbar-tier-badge"
                 className={`text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full border ${
-                  String(userTier).toUpperCase().includes('PRO')
+                  userTier === CustomerUserRole.PRO ||
+                  userTier === CustomerUserRole.ENTERPRISE ||
+                  String(userTier).toUpperCase() === CustomerUserRole.PRO ||
+                  String(userTier).toUpperCase() === CustomerUserRole.ENTERPRISE
                     ? 'bg-amber-100 text-amber-800 border-amber-300'
                     : 'bg-primary-subtle text-primary border-primary/20'
                 }`}
