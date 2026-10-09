@@ -120,8 +120,9 @@ describe('AuthController', () => {
       const res = await controller.anonToken(req);
       expect(res.status).toBe(201);
       const setCookie = res.headers.get('set-cookie');
-      expect(setCookie).toContain(GUEST_COOKIE_NAME);
-      expect(setCookie).toContain('anon-jwt-token');
+      expect(setCookie).toMatch(new RegExp(`^${GUEST_COOKIE_NAME}=anon-jwt-token`));
+      expect(setCookie).toMatch(/httponly/i);
+      expect(setCookie).toMatch(/samesite=lax/i);
     });
   });
 

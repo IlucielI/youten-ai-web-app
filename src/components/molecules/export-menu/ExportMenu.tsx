@@ -89,8 +89,8 @@ export function ExportMenu({
   const handleSelectFormat = async (format: ExportFormat) => {
     if (exportingFormat || disabled) return;
 
-    // Gated feature: PDF export is reserved for Pro members
-    if (format === ExportFormat.PDF && isPro === false) {
+    // Gated feature: PDF export is reserved for Pro members (fail-closed security default)
+    if (format === ExportFormat.PDF && !isPro) {
       if (onUpgradePrompt) {
         onUpgradePrompt();
       } else {
