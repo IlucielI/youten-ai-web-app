@@ -46,6 +46,18 @@ describe('meeting-bot.schema', () => {
       }
     });
 
+    it('rejects Google Meet with spoofed subdomain URL', () => {
+      const parsed = DispatchMeetingBotRequestSchema.safeParse({
+        provider: BotProvider.GOOGLE_MEET,
+        meeting_url: 'https://meet.google.com.evil.com/abc',
+      });
+
+      expect(parsed.success).toBe(false);
+      if (!parsed.success) {
+        expect(parsed.error.issues[0]?.message).toContain('meet.google.com');
+      }
+    });
+
     it('validates a valid Zoom dispatch request', () => {
       const parsed = DispatchMeetingBotRequestSchema.safeParse({
         provider: BotProvider.ZOOM,

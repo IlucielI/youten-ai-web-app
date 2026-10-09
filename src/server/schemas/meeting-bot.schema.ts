@@ -23,6 +23,15 @@ export const DispatchMeetingBotRequestSchema = z
     language: z.string().trim().max(50).optional(),
   })
   .superRefine((data, ctx) => {
+    let hostname = '';
+    if (data.meeting_url) {
+      try {
+        hostname = new URL(data.meeting_url).hostname.toLowerCase();
+      } catch {
+        // Zod url() validator handles malformed URLs
+      }
+    }
+
     if (data.provider === BotProvider.GOOGLE_MEET) {
       if (!data.meeting_url) {
         ctx.addIssue({
@@ -30,10 +39,10 @@ export const DispatchMeetingBotRequestSchema = z
           message: 'Tautan Google Meet (meet.google.com) wajib diisi',
           path: ['meeting_url'],
         });
-      } else if (!data.meeting_url.includes('meet.google.com')) {
+      } else if (hostname !== 'meet.google.com') {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: 'Format tautan Google Meet tidak valid (harus mengandung meet.google.com)',
+          message: 'Format tautan Google Meet tidak valid (harus berupa meet.google.com)',
           path: ['meeting_url'],
         });
       }
@@ -44,10 +53,15 @@ export const DispatchMeetingBotRequestSchema = z
           message: 'Tautan Zoom Meetings (zoom.us) wajib diisi',
           path: ['meeting_url'],
         });
-      } else if (!data.meeting_url.includes('zoom.us') && !data.meeting_url.includes('zoom.com')) {
+      } else if (
+        hostname !== 'zoom.us' &&
+        hostname !== 'zoom.com' &&
+        !hostname.endsWith('.zoom.us') &&
+        !hostname.endsWith('.zoom.com')
+      ) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: 'Format tautan Zoom tidak valid (harus mengandung zoom.us)',
+          message: 'Format tautan Zoom tidak valid (harus berupa domain zoom.us)',
           path: ['meeting_url'],
         });
       }
@@ -58,7 +72,12 @@ export const DispatchMeetingBotRequestSchema = z
           message: 'Tautan Microsoft Teams wajib diisi',
           path: ['meeting_url'],
         });
-      } else if (!data.meeting_url.includes('teams.microsoft.com') && !data.meeting_url.includes('teams.live.com')) {
+      } else if (
+        hostname !== 'teams.microsoft.com' &&
+        hostname !== 'teams.live.com' &&
+        !hostname.endsWith('.teams.microsoft.com') &&
+        !hostname.endsWith('.teams.live.com')
+      ) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message: 'Format tautan Microsoft Teams tidak valid',
