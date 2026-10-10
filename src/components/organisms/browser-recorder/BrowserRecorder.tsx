@@ -315,8 +315,10 @@ export function BrowserRecorder({
         {recorderState === 'idle' && (
           <Button
             type="button"
+            variant="destructive"
+            size="lg"
             onClick={handleStartRecording}
-            className="text-xs gap-2 px-6 py-2.5 h-auto rounded-full bg-rose-600 hover:bg-rose-700 text-white shadow-lg shadow-rose-600/20"
+            className="rounded-full shadow-lg shadow-destructive/20"
             data-testid="start-record-btn"
           >
             <Mic className="h-4 w-4" />
@@ -331,17 +333,17 @@ export function BrowserRecorder({
               variant="outline"
               size="sm"
               onClick={handlePauseResume}
-              className="text-xs gap-1.5 px-4 h-9 rounded-full border-border/80 hover:bg-secondary text-slate-800 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white font-medium shadow-xs transition-colors"
+              className="rounded-full"
               data-testid="pause-record-btn"
             >
               {recorderState === 'paused' ? (
                 <>
-                  <Play className="h-3.5 w-3.5 text-emerald-600 fill-emerald-600" />
+                  <Play className="h-3.5 w-3.5" />
                   <span>Lanjutkan</span>
                 </>
               ) : (
                 <>
-                  <Pause className="h-3.5 w-3.5 text-amber-600 fill-amber-600" />
+                  <Pause className="h-3.5 w-3.5" />
                   <span>Jeda</span>
                 </>
               )}
@@ -349,12 +351,13 @@ export function BrowserRecorder({
 
             <Button
               type="button"
+              variant="destructive"
               size="sm"
               onClick={handleStopRecording}
-              className="text-xs gap-1.5 px-5 h-9 rounded-full bg-rose-600 hover:bg-rose-700 text-white font-medium shadow-md shadow-rose-600/25 transition-all hover:scale-105 active:scale-95"
+              className="rounded-full shadow-md shadow-destructive/25"
               data-testid="stop-record-btn"
             >
-              <Square className="h-3.5 w-3.5 fill-white" />
+              <Square className="h-3.5 w-3.5 fill-current" />
               <span>Selesai</span>
             </Button>
           </>
@@ -368,7 +371,6 @@ export function BrowserRecorder({
               size="sm"
               onClick={handleReset}
               disabled={isProcessing}
-              className="text-xs gap-1.5 border-border hover:bg-secondary text-slate-800 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white font-medium transition-colors"
               data-testid="reset-record-btn"
             >
               <RotateCcw className="h-3.5 w-3.5" />
@@ -377,10 +379,10 @@ export function BrowserRecorder({
 
             <Button
               type="button"
+              variant="default"
               size="sm"
               onClick={handleProcess}
               disabled={isProcessing || !recordedBlob}
-              className="text-xs gap-2"
               data-testid="process-record-btn"
             >
               {isProcessing ? (
@@ -403,23 +405,22 @@ export function BrowserRecorder({
       {errorMessage && (
         <div
           data-testid="recorder-error-alert"
-          className="rounded-xl border border-rose-200 bg-rose-50/90 dark:border-rose-900/50 dark:bg-rose-950/40 p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-rose-800 dark:text-rose-200 text-left shadow-sm"
+          className="rounded-xl border border-destructive/30 bg-destructive/10 p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-destructive text-left shadow-sm"
         >
           <div className="flex items-start gap-2.5">
-            <AlertTriangle className="h-4 w-4 shrink-0 text-rose-600 dark:text-rose-400 mt-0.5" />
+            <AlertTriangle className="h-4 w-4 shrink-0 text-destructive mt-0.5" />
             <span className="leading-relaxed">{errorMessage}</span>
           </div>
           <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
             <Button
               type="button"
-              size="sm"
+              size="xs"
               variant="outline"
               onClick={() => {
                 if (typeof window !== 'undefined') {
                   window.location.reload();
                 }
               }}
-              className="h-7 px-2.5 text-xs border-rose-300 dark:border-rose-700 text-rose-800 dark:text-rose-200 hover:bg-rose-100 dark:hover:bg-rose-900/50"
               data-testid="reload-page-btn"
             >
               Muat Ulang
@@ -427,9 +428,9 @@ export function BrowserRecorder({
             {recorderState === 'idle' && (
               <Button
                 type="button"
-                size="sm"
+                size="xs"
+                variant="destructive"
                 onClick={handleStartRecording}
-                className="h-7 px-3 text-xs bg-rose-600 hover:bg-rose-700 text-white font-medium shadow-sm"
                 data-testid="retry-permission-btn"
               >
                 Coba Lagi
@@ -437,10 +438,9 @@ export function BrowserRecorder({
             )}
             <Button
               type="button"
-              size="sm"
+              size="xs"
               variant="ghost"
               onClick={() => setErrorMessage(null)}
-              className="h-7 px-2 text-xs text-rose-700 hover:text-rose-900 hover:bg-rose-200/50 dark:text-rose-300 dark:hover:text-white dark:hover:bg-rose-900/50"
               data-testid="dismiss-error-btn"
             >
               Tutup
