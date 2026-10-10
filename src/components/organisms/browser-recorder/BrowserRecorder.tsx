@@ -331,17 +331,17 @@ export function BrowserRecorder({
               variant="outline"
               size="sm"
               onClick={handlePauseResume}
-              className="text-xs gap-1.5"
+              className="text-xs gap-1.5 px-4 h-9 rounded-full border-border/80 hover:bg-secondary font-medium shadow-xs"
               data-testid="pause-record-btn"
             >
               {recorderState === 'paused' ? (
                 <>
-                  <Play className="h-3.5 w-3.5" />
+                  <Play className="h-3.5 w-3.5 text-emerald-600 fill-emerald-600" />
                   <span>Lanjutkan</span>
                 </>
               ) : (
                 <>
-                  <Pause className="h-3.5 w-3.5" />
+                  <Pause className="h-3.5 w-3.5 text-amber-600 fill-amber-600" />
                   <span>Jeda</span>
                 </>
               )}
@@ -349,13 +349,12 @@ export function BrowserRecorder({
 
             <Button
               type="button"
-              variant="destructive"
               size="sm"
               onClick={handleStopRecording}
-              className="text-xs gap-1.5"
+              className="text-xs gap-1.5 px-5 h-9 rounded-full bg-rose-600 hover:bg-rose-700 text-white font-medium shadow-md shadow-rose-600/25 transition-all hover:scale-105 active:scale-95"
               data-testid="stop-record-btn"
             >
-              <Square className="h-3.5 w-3.5 fill-current" />
+              <Square className="h-3.5 w-3.5 fill-white" />
               <span>Selesai</span>
             </Button>
           </>
