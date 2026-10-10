@@ -4,13 +4,16 @@ import LoginPage from './page';
 import * as apiClient from '@/lib/api-client';
 import * as claimLib from '@/lib/claim';
 import { ResponseStatus, ResponseCode } from '@/server/constants';
+import { useAuthStore } from '@/stores/auth.store';
 
 const mockPush = vi.fn();
+const mockReplace = vi.fn();
 let mockClaimParam: string | null = null;
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({
     push: mockPush,
+    replace: mockReplace,
   }),
   useSearchParams: () => ({
     get: (key: string) => (key === 'claim' ? mockClaimParam : null),
@@ -20,6 +23,7 @@ vi.mock('next/navigation', () => ({
 describe('LoginPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    useAuthStore.getState().reset();
     mockClaimParam = null;
   });
 
@@ -173,5 +177,27 @@ describe('LoginPage', () => {
 
     expect(await screen.findByTestId('auth-error-alert')).toBeInTheDocument();
     expect(screen.getByText(/Email atau kata sandi tidak sesuai/i)).toBeInTheDocument();
+  });
+
+  it('redirects already authenticated user away from login screen', () => {
+    useAuthStore.getState().setUser({
+      id: 'user-1',
+      email: 'bayu@youten.ai',
+      full_name: 'Bayu',
+      status: 'active',
+      role_id: 'role-1',
+      role_code: 'PRO',
+      role_name: 'Pro Member',
+      permissions: [],
+      daily_quota: 10,
+      quota_used_today: 0,
+      quota_remaining: 10,
+      email_verified: true,
+      created_at: new Date().toISOString(),
+    });
+
+    render(<LoginPage />);
+
+    expect(mockReplace).toHaveBeenCalledWith('/dashboard');
   });
 });

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { Suspense, useState } from 'react';
+import React, { Suspense, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Eye, EyeOff, Loader2, LogIn } from 'lucide-react';
@@ -18,9 +18,10 @@ import { Button } from '@/components/atoms/button';
 import { Alert, AlertDescription } from '@/components/atoms/alert';
 import { apiFetch } from '@/lib/api-client';
 import { ApiResponse } from '@/server/dtos/response.dto';
-import { AuthResponse } from '@/server/dtos/auth.dto';
+import { AuthResponse, UserProfileResponse } from '@/server/dtos/auth.dto';
 import { claimGuestRecordings, claimSingleRecording } from '@/lib/claim';
 import { useTokenStore } from '@/stores/token.store';
+import { useAuthStore } from '@/stores/auth.store';
 
 function LoginForm() {
   const router = useRouter();
@@ -32,6 +33,19 @@ function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // Prevent authenticated users from seeing the login screen again
+  useEffect(() => {
+    const user = useAuthStore.getState().user;
+    if (user) {
+      const redirectTo = searchParams.get('redirect') || searchParams.get('from');
+      if (typeof router.replace === 'function') {
+        router.replace(redirectTo || '/dashboard');
+      } else {
+        router.push(redirectTo || '/dashboard');
+      }
+    }
+  }, [router, searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,6 +73,11 @@ function LoginForm() {
         // Clear anonymous session on successful login
         useTokenStore.getState().clearAnonSession();
 
+        // Update global auth store with logged-in user profile
+        if (response.data?.user) {
+          useAuthStore.getState().setUser(response.data.user as unknown as UserProfileResponse);
+        }
+
         // Auto-claim any guest recordings stored in localStorage
         await claimGuestRecordings();
 
@@ -67,7 +86,8 @@ function LoginForm() {
           await claimSingleRecording(claimId);
           router.push(`/recordings/${claimId}`);
         } else {
-          router.push('/');
+          const redirectTo = searchParams.get('redirect') || searchParams.get('from');
+          router.push(redirectTo || '/');
         }
       } else {
         setErrorMessage(response?.message || 'Gagal masuk. Periksa kembali email dan kata sandi Anda.');

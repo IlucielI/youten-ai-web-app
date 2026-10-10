@@ -13,6 +13,7 @@ import { LiveBotTracker } from '@/components/organisms/live-bot-tracker';
 import { useMeetingBotStore } from '@/stores/meeting-bot.store';
 import { TemplateKey, DefaultTemplateKey } from '@/server/constants/template.constant';
 import { useTokenStore } from '@/stores/token.store';
+import { useAuthStore } from '@/stores/auth.store';
 import { apiFetch, ApiClientError } from '@/lib/api-client';
 import { ApiResponse } from '@/server/dtos/response.dto';
 import {
@@ -38,6 +39,8 @@ export default function LandingPage() {
   const [isUrlImporting, setIsUrlImporting] = useState(false);
   const [quotaExhausted, setQuotaExhausted] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const currentUser = useAuthStore((state) => state.user);
 
   const addGuestToken = useTokenStore((state) => state.addGuestToken);
   const ensureAnonSession = useTokenStore((state) => state.ensureAnonSession);
@@ -239,14 +242,24 @@ export default function LandingPage() {
         brandName="Youten AI"
         brandTag="Beta"
         statusLabel="Sistem Aktif"
-        ctaText="Masuk"
-        ctaHref="/login"
-        links={[
-          { label: 'Beranda', href: '/', active: true },
-          { label: 'Fitur', href: '#features' },
-          { label: 'Waitlist Bot', href: '/waitlist' },
-          { label: 'Status API', href: '/health' },
-        ]}
+        ctaText={currentUser ? 'Dashboard' : 'Masuk'}
+        ctaHref={currentUser ? '/dashboard' : '/login'}
+        links={
+          currentUser
+            ? [
+                { label: 'Beranda', href: '/', active: true },
+                { label: 'Dashboard', href: '/dashboard' },
+                { label: 'Fitur', href: '#features' },
+                { label: 'Waitlist Bot', href: '/waitlist' },
+                { label: 'Status API', href: '/health' },
+              ]
+            : [
+                { label: 'Beranda', href: '/', active: true },
+                { label: 'Fitur', href: '#features' },
+                { label: 'Waitlist Bot', href: '/waitlist' },
+                { label: 'Status API', href: '/health' },
+              ]
+        }
       />
 
       {/* Hero Section */}
@@ -267,24 +280,46 @@ export default function LandingPage() {
           </p>
         </div>
 
-        {/* Quota Banner */}
-        <div
-          data-testid="guest-quota-banner"
-          className="max-w-2xl mx-auto rounded-xl border border-primary/20 bg-primary/5 p-4 flex items-center justify-between gap-4 text-xs sm:text-sm text-foreground shadow-sm"
-        >
-          <div className="flex items-center gap-2.5">
-            <Info className="h-4 w-4 text-primary shrink-0" />
-            <span>
-              <strong>1 unggahan gratis per hari</strong> tanpa login. Rekaman tersimpan aman di peramban Anda.
-            </span>
-          </div>
-          <Link
-            href="/login"
-            className="shrink-0 font-semibold text-primary hover:underline inline-flex items-center gap-1"
+        {/* Quota Banner: Authenticated vs Guest */}
+        {currentUser ? (
+          <div
+            data-testid="user-quota-banner"
+            className="max-w-2xl mx-auto rounded-xl border border-primary/20 bg-primary/5 p-4 flex items-center justify-between gap-4 text-xs sm:text-sm text-foreground shadow-sm"
           >
-            Masuk <ArrowRight className="h-3.5 w-3.5" />
-          </Link>
-        </div>
+            <div className="flex items-center gap-2.5">
+              <Sparkles className="h-4 w-4 text-primary shrink-0" />
+              <span>
+                Selamat datang, <strong>{currentUser.full_name || currentUser.email}</strong>! Anda memiliki akses{' '}
+                <strong className="text-primary font-semibold">{currentUser.role_name || 'Member'}</strong> (Kuota tersisa hari ini:{' '}
+                <strong>{currentUser.quota_remaining ?? currentUser.daily_quota ?? 9998}</strong> rekaman).
+              </span>
+            </div>
+            <Link
+              href="/dashboard"
+              className="shrink-0 font-semibold text-primary hover:underline inline-flex items-center gap-1"
+            >
+              Ke Dashboard <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
+        ) : (
+          <div
+            data-testid="guest-quota-banner"
+            className="max-w-2xl mx-auto rounded-xl border border-primary/20 bg-primary/5 p-4 flex items-center justify-between gap-4 text-xs sm:text-sm text-foreground shadow-sm"
+          >
+            <div className="flex items-center gap-2.5">
+              <Info className="h-4 w-4 text-primary shrink-0" />
+              <span>
+                <strong>1 unggahan gratis per hari</strong> tanpa login. Rekaman tersimpan aman di peramban Anda.
+              </span>
+            </div>
+            <Link
+              href="/login"
+              className="shrink-0 font-semibold text-primary hover:underline inline-flex items-center gap-1"
+            >
+              Masuk <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
+        )}
 
         {/* Quota Exhaustion Alert */}
         {quotaExhausted && (
