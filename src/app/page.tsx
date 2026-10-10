@@ -474,19 +474,8 @@ export default function LandingPage() {
 
       {/* Footer */}
       <footer className="border-t border-border/60 bg-card/40 py-6 text-center text-xs text-muted-foreground">
-        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="max-w-7xl mx-auto px-4 flex items-center justify-center">
           <p>© {new Date().getFullYear()} Youten AI. Seluruh hak cipta dilindungi.</p>
-          <div className="flex items-center gap-6">
-            <Link href="/health" className="hover:text-foreground transition-colors">
-              Status Sistem
-            </Link>
-            <Link href="/waitlist" className="hover:text-foreground transition-colors">
-              Waitlist Bot
-            </Link>
-            <Link href="/login" className="hover:text-foreground transition-colors">
-              Masuk
-            </Link>
-          </div>
         </div>
       </footer>
     </div>
