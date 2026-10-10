@@ -42,6 +42,10 @@ export const templateLabels: Record<string, string> = {
   TECH_REVIEW: 'Tech Architecture',
   SALES_DISCOVERY: 'Sales Discovery',
   INTERVIEW: 'Interview Scorecard',
+  PODCAST: 'Podcast & Talkshow',
+  LECTURE: 'Lecture & Webinar',
+  MUSIC_LYRICS: 'Music Lyrics',
+  RESEARCH_DEEPDIVE: 'Research Deep Dive',
 };
 
 export function getStatusPillConfig(status: string): {

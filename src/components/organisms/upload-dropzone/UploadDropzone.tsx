@@ -17,6 +17,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useTemplates } from '@/hooks';
 
 export interface UploadDropzoneProps {
   onUploadFile?: (
@@ -55,6 +56,7 @@ export function UploadDropzone({
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const { templates } = useTemplates();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -293,27 +295,11 @@ export function UploadDropzone({
               className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-xs shadow-sm cursor-pointer focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-50 disabled:cursor-not-allowed"
               data-testid="template-select"
             >
-              <option value={TemplateKey.GENERAL} className="bg-popover text-foreground">
-                Ringkasan Umum (Cornell Notes)
-              </option>
-              <option value={TemplateKey.MOM} className="bg-popover text-foreground">
-                Notula Rapat (MOM - Action Items)
-              </option>
-              <option value={TemplateKey.ONE_ON_ONE} className="bg-popover text-foreground">
-                Percakapan 1-on-1 (Wellbeing & Goals)
-              </option>
-              <option value={TemplateKey.INTERVIEW} className="bg-popover text-foreground">
-                Wawancara Kandidat (STAR Scorecard)
-              </option>
-              <option value={TemplateKey.TECH_REVIEW} className="bg-popover text-foreground">
-                Tinjauan Teknis (RFC / ADR)
-              </option>
-              <option value={TemplateKey.SALES_DISCOVERY} className="bg-popover text-foreground">
-                Sales Discovery (MEDDPICC)
-              </option>
-              <option value={TemplateKey.DAILY_STANDUP} className="bg-popover text-foreground">
-                Daily Standup / Scrum
-              </option>
+              {templates.map((t) => (
+                <option key={t.key} value={t.key} className="bg-popover text-foreground">
+                  {t.label}
+                </option>
+              ))}
             </select>
           </div>
 

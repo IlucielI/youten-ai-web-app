@@ -10,3 +10,5 @@ export * from './waitlist.service.interface';
 export * from './waitlist.service';
 export * from './meeting-bot.service.interface';
 export * from './meeting-bot.service';
+export * from './template.service.interface';
+export * from './template.service';

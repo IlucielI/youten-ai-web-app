@@ -11,9 +11,14 @@ export const TemplateKey = {
   SALES_DISCOVERY: 'SALES_DISCOVERY', // MEDDPICC Framework, Pain Points, Buying Process
   DAILY_STANDUP: 'DAILY_STANDUP',     // Agile Scrum (Yesterday, Today, Blockers, Sprint Health)
   GENERAL: 'GENERAL',                 // Cornell Notes, Executive Brief, Takeaways (Default)
+  PODCAST: 'PODCAST',                 // Podcast & Talkshow
+  LECTURE: 'LECTURE',                 // Lecture, Class & Webinar
+  MUSIC_LYRICS: 'MUSIC_LYRICS',       // Music Lyrics & Composition
+  RESEARCH_DEEPDIVE: 'RESEARCH_DEEPDIVE', // Academic Research & Deep Dive
 } as const;
 
-export type TemplateKey = (typeof TemplateKey)[keyof typeof TemplateKey];
+export type KnownTemplateKey = (typeof TemplateKey)[keyof typeof TemplateKey];
+export type TemplateKey = KnownTemplateKey | (string & {});
 
 export const DefaultTemplateKey = TemplateKey.GENERAL;
 
@@ -25,6 +30,10 @@ export const AllTemplateKeys = [
   TemplateKey.SALES_DISCOVERY,
   TemplateKey.DAILY_STANDUP,
   TemplateKey.GENERAL,
+  TemplateKey.PODCAST,
+  TemplateKey.LECTURE,
+  TemplateKey.MUSIC_LYRICS,
+  TemplateKey.RESEARCH_DEEPDIVE,
 ] as const;
 
 /**

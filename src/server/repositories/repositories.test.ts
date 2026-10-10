@@ -7,6 +7,7 @@ import {
   WorkspaceRepository,
   WaitlistRepository,
   MeetingBotRepository,
+  TemplateRepository,
 } from './index';
 import { MockDataService } from '../datasources/mock';
 import { HttpClient } from '../datasources/http';
@@ -28,6 +29,7 @@ describe('BFF Domain Repositories (Mock & Transport Layer)', () => {
   let workspaceRepo: WorkspaceRepository;
   let waitlistRepo: WaitlistRepository;
   let meetingBotRepo: MeetingBotRepository;
+  let templateRepo: TemplateRepository;
 
   beforeEach(() => {
     mockService = new MockDataService();
@@ -40,6 +42,7 @@ describe('BFF Domain Repositories (Mock & Transport Layer)', () => {
     workspaceRepo = new WorkspaceRepository(fakeHttp, mockService, true);
     waitlistRepo = new WaitlistRepository(fakeHttp, mockService, true);
     meetingBotRepo = new MeetingBotRepository(fakeHttp, mockService, true);
+    templateRepo = new TemplateRepository(fakeHttp, mockService, true);
   });
 
   describe('AuthRepository', () => {
@@ -379,6 +382,16 @@ describe('BFF Domain Repositories (Mock & Transport Layer)', () => {
       const stopResp = await meetingBotRepo.stop(sessionId);
       expect(stopResp.status).toBe(ResponseStatus.SUCCESS);
       expect(stopResp.data?.status).toBe('COMPLETED');
+    });
+  });
+
+  describe('TemplateRepository', () => {
+    it('lists templates from mock data correctly', async () => {
+      const resp = await templateRepo.listTemplates();
+      expect(resp.status).toBe(ResponseStatus.SUCCESS);
+      expect(resp.data?.items).toBeDefined();
+      expect(resp.data!.items.length).toBeGreaterThan(0);
+      expect(resp.data?.items.some((item) => item.category_key === 'MOM')).toBe(true);
     });
   });
 });

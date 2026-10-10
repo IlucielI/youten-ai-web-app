@@ -40,6 +40,7 @@ import {
   MeetingBotSessionStatusResponse,
   StopMeetingBotSessionResponse,
   CapabilitiesResponse,
+  TemplateListResponse,
 } from '../../dtos';
 import {
   RecordingStatus,
@@ -673,6 +674,90 @@ export class MockDataService {
       recording_id: session?.recording_id || id,
       status: 'COMPLETED',
       message: 'Bot leave command dispatched successfully',
+    };
+  }
+
+  listTemplates(): TemplateListResponse {
+    return {
+      items: [
+        {
+          id: '1866eb24-298a-494b-a8e0-ed5f7680f2ae',
+          category_key: 'MOM',
+          name: 'Minutes of Meeting (MOM)',
+          description: 'Ekstraksi agenda, daftar kehadiran, dinamika rapat, keputusan final, dan tabel action items ber-deadline.',
+          is_active: true,
+        },
+        {
+          id: '16589f63-1002-4840-aa24-ea6e9afe1dd5',
+          category_key: '1_ON_1',
+          name: '1-on-1 Performance & Growth',
+          description: 'Penilaian sentimen energi/wellbeing, pencapaian kunci, hambatan operasional, dan rencana aksi pertumbuhan karier.',
+          is_active: true,
+        },
+        {
+          id: '700bd64a-a6c2-46c2-9480-97e7f52856d2',
+          category_key: 'INTERVIEW',
+          name: 'Technical & Behavioral Interview Scorecard',
+          description: 'Evaluasi kompetensi berbasis metode STAR, sinyal positif, red flags, dan rekomendasi hiring.',
+          is_active: true,
+        },
+        {
+          id: 'da9b6223-a234-4274-a36c-73cdcee31521',
+          category_key: 'TECH_REVIEW',
+          name: 'Engineering RFC & Tech Review',
+          description: 'Rangkuman tinjauan arsitektur sistem, catatan ADR, mitigasi risiko reliabilitas, dan degradasi latensi.',
+          is_active: true,
+        },
+        {
+          id: '6507e1b5-74c3-408f-bf30-fb42c3631e47',
+          category_key: 'SALES_DISCOVERY',
+          name: 'B2B Sales Discovery & MEDDPICC',
+          description: 'Kualifikasi kesepakatan B2B berbasis MEDDPICC, Pain Points pelanggan, dan next steps penjualan.',
+          is_active: true,
+        },
+        {
+          id: '500e5e30-8532-4aa0-93f7-12128725bf3f',
+          category_key: 'DAILY_STANDUP',
+          name: 'Agile Daily Standup & Scrum',
+          description: 'Papan status tim 3 kolom (Kemarin, Hari ini, Blockers P0/P1), dan tindak lanjut cepat.',
+          is_active: true,
+        },
+        {
+          id: '9597ba73-4ded-49fc-b669-0d5312a989a8',
+          category_key: 'GENERAL',
+          name: 'Executive Briefing & General Discussion',
+          description: 'Sintesis memo naratif eksekutif bergaya Cornell Notes, poin kunci kuantitatif empiris, dan agenda tindak lanjut.',
+          is_active: true,
+        },
+        {
+          id: '9b595264-690f-4b87-93dc-e5e9fcbaf34e',
+          category_key: 'PODCAST',
+          name: 'Podcast & Talkshow',
+          description: 'Show notes, guest overview, topic chapters with timestamps, actionable takeaways, dan golden quotes.',
+          is_active: true,
+        },
+        {
+          id: '989f449b-b0d7-41f3-8e85-ffadd5851ddb',
+          category_key: 'LECTURE',
+          name: 'Lecture, Class & Webinar',
+          description: 'Lecture & webinar core summary, key concepts/theories, technical glossary, dan review questions.',
+          is_active: true,
+        },
+        {
+          id: '447e5ec9-f2ae-4ac2-8594-9fe8f512c293',
+          category_key: 'MUSIC_LYRICS',
+          name: 'Music Lyrics & Composition',
+          description: 'Lyrics transcription segmented by song structure, emotional tone, dan core message.',
+          is_active: true,
+        },
+        {
+          id: '8a192f39-5e6b-4cc9-9b22-3095593523ba',
+          category_key: 'RESEARCH_DEEPDIVE',
+          name: 'Academic Research & Deep Dive',
+          description: 'Synthesize literature reviews, methodology, and experimental results.',
+          is_active: true,
+        },
+      ],
     };
   }
 }

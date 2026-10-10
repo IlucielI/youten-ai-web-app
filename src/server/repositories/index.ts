@@ -15,3 +15,5 @@ export * from './waitlist.repository.interface';
 export * from './waitlist.repository';
 export * from './meeting-bot.repository.interface';
 export * from './meeting-bot.repository';
+export * from './template.repository.interface';
+export * from './template.repository';

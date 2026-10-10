@@ -41,6 +41,7 @@ import { EmptyState } from '@/components/molecules/empty-state';
 import { ShareDialog } from '@/components/molecules/share-dialog';
 import { UserChip } from '@/components/molecules/user-chip';
 import { toast } from 'sonner';
+import { useTemplates } from '@/hooks';
 import {
   Plus,
   Search,
@@ -68,19 +69,9 @@ const STATUS_OPTIONS = [
   { value: RecordingStatus.FAILED, label: 'Gagal' },
 ];
 
-const TEMPLATE_OPTIONS = [
-  { value: '', label: 'Semua Template' },
-  { value: 'GENERAL', label: 'Executive Brief' },
-  { value: 'MOM', label: 'Notulen Rapat (MoM)' },
-  { value: '1_ON_1', label: '1-on-1 Review' },
-  { value: 'DAILY_STANDUP', label: 'Daily Standup' },
-  { value: 'TECH_REVIEW', label: 'Tech Architecture' },
-  { value: 'SALES_DISCOVERY', label: 'Sales Discovery' },
-  { value: 'INTERVIEW', label: 'Interview Scorecard' },
-];
-
 export default function DashboardPage() {
   const router = useRouter();
+  const { templates, getTemplateLabel } = useTemplates();
 
   // Auth User State
   const [user, setUser] = useState<UserProfileResponse | null>(null);
@@ -454,9 +445,10 @@ export default function DashboardPage() {
                 }}
                 className="px-3 py-2 text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl text-slate-700 focus:outline-none focus:border-blue-500 cursor-pointer"
               >
-                {TEMPLATE_OPTIONS.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
+                <option value="">Semua Template</option>
+                {templates.map((tmpl) => (
+                  <option key={tmpl.key} value={tmpl.key}>
+                    {tmpl.label}
                   </option>
                 ))}
               </select>
@@ -606,7 +598,10 @@ export default function DashboardPage() {
               <TableBody>
                 {recordings.map((recording) => {
                   const pillConfig = getStatusPillConfig(recording.status);
-                  const templateName = templateLabels[recording.selected_template] || recording.selected_template;
+                  const templateName =
+                    getTemplateLabel(recording.selected_template) ||
+                    templateLabels[recording.selected_template] ||
+                    recording.selected_template;
                   const formattedDate = new Date(recording.created_at).toLocaleDateString('id-ID', {
                     day: 'numeric',
                     month: 'short',

@@ -19,67 +19,13 @@ import {
   Sparkles,
   AlertTriangle,
   Loader2,
-  FileText,
-  HeartHandshake,
-  UserCheck,
-  Cpu,
-  TrendingUp,
-  Activity,
   Check,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useTemplates, FALLBACK_TEMPLATES, DynamicTemplateOption } from '@/hooks';
 
-export interface TemplateOption {
-  key: TemplateKey;
-  label: string;
-  description: string;
-  icon: React.ComponentType<{ className?: string }>;
-}
-
-export const TEMPLATE_OPTIONS: TemplateOption[] = [
-  {
-    key: TemplateKey.GENERAL,
-    label: 'Ringkasan Umum (Cornell Notes)',
-    description: 'Ikhtisar eksekutif, tema inti, poin pembelajaran penting, dan kutipan berkesan.',
-    icon: FileText,
-  },
-  {
-    key: TemplateKey.MOM,
-    label: 'Notula Rapat (MOM)',
-    description: 'Agenda, keputusan penting, matriks dinamika, dan tabel tindak lanjut berprioritas.',
-    icon: Activity,
-  },
-  {
-    key: TemplateKey.ONE_ON_ONE,
-    label: 'Percakapan 1-on-1',
-    description: 'Asesmen wellbeing, pencapaian, blocker, dan komitmen pertumbuhan 2 arah.',
-    icon: HeartHandshake,
-  },
-  {
-    key: TemplateKey.INTERVIEW,
-    label: 'Wawancara Kandidat',
-    description: 'STAR scorecard, rekomendasi perekrutan, dan evaluasi kompetensi.',
-    icon: UserCheck,
-  },
-  {
-    key: TemplateKey.TECH_REVIEW,
-    label: 'Tinjauan Teknis (RFC / ADR)',
-    description: 'Konteks arsitektur, keputusan yang diadopsi, alternatif ditolak, dan asesmen NFR.',
-    icon: Cpu,
-  },
-  {
-    key: TemplateKey.SALES_DISCOVERY,
-    label: 'Sales Discovery (MEDDPICC)',
-    description: 'Kerangka MEDDPICC, pain points, cost of inaction, dan langkah selanjutnya.',
-    icon: TrendingUp,
-  },
-  {
-    key: TemplateKey.DAILY_STANDUP,
-    label: 'Daily Standup / Scrum',
-    description: 'Status sprint, pembaruan kemarin/hari ini/blocker, dan parking lot.',
-    icon: Activity,
-  },
-];
+export type TemplateOption = DynamicTemplateOption;
+export const TEMPLATE_OPTIONS: DynamicTemplateOption[] = FALLBACK_TEMPLATES;
 
 export interface RegenerateModalProps {
   open: boolean;
@@ -107,6 +53,7 @@ function RegenerateForm({
 }: RegenerateFormProps) {
   const [selectedTemplate, setSelectedTemplate] = useState<TemplateKey>(defaultTemplate);
   const [customAngle, setCustomAngle] = useState('');
+  const { templates } = useTemplates();
   const maxVersions = DomainLimits.MAX_SUMMARY_VERSIONS;
   const isCapReached = currentVersionsCount >= maxVersions;
   const isTooLong = customAngle.length > 2000;
@@ -149,7 +96,7 @@ function RegenerateForm({
           Pilih Kerangka Templat Ringkasan:
         </Label>
         <div className="grid grid-cols-1 gap-2 max-h-56 overflow-y-auto pr-1">
-          {TEMPLATE_OPTIONS.map((tmpl) => {
+          {templates.map((tmpl) => {
             const isSelected = selectedTemplate === tmpl.key;
             const Icon = tmpl.icon;
             return (
