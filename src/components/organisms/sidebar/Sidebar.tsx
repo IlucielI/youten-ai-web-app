@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import { YoutenLogo } from '@/components/atoms/youten-logo';
 
 export interface SidebarNavItem {
   label: string;
@@ -14,7 +15,6 @@ export interface SidebarNavItem {
 export interface SidebarProps {
   brandName?: string;
   brandSubtitle?: string;
-  brandInitials?: string;
   items?: SidebarNavItem[];
   currentPath?: string;
   userName?: string;
@@ -32,9 +32,8 @@ const defaultSidebarItems: SidebarNavItem[] = [
 ];
 
 export const Sidebar: React.FC<SidebarProps> = ({
-  brandName = 'NextBase Admin',
-  brandSubtitle = 'Core Backoffice',
-  brandInitials = 'NB',
+  brandName = 'Youten AI Admin',
+  brandSubtitle = 'Intelligence Console',
   items = defaultSidebarItems,
   currentPath = '/',
   userName = 'Developer',
@@ -51,8 +50,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
       <div className="p-5 flex flex-col gap-6">
         {/* Brand Header */}
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-lg bg-blue-600 flex items-center justify-center font-extrabold text-sm tracking-tight text-white shadow-lg shadow-blue-500/20">
-            {brandInitials}
+          <div className="w-9 h-9 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-center shadow-md">
+            <YoutenLogo size="sm" className="[&_rect]:fill-white" />
           </div>
           <div className="flex flex-col">
             <span className="font-bold text-sm text-white tracking-tight">{brandName}</span>

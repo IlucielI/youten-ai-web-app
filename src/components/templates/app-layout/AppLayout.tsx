@@ -22,11 +22,11 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
         <footer className="border-t border-slate-200 bg-white py-8 text-center text-xs text-slate-500">
           <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2">
-              <span className="font-bold text-slate-900">NextBase</span>
-              <span>• Clean Architecture &amp; Atomic Design</span>
+              <span className="font-bold text-slate-900">Youten AI</span>
+              <span>• Intelligent Speech &amp; Meeting Synthesis</span>
             </div>
             <p className="text-slate-400">
-              © {new Date().getFullYear()} NextBase Starter. Open Source MIT.
+              © {new Date().getFullYear()} Youten AI. All rights reserved.
             </p>
           </div>
         </footer>
