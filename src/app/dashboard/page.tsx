@@ -4,7 +4,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { apiFetch, ApiClientError } from '@/lib/api-client';
-import { ApiResponse, PaginatedResponse, BaseResponse } from '@/server/dtos/response.dto';
+import { ApiResponse, BaseResponse } from '@/server/dtos/response.dto';
 import { UserProfileResponse } from '@/server/dtos/auth.dto';
 import { RecordingListItemDTO } from '@/server/dtos/recording.dto';
 import { RecordingStatus } from '@/server/constants/recording.constant';
@@ -68,6 +68,26 @@ const STATUS_OPTIONS = [
   { value: 'TRANSCRIBING', label: 'Sedang Diproses' },
   { value: RecordingStatus.FAILED, label: 'Gagal' },
 ];
+
+interface RecordingsApiResponse {
+  status: string;
+  code?: string;
+  data?:
+    | {
+        items?: RecordingListItemDTO[];
+        pagination?: {
+          current_page?: number;
+          page_size?: number;
+          total_items?: number;
+          total_pages?: number;
+        };
+      }
+    | RecordingListItemDTO[];
+  pagination?: {
+    totalItems?: number;
+    totalPages?: number;
+  };
+}
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -163,15 +183,28 @@ export default function DashboardPage() {
       params.set('template', selectedTemplate);
     }
 
-    apiFetch<PaginatedResponse<RecordingListItemDTO>>(`/api/recordings?${params.toString()}`)
+    apiFetch<RecordingsApiResponse>(`/api/recordings?${params.toString()}`)
       .then((res) => {
         if (!isMounted) return;
-        if (res && res.status === 'success' && res.data) {
+        if (res && (res.status === 'success' || res.status === 'SUCCESS') && res.data) {
           setDataError(null);
-          setRecordings(res.data);
-          if (res.pagination) {
-            setTotalItems(res.pagination.totalItems);
-            setTotalPages(res.pagination.totalPages || 1);
+          const rawItems: RecordingListItemDTO[] = Array.isArray(res.data)
+            ? res.data
+            : Array.isArray(res.data?.items)
+            ? (res.data.items as RecordingListItemDTO[])
+            : [];
+          setRecordings(rawItems);
+
+          const pag = !Array.isArray(res.data) ? res.data?.pagination : undefined;
+          if (pag) {
+            setTotalItems(pag.total_items ?? rawItems.length);
+            setTotalPages(pag.total_pages ?? 1);
+          } else if (res.pagination) {
+            setTotalItems(res.pagination.totalItems ?? rawItems.length);
+            setTotalPages(res.pagination.totalPages ?? 1);
+          } else {
+            setTotalItems(rawItems.length);
+            setTotalPages(1);
           }
         } else {
           setDataError('Gagal memuat daftar rekaman.');
@@ -265,6 +298,7 @@ export default function DashboardPage() {
   const quotaTotal = user?.daily_quota ?? 5;
   const startIndex = totalItems === 0 ? 0 : (page - 1) * pageSize + 1;
   const endIndex = Math.min(page * pageSize, totalItems);
+  const safeRecordings = Array.isArray(recordings) ? recordings : [];
 
   return (
     <div data-testid="dashboard-page" className="min-h-screen bg-slate-50/60 font-sans">
@@ -536,7 +570,7 @@ export default function DashboardPage() {
               Coba Lagi
             </Button>
           </div>
-        ) : recordings.length === 0 ? (
+        ) : safeRecordings.length === 0 ? (
           /* Empty State */
           <EmptyState
             title={debouncedSearch || selectedStatus || selectedTemplate ? 'Tidak ada hasil yang cocok' : 'Belum Ada Rekaman'}
@@ -572,7 +606,7 @@ export default function DashboardPage() {
         ) : viewMode === 'grid' ? (
           /* Grid View */
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {recordings.map((recording) => (
+            {safeRecordings.map((recording) => (
               <RecordingCard
                 key={recording.id}
                 recording={recording}
@@ -596,7 +630,7 @@ export default function DashboardPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {recordings.map((recording) => {
+                {safeRecordings.map((recording) => {
                   const pillConfig = getStatusPillConfig(recording.status);
                   const templateName =
                     getTemplateLabel(recording.selected_template) ||
@@ -674,7 +708,7 @@ export default function DashboardPage() {
         )}
 
         {/* Pagination Controls */}
-        {!dataLoading && recordings.length > 0 && (
+        {!dataLoading && safeRecordings.length > 0 && (
           <footer className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-slate-200/70 text-xs text-slate-500">
             <div>
               Menampilkan <span className="font-bold text-slate-700">{startIndex}</span> -{' '}
