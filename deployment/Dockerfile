@@ -1,4 +1,4 @@
-ARG BASE_IMAGE=code-base-nextjs-base:latest
+ARG BASE_IMAGE=youten-ai-web-base:latest
 FROM ${BASE_IMAGE} AS builder
 
 ARG APP_VERSION=0.1.0

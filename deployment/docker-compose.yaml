@@ -1,9 +1,15 @@
+name: youten-web
+
 services:
   web:
-    image: code-base-nextjs:latest
-    container_name: code-base-nextjs
+    image: youten-ai-web:latest
+    container_name: youten-ai-web
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     env_file:
       - ../.env
+    environment:
+      - PORT=3000
     ports:
       - "${PORT:-3000}:3000"
     healthcheck:

@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 set -eu
 
-BASE_IMAGE="code-base-nextjs-base:latest"
+BASE_IMAGE="youten-ai-web-base:latest"
 REBUILD_BASE="${REBUILD_BASE:-false}"
 
 # Check if base image exists or if forced rebuild is requested

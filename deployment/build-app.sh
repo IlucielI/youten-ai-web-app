@@ -3,7 +3,7 @@ set -eu
 
 APP_VERSION="${APP_VERSION:-0.1.0}"
 GIT_HASH="${GIT_HASH:-$(git rev-parse --short HEAD 2>/dev/null || printf dev)}"
-IMAGE_TAG="${IMAGE_TAG:-code-base-nextjs:latest}"
+IMAGE_TAG="${IMAGE_TAG:-youten-ai-web:latest}"
 
 echo "==> Building Next.js application image with tag: ${IMAGE_TAG}..."
 docker build \
