@@ -220,7 +220,11 @@ export default function LandingPage() {
   /**
    * Handle browser live recording processing.
    */
-  const handleProcessLiveRecording = async (audioBlob: Blob) => {
+  const handleProcessLiveRecording = async (
+    audioBlob: Blob,
+    _durationSeconds?: number,
+    options?: { title?: string; templateCategory?: TemplateKey }
+  ) => {
     const file = new File(
       [audioBlob],
       `rekaman-suara-${new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')}.webm`,
@@ -228,8 +232,8 @@ export default function LandingPage() {
     );
 
     const result = await handleUploadFile(file, {
-      title: 'Rekaman Langsung',
-      templateCategory: DefaultTemplateKey,
+      title: options?.title || 'Rekaman Langsung',
+      templateCategory: options?.templateCategory || DefaultTemplateKey,
     });
 
     handleUploadComplete(result.id);
