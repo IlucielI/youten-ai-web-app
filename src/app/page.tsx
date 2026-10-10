@@ -245,7 +245,6 @@ export default function LandingPage() {
       <Navbar
         brandName="Youten AI"
         brandTag="Beta"
-        statusLabel="Sistem Aktif"
         ctaText={currentUser ? 'Dashboard' : 'Masuk'}
         ctaHref={currentUser ? '/dashboard' : '/login'}
         links={
@@ -255,13 +254,11 @@ export default function LandingPage() {
                 { label: 'Dashboard', href: '/dashboard' },
                 { label: 'Fitur', href: '#features' },
                 { label: 'Waitlist Bot', href: '/waitlist' },
-                { label: 'Status API', href: '/health' },
               ]
             : [
                 { label: 'Beranda', href: '/', active: true },
                 { label: 'Fitur', href: '#features' },
                 { label: 'Waitlist Bot', href: '/waitlist' },
-                { label: 'Status API', href: '/health' },
               ]
         }
       />

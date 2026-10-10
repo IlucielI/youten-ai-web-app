@@ -37,12 +37,7 @@ export interface NavbarProps {
   onLogout?: () => void;
 }
 
-const defaultLinks: NavLinkItem[] = [
-  { label: 'Documentation', href: '#' },
-  { label: 'Architecture', href: '#architecture' },
-  { label: 'Design System', href: '#components' },
-  { label: 'Health API', href: '/api/health' },
-];
+const defaultLinks: NavLinkItem[] = [];
 
 export const Navbar: React.FC<NavbarProps> = ({
   brandName = 'Youten AI',
@@ -52,10 +47,10 @@ export const Navbar: React.FC<NavbarProps> = ({
   tierVariant,
   links = defaultLinks,
   currentPath = '/',
-  showStatus = true,
-  statusLabel = 'API Online',
-  ctaText = 'Get Started',
-  ctaHref = '#components',
+  showStatus = false,
+  statusLabel = 'Sistem Aktif',
+  ctaText = 'Masuk',
+  ctaHref = '/login',
   className = '',
   user: userProp,
   onLogout: onLogoutProp,
