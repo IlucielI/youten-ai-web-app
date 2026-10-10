@@ -152,45 +152,59 @@ export default function RecordingProcessingPage() {
     let isMounted = true;
     const guestToken = useTokenStore.getState().getGuestToken(recordingId);
 
-    // Fetch initial recording metadata
-    apiFetch<ApiResponse<RecordingDetailDto>>(`/api/recordings/${recordingId}`, {
-      headers: guestToken ? { 'x-ownership-token': guestToken } : undefined,
-    })
-      .then((res) => {
-        if (!isMounted) return;
-        if (res.data?.title) {
-          setRecordingTitle(res.data.title);
-        }
-        if (res.data?.created_at) {
-          setStartedAt(res.data.created_at);
-          if (typeof window !== 'undefined') {
-            sessionStorage.setItem(`pipeline_started_${recordingId}`, res.data.created_at);
-          }
-        }
-        if (res.data?.status === RecordingStatus.COMPLETED) {
-          usePipelineStore.getState().setCompleted('Rekaman sudah selesai diproses.');
-          setTimeout(() => {
-            routerRef.current.push(`/recordings/${recordingId}`);
-          }, 800);
-          return;
-        }
-        if (res.data?.status === RecordingStatus.FAILED) {
-          usePipelineStore.getState().setFailure({
-            code: res.data.error_code || 'ERR_PIPELINE_FAILED',
-            message: res.data.error_message || 'Pemrosesan rekaman terhenti.',
-          });
-          return;
-        }
+    const checkStatus = () => {
+      apiFetch<ApiResponse<RecordingDetailDto>>(`/api/recordings/${recordingId}`, {
+        headers: guestToken ? { 'x-ownership-token': guestToken } : undefined,
       })
-      .catch(() => {
-        if (!isMounted) return;
-        setRecordingTitle('Rekaman Audio');
-      });
+        .then((res) => {
+          if (!isMounted) return;
+          if (res.data?.title) {
+            setRecordingTitle(res.data.title);
+          }
+          if (res.data?.created_at) {
+            setStartedAt(res.data.created_at);
+            if (typeof window !== 'undefined') {
+              sessionStorage.setItem(`pipeline_started_${recordingId}`, res.data.created_at);
+            }
+          }
+          if (res.data?.status === RecordingStatus.COMPLETED) {
+            usePipelineStore.getState().setCompleted('Rekaman sudah selesai diproses.');
+            setTimeout(() => {
+              routerRef.current.push(`/recordings/${recordingId}`);
+            }, 800);
+            return;
+          }
+          if (res.data?.status === RecordingStatus.FAILED) {
+            usePipelineStore.getState().setFailure({
+              code: res.data.error_code || 'ERR_PIPELINE_FAILED',
+              message: res.data.error_message || 'Pemrosesan rekaman terhenti.',
+            });
+            return;
+          }
+        })
+        .catch(() => {
+          if (!isMounted) return;
+          setRecordingTitle('Rekaman Audio');
+        });
+    };
 
+    // Initial check & connect SSE
+    checkStatus();
     connectSSE(recordingId);
+
+    // Fallback polling interval every 2.5s to ensure progress updates even if SSE drops
+    const pollInterval = setInterval(() => {
+      const currentStatus = usePipelineStore.getState().status;
+      if (currentStatus === RecordingStatus.COMPLETED || currentStatus === RecordingStatus.FAILED) {
+        clearInterval(pollInterval);
+        return;
+      }
+      checkStatus();
+    }, 2500);
 
     return () => {
       isMounted = false;
+      clearInterval(pollInterval);
       if (eventSourceRef.current) {
         eventSourceRef.current.close();
         eventSourceRef.current = null;

@@ -151,7 +151,7 @@ export default function DashboardPage() {
     params.set('page', page.toString());
     params.set('limit', pageSize.toString());
     params.set('sort_by', 'created_at');
-    params.set('sort_order', 'DESC');
+    params.set('sort_order', 'desc');
 
     if (debouncedSearch.trim()) {
       params.set('search', debouncedSearch.trim());

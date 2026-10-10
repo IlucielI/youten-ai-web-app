@@ -1,6 +1,7 @@
 import { recordingService } from '@/server/services/recording.service';
-import { RecordingStatus } from '@/server/constants';
+import { RecordingStatus, AUTH_COOKIE_NAME, GUEST_COOKIE_NAME } from '@/server/constants';
 import { env, isTest } from '@/server/config';
+import { cookies } from 'next/headers';
 
 export async function GET(
   req: Request,
@@ -31,6 +32,22 @@ export async function GET(
     if (authHeader) headers['authorization'] = authHeader;
     const cookieHeader = req.headers.get('cookie');
     if (cookieHeader) headers['cookie'] = cookieHeader;
+
+    try {
+      const cookieStore = await cookies();
+      const authCookie = cookieStore.get(AUTH_COOKIE_NAME);
+      if (authCookie?.value && !headers['authorization']) {
+        headers['authorization'] = `Bearer ${authCookie.value}`;
+      } else {
+        const guestCookie = cookieStore.get(GUEST_COOKIE_NAME);
+        if (guestCookie?.value && !headers['authorization'] && !headers['x-ownership-token']) {
+          headers['authorization'] = `Bearer ${guestCookie.value}`;
+          headers['x-ownership-token'] = guestCookie.value;
+        }
+      }
+    } catch {
+      // Ignore cookie parsing error outside request context
+    }
 
     try {
       const upstreamRes = await fetch(upstreamUrl, {
