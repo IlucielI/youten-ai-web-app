@@ -331,7 +331,7 @@ export function BrowserRecorder({
               variant="outline"
               size="sm"
               onClick={handlePauseResume}
-              className="text-xs gap-1.5 px-4 h-9 rounded-full border-border/80 hover:bg-secondary font-medium shadow-xs"
+              className="text-xs gap-1.5 px-4 h-9 rounded-full border-border/80 hover:bg-secondary text-slate-800 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white font-medium shadow-xs transition-colors"
               data-testid="pause-record-btn"
             >
               {recorderState === 'paused' ? (
@@ -368,7 +368,7 @@ export function BrowserRecorder({
               size="sm"
               onClick={handleReset}
               disabled={isProcessing}
-              className="text-xs gap-1.5"
+              className="text-xs gap-1.5 border-border hover:bg-secondary text-slate-800 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white font-medium transition-colors"
               data-testid="reset-record-btn"
             >
               <RotateCcw className="h-3.5 w-3.5" />

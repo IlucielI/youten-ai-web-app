@@ -13,9 +13,9 @@
   --secondary-hover: #e2e8f0;
   --secondary-foreground: #0f172a;
 
-  /* Accent & Highlight Tokens */
-  --accent: #6366f1;
-  --accent-foreground: #ffffff;
+  /* Accent & Subtle Surface Hover Tokens */
+  --accent: #f1f5f9;
+  --accent-foreground: #0f172a;
 
   /* Surface & Background Tokens */
   --background: #f8fafc;
@@ -115,6 +115,8 @@
     --destructive: #f87171;
     --destructive-hover: #ef4444;
     --destructive-foreground: #ffffff;
+    --accent: #1e293b;
+    --accent-foreground: #f8fafc;
   }
 }
 
