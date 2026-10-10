@@ -63,4 +63,54 @@ describe('AnalyticsCards', () => {
     expect(row1).toHaveTextContent('40%');
     expect(row1).toHaveTextContent('02:00');
   });
+
+  it('unifies split speakers when speakerLabels maps generic label to canonical name', () => {
+    const splitAnalytics: RecordingAnalyticsDTO = {
+      total_duration_seconds: 300,
+      total_words: 600,
+      speakers: [
+        {
+          name: 'Putri Deski Patok Fatimah',
+          total_seconds: 150,
+          word_count: 300,
+          share_percent: 50,
+        },
+        {
+          name: 'Speaker 0',
+          total_seconds: 50,
+          word_count: 100,
+          share_percent: 17,
+        },
+        {
+          name: 'Speaker 1',
+          total_seconds: 100,
+          word_count: 200,
+          share_percent: 33,
+        },
+      ],
+    };
+
+    const speakerLabels = {
+      'Speaker 0': 'Putri Deski Patok Fatimah',
+    };
+
+    render(
+      <AnalyticsCards
+        analytics={splitAnalytics}
+        speakerLabels={speakerLabels}
+      />
+    );
+
+    // Should unify Speaker 0 into Putri Deski Patok Fatimah, resulting in exactly 2 Pembicara
+    expect(screen.getByTestId('metric-speakers-card')).toHaveTextContent('2 Pembicara');
+
+    const row0 = screen.getByTestId('speaker-row-0');
+    expect(row0).toHaveTextContent('Putri Deski Patok Fatimah');
+    // Combined share: 50% + 17% = 67%
+    expect(row0).toHaveTextContent('67%');
+
+    const row1 = screen.getByTestId('speaker-row-1');
+    expect(row1).toHaveTextContent('Speaker 1');
+    expect(row1).toHaveTextContent('33%');
+  });
 });

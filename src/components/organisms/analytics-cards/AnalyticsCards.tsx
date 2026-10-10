@@ -9,6 +9,7 @@ import { Clock, MessageSquare, Gauge, Users, BarChart3 } from 'lucide-react';
 
 export interface AnalyticsCardsProps {
   analytics?: RecordingAnalyticsDTO | null;
+  speakerLabels?: Record<string, string>;
   className?: string;
 }
 
@@ -28,8 +29,32 @@ function getInitials(name?: string): string {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
-export function AnalyticsCards({ analytics, className }: AnalyticsCardsProps) {
-  if (!analytics || (!analytics.speakers?.length && !analytics.total_duration_seconds)) {
+export function AnalyticsCards({ analytics, speakerLabels, className }: AnalyticsCardsProps) {
+  // Deduplicate and aggregate speakers if multiple entries share the same display name or if speakerLabels maps them
+  const aggregatedSpeakers = React.useMemo(() => {
+    const rawSpeakers = analytics?.speakers ?? [];
+    if (!rawSpeakers.length) return [];
+    const map = new Map<string, { name: string; total_seconds: number; word_count: number; share_percent: number }>();
+    for (const spk of rawSpeakers) {
+      const displayName = (speakerLabels && speakerLabels[spk.name]) ? speakerLabels[spk.name] : spk.name;
+      const existing = map.get(displayName);
+      if (existing) {
+        existing.total_seconds += spk.total_seconds ?? 0;
+        existing.word_count += spk.word_count ?? 0;
+        existing.share_percent += spk.share_percent ?? 0;
+      } else {
+        map.set(displayName, {
+          name: displayName,
+          total_seconds: spk.total_seconds ?? 0,
+          word_count: spk.word_count ?? 0,
+          share_percent: spk.share_percent ?? 0,
+        });
+      }
+    }
+    return Array.from(map.values());
+  }, [analytics?.speakers, speakerLabels]);
+
+  if (!analytics || (!aggregatedSpeakers.length && !analytics.total_duration_seconds)) {
     return (
       <div
         data-testid="empty-analytics-state"
@@ -49,7 +74,7 @@ export function AnalyticsCards({ analytics, className }: AnalyticsCardsProps) {
     );
   }
 
-  const { total_duration_seconds = 0, total_words = 0, speakers = [] } = analytics;
+  const { total_duration_seconds = 0, total_words = 0 } = analytics;
 
   // Words per minute (WPM)
   const paceWpm =
@@ -58,7 +83,7 @@ export function AnalyticsCards({ analytics, className }: AnalyticsCardsProps) {
       : 0;
 
   // Sort speakers by share_percent descending
-  const sortedSpeakers = [...speakers].sort(
+  const sortedSpeakers = [...aggregatedSpeakers].sort(
     (a, b) => b.share_percent - a.share_percent
   );
 
@@ -123,7 +148,7 @@ export function AnalyticsCards({ analytics, className }: AnalyticsCardsProps) {
             <span className="text-xs font-medium">Partisipan</span>
           </div>
           <div className="text-xl font-bold text-foreground">
-            {speakers.length} Pembicara
+            {sortedSpeakers.length} Pembicara
           </div>
           <span className="text-[11px] text-muted-foreground">terdeteksi diarization</span>
         </div>

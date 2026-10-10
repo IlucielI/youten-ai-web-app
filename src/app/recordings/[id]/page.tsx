@@ -305,6 +305,26 @@ export default function RecordingDetailPage() {
     setSpeakerLabels(updated);
     setRenameSpeakerId(null);
 
+    // Optimistically update analytics_data in local state if present
+    if (recording?.analytics_data && typeof recording.analytics_data === 'object') {
+      const currentAnalytics = recording.analytics_data as unknown as RecordingAnalyticsDTO;
+      if (Array.isArray(currentAnalytics.speakers)) {
+        const updatedSpeakers = currentAnalytics.speakers.map((spk) => {
+          if (spk.name === speakerId || speakerLabels[speakerId] === spk.name) {
+            return { ...spk, name: newLabel };
+          }
+          return spk;
+        });
+        setRecording({
+          ...recording,
+          analytics_data: {
+            ...currentAnalytics,
+            speakers: updatedSpeakers,
+          } as unknown as Record<string, unknown>,
+        });
+      }
+    }
+
     try {
       await apiFetch(`/api/recordings/${recordingId}/speakers`, {
         method: 'PUT',
@@ -1087,6 +1107,7 @@ export default function RecordingDetailPage() {
               <TabsContent value="analytics" data-testid="analytics-tab-content" className="space-y-6 mt-0">
                 <AnalyticsCards
                   analytics={recording.analytics_data as unknown as RecordingAnalyticsDTO}
+                  speakerLabels={speakerLabels}
                 />
               </TabsContent>
             </Tabs>
