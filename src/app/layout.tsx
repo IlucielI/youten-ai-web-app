@@ -10,9 +10,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: 'NextBase | Enterprise-Grade Next.js Boilerplate',
+  title: 'Youten AI | Intelligent Speech & Meeting Synthesis',
   description:
-    'Clean Architecture on the Server layer and Atomic Design on the Frontend UI. Next.js 16, React 19, Tailwind CSS v4, and Vitest ready.',
+    'Platform transkripsi percakapan enterprise bertenaga AI dengan diarization multi-pembicara, sintesis notula rapat, dan pencarian semantik.',
   icons: {
     icon: '/icon.svg',
   },

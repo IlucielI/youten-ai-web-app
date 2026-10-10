@@ -263,22 +263,22 @@ export default function RecordingProcessingPage() {
       {/* Top Navigation */}
       <Navbar />
 
-      <main className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 md:p-10 relative overflow-hidden">
+      <main className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 md:p-10 lg:p-12 relative overflow-hidden">
         {/* Subtle decorative background gradient spots */}
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-gradient-to-tr from-primary/10 via-indigo-500/10 to-teal-500/5 blur-3xl pointer-events-none -z-10 rounded-full" />
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[850px] sm:w-[1100px] h-[550px] bg-gradient-to-tr from-primary/15 via-indigo-500/10 to-teal-500/10 blur-3xl pointer-events-none -z-10 rounded-full" />
 
-        <div className="w-full max-w-3xl space-y-6">
+        <div className="w-full max-w-5xl xl:max-w-6xl space-y-6 sm:space-y-8">
           {/* Header Action & Breadcrumb Navigation */}
           <div
             data-testid="processing-header"
-            className="flex items-center justify-between gap-4"
+            className="flex items-center justify-between gap-4 px-1"
           >
             <Link
               href="/"
               data-testid="back-to-home-link"
-              className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+              className="inline-flex items-center gap-2 text-sm sm:text-base font-medium text-muted-foreground hover:text-foreground transition-colors group"
             >
-              <ArrowLeft className="w-4 h-4" />
+              <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 transition-transform group-hover:-translate-x-1" />
               <span>Kembali ke Beranda</span>
             </Link>
 
@@ -286,7 +286,7 @@ export default function RecordingProcessingPage() {
               <Badge
                 variant="outline"
                 data-testid="recording-id-badge"
-                className="font-mono text-[11px] px-2.5 py-0.5 border-border bg-background/60 backdrop-blur-sm text-muted-foreground truncate max-w-[160px] sm:max-w-none"
+                className="font-mono text-xs sm:text-sm px-3 py-1 border-border/80 bg-background/80 backdrop-blur-sm text-muted-foreground truncate max-w-[200px] sm:max-w-none"
               >
                 ID: {recordingId}
               </Badge>
@@ -294,20 +294,20 @@ export default function RecordingProcessingPage() {
           </div>
 
           {/* Recording Title Header Card */}
-          <div className="bg-card/70 backdrop-blur-sm border border-border/80 rounded-2xl p-4 sm:p-5 flex items-center justify-between gap-4 shadow-sm">
-            <div className="flex items-center gap-3.5 min-w-0">
-              <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0 border border-primary/20">
-                <FileAudio className="w-5 h-5" />
+          <div className="bg-card/85 backdrop-blur-sm border border-border/80 rounded-2xl sm:rounded-3xl p-5 sm:p-6 md:p-7 flex items-center justify-between gap-4 shadow-sm">
+            <div className="flex items-center gap-4 sm:gap-5 min-w-0">
+              <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center shrink-0 border border-primary/20 shadow-inner">
+                <FileAudio className="w-6 h-6 sm:w-7 sm:h-7" />
               </div>
               <div className="min-w-0">
                 <h1
                   data-testid="recording-title-display"
-                  className="text-base sm:text-lg font-bold text-foreground truncate"
+                  className="text-lg sm:text-xl md:text-2xl font-bold text-foreground truncate"
                 >
                   {recordingTitle}
                 </h1>
-                <p className="text-xs text-muted-foreground flex items-center gap-1.5 mt-0.5">
-                  <Sparkles className="w-3.5 h-3.5 text-primary" />
+                <p className="text-xs sm:text-sm text-muted-foreground flex items-center gap-2 mt-1">
+                  <Sparkles className="w-4 h-4 text-primary shrink-0" />
                   <span>AI Diarization &amp; Intelligent Synthesis</span>
                 </p>
               </div>
@@ -316,27 +316,27 @@ export default function RecordingProcessingPage() {
             {/* Direct Link button if completed */}
             {status === RecordingStatus.COMPLETED && (
               <Button
-                size="sm"
+                size="default"
                 variant="default"
                 onClick={() => router.push(`/recordings/${recordingId}`)}
-                className="gap-1.5 shrink-0"
+                className="gap-2 shrink-0 px-5 py-2.5 font-semibold"
               >
                 <span>Buka Notula</span>
-                <ExternalLink className="w-3.5 h-3.5" />
+                <ExternalLink className="w-4 h-4" />
               </Button>
             )}
 
             {/* Direct Retry button in header if failed */}
             {status === RecordingStatus.FAILED && (
               <Button
-                size="sm"
+                size="default"
                 variant="destructive"
                 onClick={handleRetry}
                 disabled={isRetrying}
                 data-testid="page-header-retry-button"
-                className="gap-1.5 shrink-0 cursor-pointer text-xs font-semibold shadow-sm"
+                className="gap-2 shrink-0 cursor-pointer font-semibold shadow-sm px-5 py-2.5"
               >
-                <RefreshCw className={cn('w-3.5 h-3.5', isRetrying && 'animate-spin')} />
+                <RefreshCw className={cn('w-4 h-4', isRetrying && 'animate-spin')} />
                 <span>{isRetrying ? 'Memulai Ulang...' : 'Coba Lagi Pemrosesan'}</span>
               </Button>
             )}
@@ -357,7 +357,7 @@ export default function RecordingProcessingPage() {
           </div>
 
           {/* User Guidance Banner */}
-          <p className="text-center text-xs text-muted-foreground/80 leading-relaxed max-w-lg mx-auto">
+          <p className="text-center text-xs sm:text-sm text-muted-foreground/80 leading-relaxed max-w-2xl mx-auto">
             Proses dienkripsi secara end-to-end. Anda dapat tetap berada di layar ini atau kembali ke beranda kapan saja — progres pemrosesan akan tetap berjalan di latar belakang.
           </p>
         </div>

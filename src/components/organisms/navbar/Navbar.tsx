@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { LogOut } from 'lucide-react';
 import { StatusPill } from '@/components/molecules/status-pill';
+import { YoutenLogo } from '@/components/atoms/youten-logo';
 import { useAuthStore } from '@/stores/auth.store';
 
 export interface NavLinkItem {
@@ -44,9 +45,9 @@ const defaultLinks: NavLinkItem[] = [
 ];
 
 export const Navbar: React.FC<NavbarProps> = ({
-  brandName = 'NextBase',
+  brandName = 'Youten AI',
   brandHref = '/',
-  brandTag = 'Starter',
+  brandTag = 'Beta',
   userTier,
   tierVariant,
   links = defaultLinks,
@@ -92,9 +93,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         {/* Brand Logo */}
         <Link href={brandHref} className="flex items-center gap-2.5 group">
-          <div className="w-8 h-8 rounded-lg bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm tracking-tighter shadow-sm group-hover:bg-primary-hover transition-colors">
-            NB
-          </div>
+          <YoutenLogo size="sm" className="group-hover:scale-105" />
           <div className="flex items-center gap-1.5">
             <span className="font-extrabold text-base tracking-tight text-slate-900 group-hover:text-primary transition-colors">
               {brandName}
