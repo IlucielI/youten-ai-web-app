@@ -6,11 +6,17 @@ import { cn } from '@/lib/utils';
 import { PipelineErrorCode } from '@/server/constants';
 import { Button } from '@/components/atoms/button';
 
+import { usePipelineStore } from '@/stores/pipeline.store';
+import { useTokenStore } from '@/stores/token.store';
+import { apiFetch } from '@/lib/api-client';
+import { RecordingStatus } from '@/server/constants';
+
 export interface PipelineErrorCardProps {
   errorCode?: string | null;
   errorMessage?: string | null;
   onRetry?: () => Promise<void> | void;
   isRetrying?: boolean;
+  recordingId?: string;
   className?: string;
 }
 
@@ -55,6 +61,7 @@ export const PipelineErrorCard: React.FC<PipelineErrorCardProps> = ({
   errorMessage,
   onRetry,
   isRetrying = false,
+  recordingId,
   className,
 }) => {
   const [internalLoading, setInternalLoading] = useState(false);
@@ -67,12 +74,33 @@ export const PipelineErrorCard: React.FC<PipelineErrorCardProps> = ({
   };
 
   const handleRetryClick = async () => {
-    if (!onRetry || isRetrying || internalLoading) return;
+    if (isRetrying || internalLoading) return;
     setRetryConflictError(null);
     setInternalLoading(true);
 
     try {
-      await onRetry();
+      if (onRetry) {
+        await onRetry();
+      } else {
+        const targetId = recordingId || usePipelineStore.getState().recordingId;
+        if (targetId) {
+          const guestToken = useTokenStore.getState().getGuestToken(targetId);
+          await apiFetch(`/api/recordings/${targetId}/retry`, {
+            method: 'POST',
+            headers: guestToken ? { 'x-ownership-token': guestToken } : undefined,
+          });
+          usePipelineStore.getState().initPipeline(targetId, RecordingStatus.TRANSCRIBING);
+          usePipelineStore.getState().updateProgress({
+            status: RecordingStatus.TRANSCRIBING,
+            stage: 'transcription',
+            progress: 35,
+            message: 'Memulai ulang pemrosesan pipeline...',
+          });
+          if (typeof window !== 'undefined') {
+            window.location.reload();
+          }
+        }
+      }
     } catch (err: unknown) {
       if (err instanceof Error && err.message.includes('409')) {
         setRetryConflictError('Pipeline sedang diproses kembali di latar belakang.');
@@ -140,7 +168,7 @@ export const PipelineErrorCard: React.FC<PipelineErrorCardProps> = ({
             </div>
           )}
 
-          {errorInfo.canRetry && onRetry && (
+          {errorInfo.canRetry && (
             <div className="pt-3">
               <Button
                 type="button"

@@ -9,11 +9,13 @@ import {
   Clock,
   AlertCircle,
   Loader2,
+  RefreshCw,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { RecordingStatus } from '@/server/constants';
 import { usePipelineStore } from '@/stores/pipeline.store';
 import { PipelineErrorCard } from '@/components/molecules/pipeline-error-card';
+import { Button } from '@/components/atoms/button';
 
 export interface PipelineStepperProps {
   status?: RecordingStatus;
@@ -22,6 +24,7 @@ export interface PipelineStepperProps {
   errorCode?: string | null;
   errorMessage?: string | null;
   onRetry?: () => Promise<void> | void;
+  isRetrying?: boolean;
   className?: string;
   startedAt?: string | number | Date | null;
 }
@@ -82,6 +85,7 @@ export const PipelineStepper: React.FC<PipelineStepperProps> = ({
   errorCode: propErrorCode,
   errorMessage: propErrorMessage,
   onRetry,
+  isRetrying = false,
   className,
   startedAt,
 }) => {
@@ -184,6 +188,21 @@ export const PipelineStepper: React.FC<PipelineStepperProps> = ({
 
         {/* Status Pill & Live Timer Badge */}
         <div className="flex items-center gap-3">
+          {isFailed && onRetry && (
+            <Button
+              type="button"
+              size="sm"
+              variant="destructive"
+              onClick={onRetry}
+              disabled={isRetrying}
+              data-testid="header-retry-button"
+              className="gap-1.5 cursor-pointer text-xs font-semibold shadow-sm"
+            >
+              <RefreshCw className={cn('w-3.5 h-3.5', isRetrying && 'animate-spin')} />
+              <span>{isRetrying ? 'Memulai Ulang...' : 'Coba Lagi'}</span>
+            </Button>
+          )}
+
           <div
             data-testid="live-timer-badge"
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted/80 border border-border/60 text-xs font-mono font-medium text-foreground"
@@ -304,6 +323,7 @@ export const PipelineStepper: React.FC<PipelineStepperProps> = ({
             errorCode={errorCode}
             errorMessage={errorMessage}
             onRetry={onRetry}
+            isRetrying={isRetrying}
           />
         </div>
       )}

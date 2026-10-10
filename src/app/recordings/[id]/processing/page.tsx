@@ -3,10 +3,11 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Sparkles, FileAudio, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Sparkles, FileAudio, ExternalLink, RefreshCw } from 'lucide-react';
 import { Navbar } from '@/components/organisms/navbar';
 import { PipelineStepper } from '@/components/organisms/pipeline-stepper';
 import { Button } from '@/components/atoms/button';
+import { cn } from '@/lib/utils';
 import { Badge } from '@/components/atoms/badge';
 import { RecordingStatus } from '@/server/constants';
 import { usePipelineStore, PipelineProgressPayload } from '@/stores/pipeline.store';
@@ -310,6 +311,21 @@ export default function RecordingProcessingPage() {
                 <ExternalLink className="w-3.5 h-3.5" />
               </Button>
             )}
+
+            {/* Direct Retry button in header if failed */}
+            {status === RecordingStatus.FAILED && (
+              <Button
+                size="sm"
+                variant="destructive"
+                onClick={handleRetry}
+                disabled={isRetrying}
+                data-testid="page-header-retry-button"
+                className="gap-1.5 shrink-0 cursor-pointer text-xs font-semibold shadow-sm"
+              >
+                <RefreshCw className={cn('w-3.5 h-3.5', isRetrying && 'animate-spin')} />
+                <span>{isRetrying ? 'Memulai Ulang...' : 'Coba Lagi Pemrosesan'}</span>
+              </Button>
+            )}
           </div>
 
           {/* Live Pipeline Stepper Component */}
@@ -321,6 +337,7 @@ export default function RecordingProcessingPage() {
               errorCode={errorCode}
               errorMessage={errorMessage}
               onRetry={handleRetry}
+              isRetrying={isRetrying}
               startedAt={startedAt}
             />
           </div>
