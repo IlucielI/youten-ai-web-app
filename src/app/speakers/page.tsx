@@ -9,6 +9,7 @@ import { ApiResponse } from '@/server/dtos/response.dto';
 import { UserProfileResponse } from '@/server/dtos/auth.dto';
 import { SpeakerSummaryDTO, SpeakerDirectoryResponse } from '@/server/dtos/workspace.dto';
 import { Button } from '@/components/atoms/button';
+import { YoutenLogo } from '@/components/atoms/youten-logo';
 import { Card, CardContent } from '@/components/atoms/card';
 import { Skeleton } from '@/components/atoms/skeleton';
 import {
@@ -192,9 +193,7 @@ export default function SpeakersPage() {
           {/* Brand Logo & Navigation Links */}
           <div className="flex items-center gap-6">
             <Link href="/dashboard" className="flex items-center gap-2.5 group">
-              <div className="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center font-black text-sm tracking-tighter shadow-sm shadow-blue-500/20">
-                Y
-              </div>
+              <YoutenLogo size="sm" className="group-hover:scale-105 transition-transform" />
               <div className="flex items-center gap-1.5">
                 <span className="font-extrabold text-base tracking-tight text-slate-900 group-hover:text-blue-600 transition-colors">
                   Youten AI

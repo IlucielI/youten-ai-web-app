@@ -15,6 +15,7 @@ import {
 import { ChatMessageInput } from '@/server/dtos/chat.dto';
 import { ChatRole } from '@/server/constants/recording.constant';
 import { Button } from '@/components/atoms/button';
+import { YoutenLogo } from '@/components/atoms/youten-logo';
 import { Input } from '@/components/atoms/input';
 import { Card } from '@/components/atoms/card';
 import { Skeleton } from '@/components/atoms/skeleton';
@@ -279,9 +280,7 @@ export default function SearchPage() {
   if (authLoading) {
     return (
       <div className="min-h-screen bg-slate-50/50 flex flex-col items-center justify-center p-6 space-y-4">
-        <div className="w-12 h-12 rounded-2xl bg-blue-600 text-white flex items-center justify-center font-black text-xl shadow-lg shadow-blue-500/20 animate-pulse">
-          Y
-        </div>
+        <YoutenLogo size="lg" className="animate-pulse shadow-lg" />
         <p className="text-sm font-medium text-slate-500">Memeriksa autentikasi...</p>
       </div>
     );
@@ -303,9 +302,7 @@ export default function SearchPage() {
             </Link>
 
             <Link href="/dashboard" className="flex items-center gap-2 group">
-              <div className="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center font-black text-sm shadow-sm shadow-blue-500/20">
-                Y
-              </div>
+              <YoutenLogo size="sm" className="group-hover:scale-105 transition-transform" />
               <div className="flex items-center gap-1.5">
                 <span className="font-extrabold text-base tracking-tight text-slate-900 group-hover:text-blue-600 transition-colors">
                   Youten AI

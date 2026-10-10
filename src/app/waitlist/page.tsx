@@ -6,6 +6,7 @@ import { apiFetch } from '@/lib/api-client';
 import { ApiResponse } from '@/server/dtos/response.dto';
 import { WaitlistRequest, WaitlistResponse } from '@/server/dtos/waitlist.dto';
 import { Button } from '@/components/atoms/button';
+import { YoutenLogo } from '@/components/atoms/youten-logo';
 import { WaitlistCard } from '@/components/molecules/waitlist-card';
 import { toast } from 'sonner';
 import {
@@ -107,9 +108,7 @@ export default function WaitlistPage() {
             </Link>
 
             <Link href="/" className="flex items-center gap-2.5 group">
-              <div className="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center font-black text-sm tracking-tighter shadow-sm shadow-blue-500/20">
-                Y
-              </div>
+              <YoutenLogo size="sm" className="group-hover:scale-105 transition-transform" />
               <div className="flex items-center gap-1.5">
                 <span className="font-extrabold text-base tracking-tight text-slate-900 group-hover:text-blue-600 transition-colors">
                   Youten AI

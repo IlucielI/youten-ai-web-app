@@ -1,5 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
+import { YoutenLogo } from '@/components/atoms/youten-logo';
 
 export const metadata = {
   title: 'Autentikasi — Youten AI',
@@ -30,9 +31,7 @@ export default function AuthLayout({
           className="flex items-center gap-2 group transition-opacity hover:opacity-90"
           data-testid="auth-brand-logo"
         >
-          <div className="w-8 h-8 rounded-lg bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm shadow-xs group-hover:scale-105 transition-transform">
-            Y
-          </div>
+          <YoutenLogo size="sm" className="group-hover:scale-105 transition-transform" />
           <span className="font-bold text-lg tracking-tight">Youten AI</span>
         </Link>
         <Link
