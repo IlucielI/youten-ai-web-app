@@ -203,13 +203,23 @@ export const RecordingFilterQuerySchema = z.object({
   template: z.string().trim().optional(),
   page: z.coerce.number().int().positive().default(1),
   limit: z.coerce.number().int().positive().max(100).default(10),
-  sort_by: z.enum([
-    RecordingSortBy.TITLE,
-    RecordingSortBy.DURATION_SECONDS,
-    RecordingSortBy.FILE_SIZE_BYTES,
-    RecordingSortBy.CREATED_AT,
-  ]).default(RecordingSortBy.CREATED_AT),
-  sort_order: z.enum([SortOrder.ASC, SortOrder.DESC]).default(SortOrder.DESC),
+  sort_by: z
+    .preprocess(
+      (val) => (typeof val === 'string' ? val.toLowerCase() : val),
+      z.enum([
+        RecordingSortBy.TITLE,
+        RecordingSortBy.DURATION_SECONDS,
+        RecordingSortBy.FILE_SIZE_BYTES,
+        RecordingSortBy.CREATED_AT,
+      ])
+    )
+    .default(RecordingSortBy.CREATED_AT),
+  sort_order: z
+    .preprocess(
+      (val) => (typeof val === 'string' ? val.toLowerCase() : val),
+      z.enum([SortOrder.ASC, SortOrder.DESC])
+    )
+    .default(SortOrder.DESC),
 });
 export type RecordingFilterQueryInput = z.infer<typeof RecordingFilterQuerySchema>;
 

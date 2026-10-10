@@ -2,12 +2,21 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { LogOut } from 'lucide-react';
 import { StatusPill } from '@/components/molecules/status-pill';
+import { useAuthStore } from '@/stores/auth.store';
 
 export interface NavLinkItem {
   label: string;
   href: string;
   active?: boolean;
+}
+
+export interface NavbarUser {
+  name?: string;
+  email?: string;
+  role_name?: string;
+  role_code?: string;
 }
 
 export interface NavbarProps {
@@ -23,6 +32,8 @@ export interface NavbarProps {
   ctaText?: string;
   ctaHref?: string;
   className?: string;
+  user?: NavbarUser | null;
+  onLogout?: () => void;
 }
 
 const defaultLinks: NavLinkItem[] = [
@@ -37,7 +48,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   brandHref = '/',
   brandTag = 'Starter',
   userTier,
-  tierVariant = 'default',
+  tierVariant,
   links = defaultLinks,
   currentPath = '/',
   showStatus = true,
@@ -45,8 +56,36 @@ export const Navbar: React.FC<NavbarProps> = ({
   ctaText = 'Get Started',
   ctaHref = '#components',
   className = '',
+  user: userProp,
+  onLogout: onLogoutProp,
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const storeUser = useAuthStore((s) => s.user);
+  const storeLogout = useAuthStore((s) => s.logout);
+
+  const activeUser: NavbarUser | null =
+    userProp !== undefined
+      ? userProp
+      : storeUser
+        ? {
+            name: storeUser.full_name || storeUser.email,
+            email: storeUser.email,
+            role_name: storeUser.role_name,
+            role_code: storeUser.role_code,
+          }
+        : null;
+
+  const handleLogout = onLogoutProp !== undefined ? onLogoutProp : storeLogout;
+
+  const effectiveUserTier =
+    userTier ||
+    (activeUser
+      ? activeUser.role_name || (activeUser.role_code === 'PRO' ? 'Pro Member' : 'Free Member')
+      : undefined);
+
+  const effectiveTierVariant =
+    tierVariant || (activeUser?.role_code === 'PRO' ? 'premium' : 'default');
 
   return (
     <header className={`sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/80 ${className}`}>
@@ -60,16 +99,16 @@ export const Navbar: React.FC<NavbarProps> = ({
             <span className="font-extrabold text-base tracking-tight text-slate-900 group-hover:text-primary transition-colors">
               {brandName}
             </span>
-            {userTier ? (
+            {effectiveUserTier ? (
               <span
                 data-testid="navbar-tier-badge"
                 className={`text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full border ${
-                  tierVariant === 'premium'
+                  effectiveTierVariant === 'premium'
                     ? 'bg-amber-100 text-amber-800 border-amber-300'
                     : 'bg-primary-subtle text-primary border-primary/20'
                 }`}
               >
-                {userTier}
+                {effectiveUserTier}
               </span>
             ) : brandTag ? (
               <span className="text-[10px] font-bold text-primary bg-primary-subtle px-2 py-0.5 rounded-full border border-primary/20">
@@ -107,14 +146,44 @@ export const Navbar: React.FC<NavbarProps> = ({
             </Link>
           )}
 
-          {ctaText && (
+          {activeUser ? (
+            <div className="flex items-center gap-2.5" data-testid="navbar-user-section">
+              <Link
+                href="/dashboard"
+                data-testid="navbar-dashboard-button"
+                className="inline-flex items-center justify-center font-bold text-xs py-2 px-3.5 rounded-xl bg-primary hover:bg-primary-hover text-primary-foreground shadow-sm shadow-primary/20 transition-all active:scale-95"
+              >
+                Dashboard
+              </Link>
+              <div className="flex items-center gap-2 pl-2 border-l border-slate-200">
+                <span
+                  data-testid="navbar-user-name"
+                  className="text-xs font-semibold text-slate-800 hidden lg:inline max-w-[120px] truncate"
+                  title={activeUser.name || activeUser.email}
+                >
+                  {activeUser.name || activeUser.email}
+                </span>
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  data-testid="navbar-logout-button"
+                  className="p-1.5 text-slate-500 hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors cursor-pointer text-xs font-semibold inline-flex items-center gap-1"
+                  title="Keluar"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  <span className="hidden xl:inline">Keluar</span>
+                </button>
+              </div>
+            </div>
+          ) : ctaText ? (
             <Link
               href={ctaHref}
+              data-testid="navbar-cta-button"
               className="inline-flex items-center justify-center font-bold text-xs py-2 px-4 rounded-xl bg-primary hover:bg-primary-hover text-primary-foreground shadow-sm shadow-primary/20 transition-all active:scale-95"
             >
               {ctaText}
             </Link>
-          )}
+          ) : null}
         </div>
 
         {/* Mobile Hamburger Button */}
@@ -153,15 +222,35 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <StatusPill label={statusLabel} status="online" />
               </Link>
             )}
-            {ctaText && (
+            {activeUser ? (
+              <>
+                <Link
+                  href="/dashboard"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="w-full text-center py-2 px-4 rounded-xl bg-primary text-primary-foreground text-xs font-bold shadow-sm"
+                >
+                  Dashboard
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    handleLogout();
+                  }}
+                  className="w-full text-center py-2 px-4 rounded-xl border border-destructive/30 text-destructive hover:bg-destructive/10 text-xs font-bold transition-colors cursor-pointer"
+                >
+                  Keluar
+                </button>
+              </>
+            ) : ctaText ? (
               <Link
                 href={ctaHref}
                 onClick={() => setMobileMenuOpen(false)}
-                className="w-full text-center py-2 px-4 rounded-xl bg-blue-600 text-white text-xs font-bold shadow-sm"
+                className="w-full text-center py-2 px-4 rounded-xl bg-primary text-primary-foreground text-xs font-bold shadow-sm"
               >
                 {ctaText}
               </Link>
-            )}
+            ) : null}
           </div>
         </div>
       )}

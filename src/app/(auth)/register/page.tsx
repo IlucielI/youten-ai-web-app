@@ -1,6 +1,6 @@
 'use client';
 
-import React, { Suspense, useState } from 'react';
+import React, { Suspense, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Eye, EyeOff, Loader2, UserPlus } from 'lucide-react';
@@ -21,6 +21,7 @@ import { ApiResponse } from '@/server/dtos/response.dto';
 import { AuthResponse } from '@/server/dtos/auth.dto';
 import { claimGuestRecordings, claimSingleRecording } from '@/lib/claim';
 import { useTokenStore } from '@/stores/token.store';
+import { useAuthStore } from '@/stores/auth.store';
 
 function RegisterForm() {
   const router = useRouter();
@@ -33,6 +34,19 @@ function RegisterForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // Prevent authenticated users from seeing the registration screen again
+  useEffect(() => {
+    const user = useAuthStore.getState().user;
+    if (user) {
+      const redirectTo = searchParams.get('redirect') || searchParams.get('from');
+      if (typeof router.replace === 'function') {
+        router.replace(redirectTo || '/dashboard');
+      } else {
+        router.push(redirectTo || '/dashboard');
+      }
+    }
+  }, [router, searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
