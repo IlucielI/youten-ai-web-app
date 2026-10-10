@@ -28,6 +28,9 @@ function extractErrorMessage(error: unknown, fallback: string): string {
     const errObj = error as { name?: string; message?: string };
     const name = errObj.name || '';
     const msg = (errObj.message || '').toLowerCase();
+    if (msg.includes('permissions policy') || msg.includes('disallowed by permissions policy')) {
+      return 'Izin mikrofon terhalang oleh cache dokumen browser. Silakan muat ulang (refresh) halaman untuk memuat header izin terbaru.';
+    }
     if (
       name === 'NotAllowedError' ||
       name === 'PermissionDeniedError' ||
@@ -401,20 +404,33 @@ export function BrowserRecorder({
       {errorMessage && (
         <div
           data-testid="recorder-error-alert"
-          className="rounded-xl border border-rose-500/30 bg-rose-500/10 p-3.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-rose-300 text-left"
+          className="rounded-xl border border-rose-200 bg-rose-50/90 dark:border-rose-900/50 dark:bg-rose-950/40 p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-rose-800 dark:text-rose-200 text-left shadow-sm"
         >
           <div className="flex items-start gap-2.5">
-            <AlertTriangle className="h-4 w-4 shrink-0 text-rose-400 mt-0.5" />
-            <span>{errorMessage}</span>
+            <AlertTriangle className="h-4 w-4 shrink-0 text-rose-600 dark:text-rose-400 mt-0.5" />
+            <span className="leading-relaxed">{errorMessage}</span>
           </div>
           <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                if (typeof window !== 'undefined') {
+                  window.location.reload();
+                }
+              }}
+              className="h-7 px-2.5 text-xs border-rose-300 dark:border-rose-700 text-rose-800 dark:text-rose-200 hover:bg-rose-100 dark:hover:bg-rose-900/50"
+              data-testid="reload-page-btn"
+            >
+              Muat Ulang
+            </Button>
             {recorderState === 'idle' && (
               <Button
                 type="button"
                 size="sm"
-                variant="outline"
                 onClick={handleStartRecording}
-                className="h-7 px-3 text-xs border-rose-500/40 text-rose-200 hover:bg-rose-500/20 hover:text-white"
+                className="h-7 px-3 text-xs bg-rose-600 hover:bg-rose-700 text-white font-medium shadow-sm"
                 data-testid="retry-permission-btn"
               >
                 Coba Lagi
@@ -425,7 +441,7 @@ export function BrowserRecorder({
               size="sm"
               variant="ghost"
               onClick={() => setErrorMessage(null)}
-              className="h-7 px-2 text-xs text-rose-300/80 hover:text-white hover:bg-rose-500/20"
+              className="h-7 px-2 text-xs text-rose-700 hover:text-rose-900 hover:bg-rose-200/50 dark:text-rose-300 dark:hover:text-white dark:hover:bg-rose-900/50"
               data-testid="dismiss-error-btn"
             >
               Tutup

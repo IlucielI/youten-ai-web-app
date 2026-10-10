@@ -272,12 +272,33 @@ describe('BrowserRecorder Organism', () => {
     await waitFor(() => {
       expect(screen.getByText(/Akses mikrofon diblokir atau ditolak oleh browser/i)).toBeInTheDocument();
       expect(screen.getByTestId('retry-permission-btn')).toBeInTheDocument();
+      expect(screen.getByTestId('reload-page-btn')).toBeInTheDocument();
       expect(screen.getByTestId('dismiss-error-btn')).toBeInTheDocument();
     });
 
     // Dismiss error alert
     fireEvent.click(screen.getByTestId('dismiss-error-btn'));
     expect(screen.queryByTestId('recorder-error-alert')).not.toBeInTheDocument();
+  });
+
+  it('displays permissions policy specific message when blocked by permissions policy', async () => {
+    Object.defineProperty(navigator, 'mediaDevices', {
+      value: {
+        getUserMedia: vi.fn().mockRejectedValue(
+          new DOMException('Access to the feature "microphone" is disallowed by permissions policy', 'NotAllowedError')
+        ),
+      },
+      writable: true,
+      configurable: true,
+    });
+
+    render(<BrowserRecorder />);
+    fireEvent.click(screen.getByTestId('start-record-btn'));
+
+    await waitFor(() => {
+      expect(screen.getByText(/Izin mikrofon terhalang oleh cache dokumen browser/i)).toBeInTheDocument();
+      expect(screen.getByTestId('reload-page-btn')).toBeInTheDocument();
+    });
   });
 
   it('allows retrying recording from error banner after permission issue is fixed', async () => {
