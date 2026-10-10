@@ -256,4 +256,22 @@ describe('BrowserRecorder Organism', () => {
       expect(screen.getByText('Izin akses mikrofon ditolak atau mikrofon tidak ditemukan.')).toBeInTheDocument();
     });
   });
+
+  it('displays user-friendly guidance when microphone permission is denied', async () => {
+    Object.defineProperty(navigator, 'mediaDevices', {
+      value: {
+        getUserMedia: vi.fn().mockRejectedValue(new DOMException('Permission denied', 'NotAllowedError')),
+      },
+      writable: true,
+      configurable: true,
+    });
+
+    render(<BrowserRecorder />);
+    fireEvent.click(screen.getByTestId('start-record-btn'));
+
+    await waitFor(() => {
+      expect(screen.getByText(/Akses mikrofon diblokir atau ditolak oleh browser/i)).toBeInTheDocument();
+      expect(screen.getByTestId('start-record-btn')).toBeInTheDocument();
+    });
+  });
 });

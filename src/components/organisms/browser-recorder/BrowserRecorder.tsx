@@ -24,8 +24,24 @@ export interface BrowserRecorderProps {
 }
 
 function extractErrorMessage(error: unknown, fallback: string): string {
-  if (error instanceof Error && error.message.trim()) {
-    return error.message;
+  if (typeof error === 'object' && error !== null) {
+    const errObj = error as { name?: string; message?: string };
+    const name = errObj.name || '';
+    const msg = (errObj.message || '').toLowerCase();
+    if (
+      name === 'NotAllowedError' ||
+      name === 'PermissionDeniedError' ||
+      msg.includes('permission denied') ||
+      msg.includes('permission dismissed')
+    ) {
+      return 'Akses mikrofon diblokir atau ditolak oleh browser. Silakan klik ikon pengaturan/gembok di sebelah URL browser (localhost:3000), ubah izin Mikrofon menjadi "Izinkan" (Allow), lalu muat ulang halaman.';
+    }
+    if (name === 'NotFoundError' || name === 'DevicesNotFoundError' || msg.includes('not found')) {
+      return 'Perangkat mikrofon tidak ditemukan. Pastikan mikrofon telah terpasang dan aktif di perangkat Anda.';
+    }
+    if (errObj.message && errObj.message.trim()) {
+      return errObj.message;
+    }
   }
   return fallback;
 }
