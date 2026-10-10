@@ -271,7 +271,44 @@ describe('BrowserRecorder Organism', () => {
 
     await waitFor(() => {
       expect(screen.getByText(/Akses mikrofon diblokir atau ditolak oleh browser/i)).toBeInTheDocument();
-      expect(screen.getByTestId('start-record-btn')).toBeInTheDocument();
+      expect(screen.getByTestId('retry-permission-btn')).toBeInTheDocument();
+      expect(screen.getByTestId('dismiss-error-btn')).toBeInTheDocument();
+    });
+
+    // Dismiss error alert
+    fireEvent.click(screen.getByTestId('dismiss-error-btn'));
+    expect(screen.queryByTestId('recorder-error-alert')).not.toBeInTheDocument();
+  });
+
+  it('allows retrying recording from error banner after permission issue is fixed', async () => {
+    const mockGetUserMedia = vi.fn()
+      .mockRejectedValueOnce(new DOMException('Permission denied', 'NotAllowedError'))
+      .mockResolvedValueOnce({
+        getTracks: vi.fn().mockReturnValue([{ stop: vi.fn() }]),
+      });
+
+    Object.defineProperty(navigator, 'mediaDevices', {
+      value: {
+        getUserMedia: mockGetUserMedia,
+      },
+      writable: true,
+      configurable: true,
+    });
+
+    render(<BrowserRecorder />);
+    fireEvent.click(screen.getByTestId('start-record-btn'));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('retry-permission-btn')).toBeInTheDocument();
+    });
+
+    // User clicks Coba Lagi button
+    fireEvent.click(screen.getByTestId('retry-permission-btn'));
+
+    await waitFor(() => {
+      expect(mockGetUserMedia).toHaveBeenCalledTimes(2);
+      expect(screen.getByText('Merekam Audio...')).toBeInTheDocument();
     });
   });
 });
+

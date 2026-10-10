@@ -82,6 +82,46 @@ export function BrowserRecorder({
     };
   }, [clearTimer, cleanupStream]);
 
+  // Reactive permission listener: automatically clear error when user allows mic in browser settings
+  useEffect(() => {
+    let permissionStatus: PermissionStatus | null = null;
+    let handleStatusChange: (() => void) | null = null;
+    let isSubscribed = true;
+
+    if (
+      typeof navigator !== 'undefined' &&
+      'permissions' in navigator &&
+      typeof navigator.permissions?.query === 'function'
+    ) {
+      navigator.permissions
+        .query({ name: 'microphone' as PermissionName })
+        .then((status) => {
+          if (!isSubscribed) return;
+          permissionStatus = status;
+
+          handleStatusChange = () => {
+            if (status.state === 'granted') {
+              setErrorMessage((prev) =>
+                prev && prev.includes('Akses mikrofon diblokir') ? null : prev
+              );
+            }
+          };
+
+          status.addEventListener('change', handleStatusChange);
+        })
+        .catch(() => {
+          // Some browsers or older versions might not support microphone query
+        });
+    }
+
+    return () => {
+      isSubscribed = false;
+      if (permissionStatus && handleStatusChange) {
+        permissionStatus.removeEventListener('change', handleStatusChange);
+      }
+    };
+  }, []);
+
   const handleStartRecording = async () => {
     setErrorMessage(null);
     setRecordedBlob(null);
@@ -361,10 +401,36 @@ export function BrowserRecorder({
       {errorMessage && (
         <div
           data-testid="recorder-error-alert"
-          className="rounded-xl border border-rose-500/30 bg-rose-500/10 p-3 flex items-start gap-2.5 text-xs text-rose-300 text-left"
+          className="rounded-xl border border-rose-500/30 bg-rose-500/10 p-3.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-rose-300 text-left"
         >
-          <AlertTriangle className="h-4 w-4 shrink-0 text-rose-400 mt-0.5" />
-          <span>{errorMessage}</span>
+          <div className="flex items-start gap-2.5">
+            <AlertTriangle className="h-4 w-4 shrink-0 text-rose-400 mt-0.5" />
+            <span>{errorMessage}</span>
+          </div>
+          <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
+            {recorderState === 'idle' && (
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={handleStartRecording}
+                className="h-7 px-3 text-xs border-rose-500/40 text-rose-200 hover:bg-rose-500/20 hover:text-white"
+                data-testid="retry-permission-btn"
+              >
+                Coba Lagi
+              </Button>
+            )}
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              onClick={() => setErrorMessage(null)}
+              className="h-7 px-2 text-xs text-rose-300/80 hover:text-white hover:bg-rose-500/20"
+              data-testid="dismiss-error-btn"
+            >
+              Tutup
+            </Button>
+          </div>
         </div>
       )}
     </div>
