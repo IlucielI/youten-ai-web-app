@@ -290,7 +290,7 @@ export function UploadDropzone({
               value={templateCategory}
               onChange={(e) => setTemplateCategory(e.target.value as TemplateKey)}
               disabled={isUploading}
-              className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-xs shadow-sm focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-50"
+              className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-xs shadow-sm cursor-pointer focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-50 disabled:cursor-not-allowed"
               data-testid="template-select"
             >
               <option value={TemplateKey.GENERAL} className="bg-popover text-foreground">

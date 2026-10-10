@@ -122,7 +122,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           type="button"
           aria-label="Toggle mobile menu"
           onClick={() => setMobileMenuOpen((prev) => !prev)}
-          className="md:hidden p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors"
+          className="md:hidden p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
         >
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             {mobileMenuOpen ? (
