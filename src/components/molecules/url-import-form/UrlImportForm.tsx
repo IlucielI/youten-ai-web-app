@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTemplates } from '@/hooks';
+import { useTranslation } from '@/locales';
 
 export interface UrlImportFormProps {
   onSubmit: (values: {
@@ -53,6 +54,7 @@ export function UrlImportForm({
   isLoading = false,
   className,
 }: UrlImportFormProps) {
+  const { t } = useTranslation();
   const [url, setUrl] = useState('');
   const [title, setTitle] = useState('');
   const [templateCategory, setTemplateCategory] = useState<TemplateKey>(DefaultTemplateKey);
@@ -66,12 +68,12 @@ export function UrlImportForm({
 
     const trimmedUrl = url.trim();
     if (!trimmedUrl) {
-      setValidationError('Silakan masukkan tautan media.');
+      setValidationError(t('ingestion.url.emptyUrl'));
       return;
     }
 
     if (!isValidMediaUrl(trimmedUrl)) {
-      setValidationError('Tautan harus berupa URL web yang valid dengan protokol http:// atau https://.');
+      setValidationError(t('ingestion.url.invalidUrl'));
       return;
     }
 
@@ -83,7 +85,7 @@ export function UrlImportForm({
         language,
       });
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Gagal mengimpor tautan. Silakan coba lagi.';
+      const msg = err instanceof Error ? err.message : t('ingestion.url.importFailed');
       setValidationError(msg);
     }
   };
@@ -99,13 +101,13 @@ export function UrlImportForm({
     >
       <div className="flex items-center gap-2 text-xs font-semibold text-primary">
         <LinkIcon className="h-4 w-4" />
-        <span>Impor dari Tautan Web (YouTube / Direct Audio & Video)</span>
+        <span>{t('ingestion.url.badge')}</span>
       </div>
 
       {/* URL Input */}
       <div className="space-y-1.5">
         <Label htmlFor="media-url" className="text-xs font-semibold text-foreground">
-          URL File Media:
+          {t('ingestion.url.urlLabel')}
         </Label>
         <Input
           id="media-url"
@@ -116,7 +118,7 @@ export function UrlImportForm({
             if (validationError) setValidationError(null);
           }}
           disabled={isLoading}
-          placeholder="https://www.youtube.com/watch?v=... atau https://example.com/audio.mp3"
+          placeholder={t('ingestion.url.urlPlaceholder')}
           className="text-xs"
           data-testid="media-url-input"
         />
@@ -125,14 +127,14 @@ export function UrlImportForm({
       {/* Title (Optional) */}
       <div className="space-y-1.5">
         <Label htmlFor="import-title" className="text-xs font-semibold text-foreground">
-          Judul Rekaman (Opsional):
+          {t('ingestion.url.titleLabel')}
         </Label>
         <Input
           id="import-title"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           disabled={isLoading}
-          placeholder="Contoh: Rapat Koordinasi Tim Q4"
+          placeholder={t('ingestion.url.titlePlaceholder')}
           className="text-xs"
           data-testid="import-title-input"
         />
@@ -142,7 +144,7 @@ export function UrlImportForm({
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="space-y-1.5">
           <Label htmlFor="url-template-select" className="text-xs font-semibold text-foreground">
-            Kerangka Ringkasan:
+            {t('ingestion.url.templateLabel')}
           </Label>
           <select
             id="url-template-select"
@@ -152,9 +154,9 @@ export function UrlImportForm({
             className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-xs shadow-sm cursor-pointer focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-50 disabled:cursor-not-allowed"
             data-testid="url-template-select"
           >
-            {templates.map((t) => (
-              <option key={t.key} value={t.key} className="bg-popover text-foreground">
-                {t.label}
+            {templates.map((tmpl) => (
+              <option key={tmpl.key} value={tmpl.key} className="bg-popover text-foreground">
+                {tmpl.label}
               </option>
             ))}
           </select>
@@ -162,7 +164,7 @@ export function UrlImportForm({
 
         <div className="space-y-1.5">
           <Label htmlFor="url-language-select" className="text-xs font-semibold text-foreground">
-            Bahasa Rekaman:
+            {t('ingestion.url.languageLabel')}
           </Label>
           <select
             id="url-language-select"
@@ -173,13 +175,13 @@ export function UrlImportForm({
             data-testid="url-language-select"
           >
             <option value="id" className="bg-popover text-foreground">
-              Bahasa Indonesia (Utama)
+              {t('ingestion.url.languageId')}
             </option>
             <option value="en" className="bg-popover text-foreground">
-              English
+              {t('ingestion.url.languageEn')}
             </option>
             <option value="auto" className="bg-popover text-foreground">
-              Deteksi Otomatis (Auto)
+              {t('ingestion.url.languageAuto')}
             </option>
           </select>
         </div>
@@ -189,7 +191,8 @@ export function UrlImportForm({
       <div className="flex items-start gap-2 rounded-xl border border-sky-500/20 bg-sky-500/5 p-3 text-[11px] text-muted-foreground">
         <ShieldCheck className="h-4 w-4 shrink-0 text-sky-400 mt-0.5" />
         <p className="leading-relaxed">
-          <span className="font-semibold text-foreground">Perhatian Keamanan:</span> Mendukung video YouTube dan tautan file audio/video langsung yang dapat diakses publik. Tautan internal (localhost/IP privat) akan diblokir otomatis.
+          <span className="font-semibold text-foreground">{t('ingestion.url.securityNoticeTitle')}</span>{' '}
+          {t('ingestion.url.securityNoticeDesc')}
         </p>
       </div>
 
@@ -214,12 +217,12 @@ export function UrlImportForm({
         {isLoading ? (
           <>
             <Loader2 className="h-4 w-4 animate-spin" />
-            <span>Mengunduh & Memproses...</span>
+            <span>{t('ingestion.url.downloading')}</span>
           </>
         ) : (
           <>
             <Sparkles className="h-4 w-4" />
-            <span>Impor & Transkripsikan Media</span>
+            <span>{t('ingestion.url.submit')}</span>
           </>
         )}
       </Button>

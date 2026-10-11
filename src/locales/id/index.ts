@@ -6,6 +6,8 @@ import { idPipeline } from './pipeline';
 import { idAuth } from './auth';
 import { idErrors } from './errors';
 import { idNotifications } from './notifications';
+import { idIngestion } from './ingestion';
+import { idDashboard } from './dashboard';
 
 export const idDictionary = {
   common: idCommon,
@@ -16,6 +18,8 @@ export const idDictionary = {
   auth: idAuth,
   errors: idErrors,
   notifications: idNotifications,
+  ingestion: idIngestion,
+  dashboard: idDashboard,
 };
 
 export type AppDictionary = typeof idDictionary;

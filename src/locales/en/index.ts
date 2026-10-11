@@ -7,6 +7,8 @@ import { enPipeline } from './pipeline';
 import { enAuth } from './auth';
 import { enErrors } from './errors';
 import { enNotifications } from './notifications';
+import { enIngestion } from './ingestion';
+import { enDashboard } from './dashboard';
 
 export const enDictionary: AppDictionary = {
   common: enCommon,
@@ -17,4 +19,6 @@ export const enDictionary: AppDictionary = {
   auth: enAuth,
   errors: enErrors,
   notifications: enNotifications,
+  ingestion: enIngestion,
+  dashboard: enDashboard,
 };

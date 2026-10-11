@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTemplates } from '@/hooks';
+import { useTranslation } from '@/locales';
 
 export interface UploadDropzoneProps {
   onUploadFile?: (
@@ -49,6 +50,7 @@ export function UploadDropzone({
   maxSizeMB = 500,
   className,
 }: UploadDropzoneProps) {
+  const { t } = useTranslation();
   const [isDragOver, setIsDragOver] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [title, setTitle] = useState('');
@@ -71,14 +73,16 @@ export function UploadDropzone({
 
     if (!isSupportedExtension(file.name) || !isSupportedType) {
       setErrorMessage(
-        `Format file tidak didukung. Harap unggah salah satu format berikut: ${SupportedMediaExtensions.join(', ')}`
+        t('ingestion.upload.unsupportedFormat', {
+          formats: SupportedMediaExtensions.join(', '),
+        })
       );
       return;
     }
 
     const maxBytes = maxSizeMB * 1024 * 1024;
     if (file.size > maxBytes) {
-      setErrorMessage(`Ukuran file melebihi batas maksimal ${maxSizeMB} MB.`);
+      setErrorMessage(t('ingestion.upload.fileTooLarge', { size: maxSizeMB }));
       return;
     }
 
@@ -213,10 +217,13 @@ export function UploadDropzone({
           </div>
 
           <h3 className="text-base font-bold text-foreground">
-            Tarik & Lepas File Rekaman di Sini
+            {t('ingestion.upload.dragDropTitle')}
           </h3>
           <p className="text-xs text-muted-foreground mt-1.5 max-w-sm">
-            atau <span className="font-semibold text-primary underline">pilih dari komputer Anda</span>
+            {t('ingestion.upload.orChoosePrefix')}{' '}
+            <span className="font-semibold text-primary underline">
+              {t('ingestion.upload.orChooseLink')}
+            </span>
           </p>
 
           <div className="flex flex-wrap items-center justify-center gap-1.5 mt-5">
@@ -231,7 +238,7 @@ export function UploadDropzone({
           </div>
 
           <p className="text-[11px] text-muted-foreground/70 mt-3">
-            Maksimal ukuran file: {maxSizeMB} MB
+            {t('ingestion.upload.maxSize', { size: maxSizeMB })}
           </p>
         </div>
       ) : (
@@ -258,7 +265,7 @@ export function UploadDropzone({
               size="icon-xs"
               onClick={handleClear}
               disabled={isUploading}
-              title="Ganti file"
+              title={t('ingestion.upload.changeFile')}
               className="text-muted-foreground hover:text-rose-400"
               data-testid="clear-file-btn"
             >
@@ -269,14 +276,14 @@ export function UploadDropzone({
           {/* Title Configuration */}
           <div className="space-y-1.5">
             <Label htmlFor="recording-title" className="text-xs font-semibold text-foreground">
-              Judul Rekaman:
+              {t('ingestion.upload.titleLabel')}
             </Label>
             <Input
               id="recording-title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               disabled={isUploading}
-              placeholder="Masukkan judul rekaman..."
+              placeholder={t('ingestion.upload.titlePlaceholder')}
               className="text-xs"
               data-testid="recording-title-input"
             />
@@ -285,7 +292,7 @@ export function UploadDropzone({
           {/* Template Category Picker */}
           <div className="space-y-1.5">
             <Label htmlFor="template-select" className="text-xs font-semibold text-foreground">
-              Kerangka Ringkasan Awal:
+              {t('ingestion.upload.templateLabel')}
             </Label>
             <select
               id="template-select"
@@ -295,9 +302,9 @@ export function UploadDropzone({
               className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-xs shadow-sm cursor-pointer focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-50 disabled:cursor-not-allowed"
               data-testid="template-select"
             >
-              {templates.map((t) => (
-                <option key={t.key} value={t.key} className="bg-popover text-foreground">
-                  {t.label}
+              {templates.map((tmpl) => (
+                <option key={tmpl.key} value={tmpl.key} className="bg-popover text-foreground">
+                  {tmpl.label}
                 </option>
               ))}
             </select>
@@ -309,7 +316,7 @@ export function UploadDropzone({
               <div className="flex items-center justify-between text-xs text-muted-foreground">
                 <span className="flex items-center gap-1.5 font-medium text-foreground">
                   <Loader2 className="h-3 w-3 animate-spin text-primary" />
-                  Mengunggah ke penyimpanan...
+                  {t('ingestion.upload.uploadingToStorage')}
                 </span>
                 <span className="font-semibold text-primary">{uploadProgress}%</span>
               </div>
@@ -329,12 +336,12 @@ export function UploadDropzone({
               {isUploading ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  <span>Memproses Unggahan...</span>
+                  <span>{t('ingestion.upload.processingUpload')}</span>
                 </>
               ) : (
                 <>
                   <Sparkles className="h-4 w-4" />
-                  <span>Mulai Transkripsi & Ringkasan</span>
+                  <span>{t('ingestion.upload.startSynthesis')}</span>
                 </>
               )}
             </Button>

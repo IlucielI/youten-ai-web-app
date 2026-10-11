@@ -22,12 +22,14 @@ import { AuthResponse } from '@/server/dtos/auth.dto';
 import { useTokenStore } from '@/stores/token.store';
 import { useAuthStore } from '@/stores/auth.store';
 import { YoutenLogo } from '@/components/atoms/youten-logo';
+import { useTranslation } from '@/locales';
 import { toast } from 'sonner';
 
 function RegisterForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const claimId = searchParams.get('claim');
+  const { t } = useTranslation();
 
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
@@ -58,12 +60,12 @@ function RegisterForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!fullName.trim() || !email.trim() || !password) {
-      setErrorMessage('Mohon lengkapi seluruh formulir pendaftaran.');
+      setErrorMessage(t('auth.register.fillRequired'));
       return;
     }
 
     if (password.length < 8 || !/\d/.test(password)) {
-      setErrorMessage('Kata sandi minimal 8 karakter dan harus mengandung setidaknya 1 angka.');
+      setErrorMessage(t('auth.register.passwordComplexity'));
       return;
     }
 
@@ -84,16 +86,16 @@ function RegisterForm() {
       });
 
       if (response && response.status === 'success') {
-        toast.success('Pendaftaran berhasil! Kode verifikasi telah dikirim ke email Anda.');
+        toast.success(t('auth.register.registrationSuccess'));
         const redirectUrl = `/verify-email?email=${encodeURIComponent(email.trim())}${
           claimId ? `&claim=${claimId}` : ''
         }`;
         router.push(redirectUrl);
       } else {
-        setErrorMessage(response?.message || 'Pendaftaran gagal. Silakan coba kembali.');
+        setErrorMessage(response?.message || t('auth.register.registrationFailed'));
       }
     } catch (err: unknown) {
-      const errorMsg = err instanceof Error ? err.message : 'Terjadi kendala saat mendaftar.';
+      const errorMsg = err instanceof Error ? err.message : t('auth.register.registrationFailed');
       setErrorMessage(errorMsg);
     } finally {
       setIsLoading(false);
@@ -113,10 +115,10 @@ function RegisterForm() {
           className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white"
           data-testid="register-title"
         >
-          Mulai Gratis dengan Youten
+          {t('auth.register.title')}
         </CardTitle>
         <CardDescription className="text-sm sm:text-base text-slate-500 dark:text-slate-400 leading-relaxed">
-          Buat akun untuk mencatat dan merangkum setiap rapat penting Anda.
+          {t('auth.register.subtitle')}
         </CardDescription>
       </CardHeader>
 
@@ -132,12 +134,12 @@ function RegisterForm() {
 
           <div className="space-y-2">
             <Label htmlFor="register-name" className="text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300">
-              Nama Lengkap
+              {t('auth.register.fullNameLabel')}
             </Label>
             <Input
               id="register-name"
               type="text"
-              placeholder="Bayu Anugerah"
+              placeholder={t('auth.register.fullNamePlaceholder')}
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
               disabled={isLoading}
@@ -150,12 +152,12 @@ function RegisterForm() {
 
           <div className="space-y-2">
             <Label htmlFor="register-email" className="text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300">
-              Email
+              {t('auth.register.emailLabel')}
             </Label>
             <Input
               id="register-email"
               type="email"
-              placeholder="nama@perusahaan.com"
+              placeholder={t('auth.register.emailPlaceholder')}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               disabled={isLoading}
@@ -168,13 +170,13 @@ function RegisterForm() {
 
           <div className="space-y-2">
             <Label htmlFor="register-password" className="text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300">
-              Kata Sandi
+              {t('auth.register.passwordLabel')}
             </Label>
             <div className="relative">
               <Input
                 id="register-password"
                 type={showPassword ? 'text' : 'password'}
-                placeholder="Minimal 8 karakter & 1 angka"
+                placeholder={t('auth.register.passwordPlaceholder')}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={isLoading}
@@ -187,14 +189,14 @@ function RegisterForm() {
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
-                aria-label={showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'}
+                aria-label={showPassword ? t('auth.login.hidePassword') : t('auth.login.showPassword')}
                 data-testid="toggle-password-visibility"
               >
                 {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
             </div>
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              Gunakan minimal 8 karakter dengan kombinasi huruf dan angka.
+              {t('auth.register.passwordHint')}
             </p>
           </div>
         </CardContent>
@@ -209,24 +211,24 @@ function RegisterForm() {
             {isLoading ? (
               <>
                 <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                Mendaftarkan Akun...
+                {t('auth.register.submitting')}
               </>
             ) : (
               <>
                 <UserPlus className="w-5 h-5 mr-2" />
-                Daftar Akun Baru
+                {t('auth.register.submitButton')}
               </>
             )}
           </Button>
 
           <p className="text-center text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-            Sudah memiliki akun?{' '}
+            {t('auth.register.hasAccount')}{' '}
             <Link
               href={claimId ? `/login?claim=${claimId}` : '/login'}
               className="text-blue-600 dark:text-blue-400 font-bold hover:underline ml-1"
               data-testid="to-login-link"
             >
-              Masuk di sini
+              {t('auth.register.loginLink')}
             </Link>
           </p>
         </CardFooter>

@@ -18,8 +18,10 @@ import { Button } from '@/components/atoms/button';
 import { Alert, AlertDescription } from '@/components/atoms/alert';
 import { apiFetch } from '@/lib/api-client';
 import { BaseResponse } from '@/server/dtos/response.dto';
+import { useTranslation } from '@/locales';
 
 export default function ForgotPasswordPage() {
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -28,7 +30,7 @@ export default function ForgotPasswordPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim()) {
-      setErrorMessage('Mohon masukkan alamat email Anda.');
+      setErrorMessage(t('auth.forgotPassword.fillRequired'));
       return;
     }
 
@@ -44,7 +46,7 @@ export default function ForgotPasswordPage() {
 
       setIsSubmitted(true);
     } catch (err: unknown) {
-      const errorMsg = err instanceof Error ? err.message : 'Gagal mengirim instruksi reset kata sandi.';
+      const errorMsg = err instanceof Error ? err.message : t('auth.forgotPassword.errorFailed');
       setErrorMessage(errorMsg);
     } finally {
       setIsLoading(false);
@@ -64,10 +66,10 @@ export default function ForgotPasswordPage() {
           className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white"
           data-testid="forgot-password-title"
         >
-          Lupa Kata Sandi
+          {t('auth.forgotPassword.title')}
         </CardTitle>
         <CardDescription className="text-sm sm:text-base text-slate-500 dark:text-slate-400 leading-relaxed">
-          Masukkan alamat email Anda untuk menerima instruksi pemulihan kata sandi.
+          {t('auth.forgotPassword.subtitle')}
         </CardDescription>
       </CardHeader>
 
@@ -79,10 +81,9 @@ export default function ForgotPasswordPage() {
           >
             <CheckCircle2 className="w-5 h-5 shrink-0 mt-0.5 text-emerald-600 dark:text-emerald-400" />
             <div className="space-y-1.5 text-sm">
-              <p className="font-bold text-base">Tautan Pemulihan Dikirim!</p>
+              <p className="font-bold text-base">{t('auth.forgotPassword.successTitle')}</p>
               <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-                Kami telah mengirimkan tautan untuk mengatur ulang kata sandi ke{' '}
-                <span className="font-semibold text-slate-900 dark:text-white">{email}</span> jika terdaftar di sistem kami.
+                {t('auth.forgotPassword.successDescription', { email })}
               </p>
             </div>
           </div>
@@ -94,7 +95,7 @@ export default function ForgotPasswordPage() {
                 data-testid="back-to-login-btn"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
-                Kembali ke Masuk
+                {t('auth.forgotPassword.backToLogin')}
               </Button>
             </Link>
           </div>
@@ -112,12 +113,12 @@ export default function ForgotPasswordPage() {
 
             <div className="space-y-2">
               <Label htmlFor="forgot-email" className="text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300">
-                Email Terdaftar
+                {t('auth.forgotPassword.emailLabel')}
               </Label>
               <Input
                 id="forgot-email"
                 type="email"
-                placeholder="nama@perusahaan.com"
+                placeholder={t('auth.forgotPassword.emailPlaceholder')}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 disabled={isLoading}
@@ -131,7 +132,7 @@ export default function ForgotPasswordPage() {
             <div className="rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/70 dark:border-slate-800/80 p-3.5 flex items-start gap-3">
               <span className="text-base select-none">💡</span>
               <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-                Pastikan alamat email sesuai dengan yang Anda daftarkan. Tautan pemulihan akan berlaku selama 15 menit demi keamanan akun Anda.
+                {t('auth.forgotPassword.infoNotice')}
               </p>
             </div>
           </CardContent>
@@ -146,12 +147,12 @@ export default function ForgotPasswordPage() {
               {isLoading ? (
                 <>
                   <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                  Mengirim Instruksi...
+                  {t('auth.forgotPassword.submitting')}
                 </>
               ) : (
                 <>
                   <Mail className="w-5 h-5 mr-2" />
-                  Kirim Instruksi Reset
+                  {t('auth.forgotPassword.submitButton')}
                 </>
               )}
             </Button>
@@ -162,7 +163,7 @@ export default function ForgotPasswordPage() {
               data-testid="to-login-link"
             >
               <ArrowLeft className="w-4 h-4" />
-              Kembali ke halaman masuk
+              {t('auth.forgotPassword.backToLoginDesc')}
             </Link>
           </CardFooter>
         </form>

@@ -15,6 +15,22 @@ describe('Locales System', () => {
     expect(enKeys).toEqual(idKeys);
   });
 
+  it('guarantees deep recursive key structure parity between id and en', () => {
+    function getDeepKeys(obj: Record<string, unknown>, prefix = ''): string[] {
+      return Object.entries(obj).flatMap(([k, v]) => {
+        const fullKey = prefix ? `${prefix}.${k}` : k;
+        if (v && typeof v === 'object' && !Array.isArray(v)) {
+          return getDeepKeys(v as Record<string, unknown>, fullKey);
+        }
+        return [fullKey];
+      });
+    }
+
+    const idDeepKeys = getDeepKeys(dictionaries.id).sort();
+    const enDeepKeys = getDeepKeys(dictionaries.en).sort();
+    expect(enDeepKeys).toEqual(idDeepKeys);
+  });
+
   it('retrieves nested translations accurately for id and en', () => {
     const titleId = getTranslation('id', 'landing.hero.title');
     const titleEn = getTranslation('en', 'landing.hero.title');

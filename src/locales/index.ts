@@ -1,3 +1,4 @@
+import { useCallback } from 'react';
 import { idDictionary, AppDictionary } from './id';
 import { enDictionary } from './en';
 import { useLocaleStore } from '@/stores/locale.store';
@@ -83,12 +84,15 @@ export function useTranslation() {
   const setLocale = useLocaleStore((state) => state.setLocale);
   const toggleLocale = useLocaleStore((state) => state.toggleLocale);
 
-  const t = (
-    path: NestedKeyOf<Dictionary> | (string & {}),
-    params?: Record<string, string | number>
-  ): string => {
-    return getTranslation(locale, path, params);
-  };
+  const t = useCallback(
+    (
+      path: NestedKeyOf<Dictionary> | (string & {}),
+      params?: Record<string, string | number>
+    ): string => {
+      return getTranslation(locale, path, params);
+    },
+    [locale]
+  );
 
   return {
     t,

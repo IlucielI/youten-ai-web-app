@@ -44,6 +44,7 @@ import { UserNavDropdown } from '@/components/molecules/user-nav-dropdown';
 import { Footer } from '@/components/organisms/footer';
 import { toast } from 'sonner';
 import { useTemplates } from '@/hooks';
+import { useTranslation } from '@/locales';
 import {
   Plus,
   Search,
@@ -59,14 +60,6 @@ import {
   AlertTriangle,
   FolderOpen,
 } from 'lucide-react';
-
-const STATUS_OPTIONS = [
-  { value: '', label: 'Semua Status' },
-  { value: RecordingStatus.COMPLETED, label: 'Selesai' },
-  { value: RecordingStatus.QUEUED, label: 'Dalam Antrean' },
-  { value: 'TRANSCRIBING', label: 'Sedang Diproses' },
-  { value: RecordingStatus.FAILED, label: 'Gagal' },
-];
 
 interface RecordingsApiResponse {
   status: string;
@@ -90,7 +83,16 @@ interface RecordingsApiResponse {
 
 export default function DashboardPage() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { templates, getTemplateLabel } = useTemplates();
+
+  const statusOptions = [
+    { value: '', label: t('dashboard.filters.allStatuses') },
+    { value: RecordingStatus.COMPLETED, label: t('dashboard.statusLabels.completed') },
+    { value: RecordingStatus.QUEUED, label: t('dashboard.statusLabels.queued') },
+    { value: 'TRANSCRIBING', label: t('dashboard.statusLabels.processing') },
+    { value: RecordingStatus.FAILED, label: t('dashboard.statusLabels.failed') },
+  ];
 
   // Auth User State
   const [user, setUser] = useState<UserProfileResponse | null>(null);
@@ -209,7 +211,7 @@ export default function DashboardPage() {
             setTotalPages(1);
           }
         } else {
-          setDataError('Gagal memuat daftar rekaman.');
+          setDataError(t('dashboard.error.fetchFailed'));
         }
       })
       .catch((err) => {
@@ -217,7 +219,7 @@ export default function DashboardPage() {
         if (err instanceof ApiClientError) {
           setDataError(err.message);
         } else {
-          setDataError('Terjadi kesalahan saat memuat rekaman.');
+          setDataError(t('dashboard.error.defaultMessage'));
         }
       })
       .finally(() => {
@@ -229,7 +231,7 @@ export default function DashboardPage() {
     return () => {
       isMounted = false;
     };
-  }, [authLoading, user, page, pageSize, debouncedSearch, selectedStatus, selectedTemplate, refreshKey]);
+  }, [authLoading, user, page, pageSize, debouncedSearch, selectedStatus, selectedTemplate, refreshKey, t]);
 
   // 4. Handle Delete
   const handleDeleteConfirm = async () => {
@@ -240,11 +242,11 @@ export default function DashboardPage() {
       await apiFetch<BaseResponse>(`/api/recordings/${recordingToDelete.id}`, {
         method: 'DELETE',
       });
-      toast.success(`Rekaman "${recordingToDelete.title}" berhasil dihapus.`);
+      toast.success(t('notifications.success.recordingDeleted', { title: recordingToDelete.title }));
       setRecordingToDelete(null);
       refreshRecordings();
     } catch {
-      toast.error('Gagal menghapus rekaman. Silakan coba kembali.');
+      toast.error(t('notifications.error.deleteFailed'));
     } finally {
       setIsDeleting(false);
     }
@@ -258,7 +260,7 @@ export default function DashboardPage() {
       setUser(null);
       router.push('/login');
     } catch {
-      toast.error('Gagal keluar dari sesi. Silakan coba kembali.');
+      toast.error(t('notifications.error.logoutFailed'));
     }
   };
 
@@ -281,10 +283,10 @@ export default function DashboardPage() {
       if (res?.data) {
         const updatedToken = res.data.share_token || null;
         setShareToken(updatedToken);
-        toast.success(enable ? 'Tautan publik aktif' : 'Tautan publik dinonaktifkan');
+        toast.success(enable ? t('notifications.success.shareEnabled') : t('notifications.success.shareDisabled'));
       }
     } catch {
-      toast.error('Gagal mengubah pengaturan berbagi tautan.');
+      toast.error(t('notifications.error.shareFailed'));
     }
   };
 
@@ -293,7 +295,7 @@ export default function DashboardPage() {
       <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
         <div className="space-y-4 text-center">
           <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto" />
-          <p className="text-sm font-medium text-slate-500">Memverifikasi sesi akun...</p>
+          <p className="text-sm font-medium text-slate-500">{t('dashboard.loading.verifyingSession')}</p>
         </div>
       </div>
     );
@@ -332,11 +334,11 @@ export default function DashboardPage() {
           <div className="space-y-2 max-w-xl">
             <div className="flex items-center gap-2.5 flex-wrap">
               <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-                Halo, {user?.full_name || 'Pengguna'} 👋
+                {t('dashboard.welcome.title', { name: user?.full_name || t('dashboard.welcome.defaultName') })}
               </h1>
             </div>
             <p className="text-sm text-slate-500 leading-relaxed">
-              Selamat datang di perpustakaan rekaman cerdas Anda. Akses transkrip, notulen rapat otomatis, dan intisari AI kapan saja.
+              {t('dashboard.welcome.subtitle')}
             </p>
           </div>
 
@@ -347,9 +349,10 @@ export default function DashboardPage() {
                 <Sparkles className="w-4 h-4" />
               </div>
               <div>
-                <p className="text-[11px] font-bold text-blue-900 tracking-tight">Kuota Transkrip Harian</p>
+                <p className="text-[11px] font-bold text-blue-900 tracking-tight">{t('dashboard.welcome.quotaTitle')}</p>
                 <p className="text-xs font-medium text-blue-700">
-                  <strong className="font-extrabold text-blue-900">{quotaRemaining}</strong> dari {quotaTotal} rekaman tersisa
+                  <strong className="font-extrabold text-blue-900">{quotaRemaining}</strong>{' '}
+                  {t('dashboard.welcome.quotaRemainingSuffix', { total: quotaTotal })}
                 </p>
               </div>
             </div>
@@ -358,7 +361,7 @@ export default function DashboardPage() {
             <Button asChild size="lg" className="rounded-xl shadow-sm shadow-blue-500/20 font-bold gap-2">
               <Link href="/">
                 <Plus className="w-4 h-4" />
-                <span>Rekaman Baru</span>
+                <span>{t('dashboard.welcome.newRecording')}</span>
               </Link>
             </Button>
           </div>
@@ -373,7 +376,7 @@ export default function DashboardPage() {
               <input
                 data-testid="dashboard-search-input"
                 type="text"
-                placeholder="Cari berdasarkan judul atau nama file..."
+                placeholder={t('dashboard.search.placeholder')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 text-sm bg-slate-50/80 border border-slate-200 rounded-xl placeholder:text-slate-400 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors"
@@ -392,7 +395,7 @@ export default function DashboardPage() {
                 }}
                 className="px-3 py-2 text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl text-slate-700 focus:outline-none focus:border-blue-500 cursor-pointer"
               >
-                {STATUS_OPTIONS.map((opt) => (
+                {statusOptions.map((opt) => (
                   <option key={opt.value} value={opt.value}>
                     {opt.label}
                   </option>
@@ -409,7 +412,7 @@ export default function DashboardPage() {
                 }}
                 className="px-3 py-2 text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl text-slate-700 focus:outline-none focus:border-blue-500 cursor-pointer"
               >
-                <option value="">Semua Template</option>
+                <option value="">{t('dashboard.filters.allTemplates')}</option>
                 {templates.map((tmpl) => (
                   <option key={tmpl.key} value={tmpl.key}>
                     {tmpl.label}
@@ -428,7 +431,7 @@ export default function DashboardPage() {
                       ? 'bg-white text-blue-600 shadow-2xs font-bold'
                       : 'text-slate-500 hover:text-slate-900'
                   }`}
-                  aria-label="Tampilan Grid"
+                  aria-label={t('dashboard.filters.gridView')}
                 >
                   <LayoutGrid className="w-4 h-4" />
                 </button>
@@ -441,7 +444,7 @@ export default function DashboardPage() {
                       ? 'bg-white text-blue-600 shadow-2xs font-bold'
                       : 'text-slate-500 hover:text-slate-900'
                   }`}
-                  aria-label="Tampilan Tabel"
+                  aria-label={t('dashboard.filters.tableView')}
                 >
                   <List className="w-4 h-4" />
                 </button>
@@ -453,7 +456,7 @@ export default function DashboardPage() {
                 size="sm"
                 onClick={refreshRecordings}
                 className="p-2 text-slate-400 hover:text-slate-700 rounded-xl"
-                aria-label="Segarkan data"
+                aria-label={t('dashboard.filters.refresh')}
               >
                 <RefreshCw className={`w-4 h-4 ${dataLoading ? 'animate-spin text-blue-600' : ''}`} />
               </Button>
@@ -493,21 +496,21 @@ export default function DashboardPage() {
           <div className="p-8 text-center bg-white rounded-2xl border border-rose-200 space-y-4">
             <AlertTriangle className="w-10 h-10 text-rose-500 mx-auto" />
             <div className="space-y-1">
-              <h3 className="font-bold text-slate-900">Gagal Memuat Data</h3>
+              <h3 className="font-bold text-slate-900">{t('dashboard.error.title')}</h3>
               <p className="text-xs text-slate-500">{dataError}</p>
             </div>
             <Button onClick={refreshRecordings} size="sm" variant="outline">
-              Coba Lagi
+              {t('dashboard.error.retry')}
             </Button>
           </div>
         ) : safeRecordings.length === 0 ? (
           /* Empty State */
           <EmptyState
-            title={debouncedSearch || selectedStatus || selectedTemplate ? 'Tidak ada hasil yang cocok' : 'Belum Ada Rekaman'}
+            title={debouncedSearch || selectedStatus || selectedTemplate ? t('dashboard.empty.searchTitle') : t('dashboard.empty.title')}
             description={
               debouncedSearch || selectedStatus || selectedTemplate
-                ? 'Coba sesuaikan kata kunci pencarian atau ubah filter untuk menemukan rekaman Anda.'
-                : 'Mulai unggah berkas audio atau rekam percakapan rapat pertama Anda untuk mendapatkan transkrip otomatis.'
+                ? t('dashboard.empty.searchDescription')
+                : t('dashboard.empty.description')
             }
             icon={<FolderOpen className="w-8 h-8 text-blue-500" />}
             action={
@@ -521,13 +524,13 @@ export default function DashboardPage() {
                     setSelectedTemplate('');
                   }}
                 >
-                  Reset Filter
+                  {t('dashboard.filters.reset')}
                 </Button>
               ) : (
                 <Button asChild size="sm" className="font-bold gap-2">
                   <Link href="/">
                     <Plus className="w-4 h-4" />
-                    <span>Buat Rekaman Baru</span>
+                    <span>{t('dashboard.empty.action')}</span>
                   </Link>
                 </Button>
               )
@@ -551,12 +554,12 @@ export default function DashboardPage() {
             <Table>
               <TableHeader>
                 <TableRow className="bg-slate-50/70 border-b border-slate-200/80">
-                  <TableHead className="font-bold text-slate-700">Judul Rekaman</TableHead>
-                  <TableHead className="font-bold text-slate-700">Template</TableHead>
-                  <TableHead className="font-bold text-slate-700">Status</TableHead>
-                  <TableHead className="font-bold text-slate-700">Durasi</TableHead>
-                  <TableHead className="font-bold text-slate-700">Tanggal</TableHead>
-                  <TableHead className="text-right font-bold text-slate-700">Aksi</TableHead>
+                  <TableHead className="font-bold text-slate-700">{t('dashboard.table.titleHeader')}</TableHead>
+                  <TableHead className="font-bold text-slate-700">{t('dashboard.table.templateHeader')}</TableHead>
+                  <TableHead className="font-bold text-slate-700">{t('dashboard.table.statusHeader')}</TableHead>
+                  <TableHead className="font-bold text-slate-700">{t('dashboard.table.durationHeader')}</TableHead>
+                  <TableHead className="font-bold text-slate-700">{t('dashboard.table.dateHeader')}</TableHead>
+                  <TableHead className="text-right font-bold text-slate-700">{t('dashboard.table.actionsHeader')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -605,7 +608,7 @@ export default function DashboardPage() {
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-1">
                           <Button asChild variant="ghost" size="sm" className="h-8 w-8 p-0 text-slate-500">
-                            <Link href={`/recordings/${recording.id}`} aria-label="Lihat detail">
+                            <Link href={`/recordings/${recording.id}`} aria-label={t('dashboard.table.viewDetail')}>
                               <ExternalLink className="w-4 h-4" />
                             </Link>
                           </Button>
@@ -614,7 +617,7 @@ export default function DashboardPage() {
                             size="sm"
                             onClick={() => handleOpenShare(recording)}
                             className="h-8 w-8 p-0 text-slate-500"
-                            aria-label="Bagikan"
+                            aria-label={t('dashboard.table.share')}
                           >
                             <Share2 className="w-4 h-4" />
                           </Button>
@@ -623,7 +626,7 @@ export default function DashboardPage() {
                             size="sm"
                             onClick={() => setRecordingToDelete(recording)}
                             className="h-8 w-8 p-0 text-rose-500 hover:text-rose-600 hover:bg-rose-50"
-                            aria-label="Hapus rekaman"
+                            aria-label={t('dashboard.table.delete')}
                           >
                             <Trash2 className="w-4 h-4" />
                           </Button>
@@ -641,9 +644,11 @@ export default function DashboardPage() {
         {!dataLoading && safeRecordings.length > 0 && (
           <footer className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-slate-200/70 text-xs text-slate-500">
             <div>
-              Menampilkan <span className="font-bold text-slate-700">{startIndex}</span> -{' '}
-              <span className="font-bold text-slate-700">{endIndex}</span> dari{' '}
-              <span className="font-bold text-slate-700">{totalItems}</span> rekaman
+              {t('dashboard.pagination.showing', {
+                start: startIndex,
+                end: endIndex,
+                total: totalItems,
+              })}
             </div>
 
             <div className="flex items-center gap-2">
@@ -656,11 +661,11 @@ export default function DashboardPage() {
                 className="gap-1 text-xs"
               >
                 <ChevronLeft className="w-3.5 h-3.5" />
-                <span>Sebelumnya</span>
+                <span>{t('dashboard.pagination.prev')}</span>
               </Button>
 
               <span className="px-2 font-medium">
-                Halaman {page} dari {totalPages}
+                {t('dashboard.pagination.pageOf', { page, total: totalPages })}
               </span>
 
               <Button
@@ -671,7 +676,7 @@ export default function DashboardPage() {
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 className="gap-1 text-xs"
               >
-                <span>Selanjutnya</span>
+                <span>{t('dashboard.pagination.next')}</span>
                 <ChevronRight className="w-3.5 h-3.5" />
               </Button>
             </div>
@@ -689,18 +694,16 @@ export default function DashboardPage() {
       >
         <AlertDialogContent data-testid="delete-confirm-dialog">
           <AlertDialogHeader>
-            <AlertDialogTitle>Hapus Rekaman?</AlertDialogTitle>
+            <AlertDialogTitle>{t('dashboard.deleteDialog.title')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Apakah Anda yakin ingin menghapus rekaman{' '}
-              <strong className="text-slate-900 font-semibold">
-                &quot;{recordingToDelete?.title || recordingToDelete?.original_filename}&quot;
-              </strong>
-              ? Seluruh transkrip, ringkasan, dan komentar akan dihapus secara permanen.
+              {t('dashboard.deleteDialog.description', {
+                title: recordingToDelete?.title || recordingToDelete?.original_filename || '',
+              })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel data-testid="delete-cancel-btn" disabled={isDeleting}>
-              Batal
+              {t('dashboard.deleteDialog.cancel')}
             </AlertDialogCancel>
             <AlertDialogAction
               data-testid="delete-confirm-btn"
@@ -708,7 +711,7 @@ export default function DashboardPage() {
               onClick={handleDeleteConfirm}
               className="bg-rose-600 hover:bg-rose-700 text-white font-bold"
             >
-              {isDeleting ? 'Menghapus...' : 'Ya, Hapus'}
+              {isDeleting ? t('dashboard.deleteDialog.deleting') : t('dashboard.deleteDialog.confirm')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

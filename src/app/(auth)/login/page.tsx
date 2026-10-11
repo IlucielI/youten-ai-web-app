@@ -23,9 +23,11 @@ import { claimGuestRecordings, claimSingleRecording } from '@/lib/claim';
 import { useTokenStore } from '@/stores/token.store';
 import { useAuthStore } from '@/stores/auth.store';
 import { YoutenLogo } from '@/components/atoms/youten-logo';
+import { useTranslation } from '@/locales';
 
 function LoginForm() {
   const router = useRouter();
+  const { t } = useTranslation();
   const searchParams = useSearchParams();
   const claimId = searchParams.get('claim');
   const isVerifiedParam = searchParams.get('verified') === 'true';
@@ -59,7 +61,7 @@ function LoginForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim() || !password) {
-      setErrorMessage('Mohon isi alamat email dan kata sandi Anda.');
+      setErrorMessage(t('auth.login.fillRequired'));
       return;
     }
 
@@ -132,10 +134,10 @@ function LoginForm() {
           className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white"
           data-testid="login-title"
         >
-          Masuk ke Akun Anda
+          {t('auth.login.title')}
         </CardTitle>
         <CardDescription className="text-sm sm:text-base text-slate-500 dark:text-slate-400 leading-relaxed">
-          Akses ringkasan notula cerdas dan transkripsi rekaman Anda.
+          {t('auth.login.subtitle')}
         </CardDescription>
       </CardHeader>
 
@@ -145,7 +147,7 @@ function LoginForm() {
             <Alert className="py-3 px-4 rounded-xl border-emerald-200 dark:border-emerald-800 bg-emerald-50/80 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-200">
               <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
               <AlertDescription className="text-xs sm:text-sm font-medium">
-                Email Anda berhasil diverifikasi! Silakan masuk ke akun Anda.
+                {t('auth.login.verifiedSuccess')}
               </AlertDescription>
             </Alert>
           )}
@@ -155,9 +157,11 @@ function LoginForm() {
               <div className="flex items-start gap-3">
                 <MailCheck className="w-5 h-5 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
                 <div className="text-xs sm:text-sm space-y-1">
-                  <p className="font-bold text-amber-900 dark:text-amber-200">Email Belum Terverifikasi</p>
+                  <p className="font-bold text-amber-900 dark:text-amber-200">
+                    {t('auth.login.unverifiedTitle')}
+                  </p>
                   <p className="text-amber-800/90 dark:text-amber-300/90 leading-relaxed">
-                    Akun dengan email <span className="font-semibold underline decoration-amber-400">{email}</span> belum diverifikasi. Buka email Anda untuk mengambil kode OTP atau verifikasi sekarang.
+                    {t('auth.login.unverifiedDesc', { email })}
                   </p>
                 </div>
               </div>
@@ -166,7 +170,7 @@ function LoginForm() {
                 className="inline-flex items-center justify-center w-full px-4 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs sm:text-sm font-semibold transition-all shadow-sm active:scale-[0.99]"
                 data-testid="verify-email-cta-button"
               >
-                Verifikasi Email Sekarang
+                {t('auth.login.verifyCta')}
                 <ArrowRight className="w-4 h-4 ml-1.5" />
               </Link>
             </div>
@@ -180,12 +184,12 @@ function LoginForm() {
 
           <div className="space-y-2">
             <Label htmlFor="login-email" className="text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300">
-              Alamat Email
+              {t('auth.login.emailLabel')}
             </Label>
             <Input
               id="login-email"
               type="email"
-              placeholder="nama@email.com"
+              placeholder={t('auth.login.emailPlaceholder')}
               value={email}
               onChange={(e) => {
                 setEmail(e.target.value);
@@ -201,21 +205,21 @@ function LoginForm() {
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label htmlFor="login-password" className="text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300">
-                Kata Sandi
+                {t('auth.login.passwordLabel')}
               </Label>
               <Link
                 href="/forgot-password"
                 className="text-xs sm:text-sm text-blue-600 dark:text-blue-400 font-semibold hover:text-blue-700 dark:hover:text-blue-300 hover:underline transition-colors"
                 data-testid="forgot-password-link"
               >
-                Lupa kata sandi?
+                {t('auth.login.forgotPassword')}
               </Link>
             </div>
             <div className="relative">
               <Input
                 id="login-password"
                 type={showPassword ? 'text' : 'password'}
-                placeholder="••••••••"
+                placeholder={t('auth.login.passwordPlaceholder')}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -227,7 +231,7 @@ function LoginForm() {
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
-                aria-label={showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'}
+                aria-label={showPassword ? t('auth.login.hidePassword') : t('auth.login.showPassword')}
                 data-testid="toggle-password-visibility"
               >
                 {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
@@ -246,24 +250,24 @@ function LoginForm() {
             {isLoading ? (
               <>
                 <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                Memverifikasi...
+                {t('auth.login.submitting')}
               </>
             ) : (
               <>
                 <LogIn className="w-5 h-5 mr-2" />
-                Masuk Sekarang
+                {t('auth.login.submitButton')}
               </>
             )}
           </Button>
 
           <p className="text-center text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-            Belum memiliki akun?{' '}
+            {t('auth.login.noAccount')}{' '}
             <Link
               href={claimId ? `/register?claim=${claimId}` : '/register'}
               className="text-blue-600 dark:text-blue-400 font-bold hover:underline ml-1"
               data-testid="to-register-link"
             >
-              Daftar gratis
+              {t('auth.login.registerLink')}
             </Link>
           </p>
         </CardFooter>

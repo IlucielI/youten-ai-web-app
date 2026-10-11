@@ -234,7 +234,7 @@ export default function LandingPage() {
     );
 
     const result = await handleUploadFile(file, {
-      title: options?.title || 'Rekaman Langsung',
+      title: options?.title || t('landing.tabs.record'),
       templateCategory: options?.templateCategory || DefaultTemplateKey,
     });
 
@@ -247,7 +247,7 @@ export default function LandingPage() {
       <Navbar
         brandName="Youten AI"
         brandTag="Beta"
-        ctaText="Masuk"
+        ctaText={t('navbar.ctaText')}
         ctaHref="/login"
         links={[]}
       />

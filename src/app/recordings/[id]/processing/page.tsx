@@ -24,7 +24,7 @@ export default function RecordingProcessingPage() {
   const { t } = useTranslation();
   const recordingId = Array.isArray(params?.id) ? params.id[0] : (params?.id as string) || '';
 
-  const [recordingTitle, setRecordingTitle] = useState<string>('Memuat Rekaman...');
+  const [recordingTitle, setRecordingTitle] = useState<string>(() => t('pipeline.header.loadingTitle'));
   const [isRetrying, setIsRetrying] = useState<boolean>(false);
   const eventSourceRef = useRef<EventSource | null>(null);
 
