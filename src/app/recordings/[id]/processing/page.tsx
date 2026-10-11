@@ -356,11 +356,6 @@ export default function RecordingProcessingPage() {
               startedAt={startedAt}
             />
           </div>
-
-          {/* User Guidance Banner */}
-          <p className="text-center text-xs sm:text-sm text-muted-foreground/80 leading-relaxed max-w-2xl mx-auto">
-            Proses dienkripsi secara end-to-end. Anda dapat tetap berada di layar ini atau kembali ke beranda kapan saja — progres pemrosesan akan tetap berjalan di latar belakang.
-          </p>
         </div>
       </main>
 
