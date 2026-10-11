@@ -8,12 +8,10 @@ import { useTranslation } from '@/locales';
 
 export interface FooterProps {
   className?: string;
-  showLinks?: boolean;
 }
 
 export const Footer: React.FC<FooterProps> = ({
   className,
-  showLinks = true,
 }) => {
   const { t } = useTranslation();
   const currentYear = new Date().getFullYear();
@@ -45,25 +43,8 @@ export const Footer: React.FC<FooterProps> = ({
           </p>
         </div>
 
-        {/* Links & Copyright */}
-        <div className="flex flex-wrap items-center justify-center sm:justify-end gap-x-5 gap-y-2">
-          {showLinks && (
-            <div className="flex items-center gap-4 text-[11px] sm:text-xs font-medium">
-              <Link
-                href="/dashboard"
-                className="hover:text-foreground transition-colors"
-              >
-                {t('footer.links.dashboard')}
-              </Link>
-              <Link
-                href="/health"
-                className="hover:text-foreground transition-colors"
-              >
-                {t('footer.links.systemStatus')}
-              </Link>
-            </div>
-          )}
-          {showLinks && <span className="hidden sm:inline text-border">•</span>}
+        {/* Copyright */}
+        <div className="flex items-center justify-center sm:justify-end">
           <p className="text-[11px] sm:text-xs text-muted-foreground/70">
             {t('footer.copyright', { year: currentYear })}
           </p>
