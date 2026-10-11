@@ -16,10 +16,12 @@ import { useTokenStore } from '@/stores/token.store';
 import { apiFetch } from '@/lib/api-client';
 import { ApiResponse } from '@/server/dtos/response.dto';
 import { RecordingDetailDto, RetryRecordingResponseDto } from '@/server/schemas/recording.schema';
+import { useTranslation } from '@/locales';
 
 export default function RecordingProcessingPage() {
   const params = useParams();
   const router = useRouter();
+  const { t } = useTranslation();
   const recordingId = Array.isArray(params?.id) ? params.id[0] : (params?.id as string) || '';
 
   const [recordingTitle, setRecordingTitle] = useState<string>('Memuat Rekaman...');
@@ -280,7 +282,7 @@ export default function RecordingProcessingPage() {
               className="inline-flex items-center gap-2 text-xs sm:text-sm font-medium text-muted-foreground hover:text-foreground transition-colors group"
             >
               <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
-              <span>Kembali ke Beranda</span>
+              <span>{t('pipeline.header.backToHome')}</span>
             </Link>
 
             <div className="flex items-center gap-2">
@@ -322,7 +324,7 @@ export default function RecordingProcessingPage() {
                 onClick={() => router.push(`/recordings/${recordingId}`)}
                 className="gap-2 shrink-0 px-5 py-2.5 font-semibold"
               >
-                <span>Buka Notula</span>
+                <span>{t('pipeline.status.viewResult')}</span>
                 <ExternalLink className="w-4 h-4" />
               </Button>
             )}
@@ -338,7 +340,7 @@ export default function RecordingProcessingPage() {
                 className="gap-2 shrink-0 cursor-pointer font-semibold shadow-sm px-5 py-2.5"
               >
                 <RefreshCw className={cn('w-4 h-4', isRetrying && 'animate-spin')} />
-                <span>{isRetrying ? 'Memulai Ulang...' : 'Coba Lagi Pemrosesan'}</span>
+                <span>{isRetrying ? t('common.actions.processing') : t('pipeline.status.retryProcess')}</span>
               </Button>
             )}
           </div>

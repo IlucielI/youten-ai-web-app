@@ -1,0 +1,22 @@
+export const idErrors = {
+  ERR_EXTRACTION_FAILED: 'Gagal mengekstraksi audio atau video dari sumber berkas atau tautan.',
+  ERR_IMPORT_FETCH_FAILED: 'Gagal mengunduh berkas media dari URL eksternal yang dimasukkan.',
+  ERR_UNAUTHORIZED: 'Sesi Anda telah kedaluwarsa atau tidak valid. Silakan masuk kembali.',
+  ERR_FORBIDDEN: 'Anda tidak memiliki hak akses untuk tindakan ini.',
+  ERR_NOT_FOUND: 'Data atau berkas yang Anda cari tidak ditemukan.',
+  ERR_RATE_LIMIT_EXCEEDED: 'Batas kuota harian telah tercapai. Silakan coba kembali besok atau tingkatkan akun Anda.',
+  ERR_FILE_TOO_LARGE: 'Ukuran berkas melebihi batas maksimal yang diizinkan (maksimal 500MB).',
+  ERR_UNSUPPORTED_MEDIA_TYPE: 'Format berkas media tidak didukung. Harap gunakan MP3, M4A, WAV, MP4, atau WEBM.',
+  ERR_PIPELINE_FAILED: 'Pemrosesan analisis rekaman mengalami kegagalan sistem internal.',
+  ERR_NETWORK_ERROR: 'Koneksi jaringan terputus. Harap periksa koneksi internet Anda.',
+  ERR_TIMEOUT: 'Permintaan memakan waktu terlalu lama. Silakan coba beberapa saat lagi.',
+  ERR_GUEST_QUOTA_EXHAUSTED: 'Batas kuota tamu tercapai (1 rekaman gratis/hari). Silakan masuk atau daftar akun.',
+  GENERIC_ERROR: 'Terjadi kesalahan sistem internal yang tidak terduga. Silakan coba beberapa saat lagi.',
+  validation: {
+    required: 'Kolom ini wajib diisi.',
+    invalidEmail: 'Format alamat email tidak valid.',
+    passwordLength: 'Kata sandi minimal terdiri dari 8 karakter.',
+    passwordMismatch: 'Konfirmasi kata sandi tidak cocok.',
+    urlInvalid: 'Format URL tidak valid. Pastikan diawali dengan http:// atau https://.',
+  },
+};

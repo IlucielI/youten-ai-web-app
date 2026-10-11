@@ -1,7 +1,10 @@
+'use client';
+
 import React from 'react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { YoutenLogo } from '@/components/atoms/youten-logo';
+import { useTranslation } from '@/locales';
 
 export interface FooterProps {
   className?: string;
@@ -12,6 +15,7 @@ export const Footer: React.FC<FooterProps> = ({
   className,
   showLinks = true,
 }) => {
+  const { t } = useTranslation();
   const currentYear = new Date().getFullYear();
 
   return (
@@ -37,7 +41,7 @@ export const Footer: React.FC<FooterProps> = ({
           </Link>
           <span className="hidden sm:inline text-border">•</span>
           <p className="text-muted-foreground/80 text-[11px] sm:text-xs">
-            Intelligent Speech &amp; Meeting Synthesis
+            {t('footer.tagline')}
           </p>
         </div>
 
@@ -49,19 +53,19 @@ export const Footer: React.FC<FooterProps> = ({
                 href="/dashboard"
                 className="hover:text-foreground transition-colors"
               >
-                Dashboard
+                {t('footer.links.dashboard')}
               </Link>
               <Link
                 href="/health"
                 className="hover:text-foreground transition-colors"
               >
-                Status Sistem
+                {t('footer.links.systemStatus')}
               </Link>
             </div>
           )}
           {showLinks && <span className="hidden sm:inline text-border">•</span>}
           <p className="text-[11px] sm:text-xs text-muted-foreground/70">
-            &copy; {currentYear} Youten AI. Seluruh hak cipta dilindungi.
+            {t('footer.copyright', { year: currentYear })}
           </p>
         </div>
       </div>

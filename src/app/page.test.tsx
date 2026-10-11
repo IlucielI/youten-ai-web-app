@@ -151,4 +151,20 @@ describe('LandingPage', () => {
       expect(screen.getByText(/Batas Kuota Tamu Tercapai/i)).toBeInTheDocument();
     });
   });
+
+  it('switches text dynamically when locale changes', () => {
+    const { rerender } = render(<LandingPage />);
+
+    expect(screen.getByText('Youten — Inti dari Setiap Percakapan')).toBeInTheDocument();
+    expect(screen.getByText('Unggah Berkas')).toBeInTheDocument();
+
+    // Switch to English via locale switcher button
+    const enBtn = screen.getByTestId('lang-btn-en');
+    fireEvent.click(enBtn);
+    rerender(<LandingPage />);
+
+    expect(screen.getByText('Youten — The Essence of Every Conversation')).toBeInTheDocument();
+    expect(screen.getByText('Upload File')).toBeInTheDocument();
+    expect(screen.getByText(/1 free upload per day/i)).toBeInTheDocument();
+  });
 });

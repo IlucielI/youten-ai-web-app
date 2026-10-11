@@ -1,0 +1,40 @@
+import { idAuth } from '../id/auth';
+
+export const enAuth: typeof idAuth = {
+  login: {
+    title: 'Sign In to Your Account',
+    subtitle: 'Access all your recordings, transcripts, and AI insights.',
+    emailLabel: 'Email Address',
+    emailPlaceholder: 'name@domain.com',
+    passwordLabel: 'Password',
+    passwordPlaceholder: '••••••••',
+    rememberMe: 'Remember me',
+    forgotPassword: 'Forgot password?',
+    submitButton: 'Sign In Now',
+    submitting: 'Authenticating...',
+    noAccount: "Don't have an account?",
+    registerLink: 'Register now',
+  },
+  register: {
+    title: 'Create a New Account',
+    subtitle: 'Start unlimited transcriptions and AI synthesis today.',
+    fullNameLabel: 'Full Name',
+    fullNamePlaceholder: 'e.g. John Doe',
+    emailLabel: 'Email Address',
+    emailPlaceholder: 'name@domain.com',
+    passwordLabel: 'Password',
+    passwordPlaceholder: 'At least 8 characters',
+    confirmPasswordLabel: 'Confirm Password',
+    confirmPasswordPlaceholder: 'Re-enter your password',
+    submitButton: 'Create Account',
+    submitting: 'Registering...',
+    hasAccount: 'Already have an account?',
+    loginLink: 'Sign in here',
+  },
+  verification: {
+    title: 'Verify Your Email',
+    description: 'We sent a verification link to {email}. Please check your inbox or spam folder.',
+    resendButton: 'Resend Verification Email',
+    backToLogin: 'Back to Sign In',
+  },
+};

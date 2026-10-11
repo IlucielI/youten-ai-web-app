@@ -5,4 +5,5 @@ export * from './pipeline.store';
 export * from './chat.store';
 export * from './meeting-bot.store';
 export * from './auth.store';
+export * from './locale.store';
 export * from './use-hydrated-store';
