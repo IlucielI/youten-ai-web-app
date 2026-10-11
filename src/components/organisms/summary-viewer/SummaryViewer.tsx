@@ -79,7 +79,9 @@ export function SummaryViewer({ summary, isLoading = false, className }: Summary
       }
     }
 
-    switch (template_category) {
+    const normalizedCategory = (template_category || '').trim().toUpperCase();
+
+    switch (normalizedCategory) {
       case TemplateKey.MOM: {
         const parsed = MomStructuredDataSchema.safeParse(rawData);
         if (parsed.success) {
@@ -141,6 +143,58 @@ export function SummaryViewer({ summary, isLoading = false, className }: Summary
         if (parsed.success) {
           return <PodcastRenderer data={parsed.data} />;
         }
+        // Adaptive fallback: if rawData has executive_overview or core_themes, adapt it into Podcast format
+        if (typeof rawData.executive_overview === 'string' || Array.isArray(rawData.core_themes)) {
+          const adaptedPodcast = {
+            episode_title:
+              (rawData.episode_title as string) ||
+              (rawData.title as string) ||
+              'Ringkasan Episode Podcast',
+            show_notes:
+              (rawData.show_notes as string) || (rawData.executive_overview as string) || '',
+            topic_chapters: Array.isArray(rawData.core_themes)
+              ? (rawData.core_themes as Array<{ theme?: string; summary_points?: string[] }>).map(
+                  (theme, i) => ({
+                    timestamp: `Bagian ${i + 1}`,
+                    topic: theme.theme || `Topik ${i + 1}`,
+                    summary: Array.isArray(theme.summary_points)
+                      ? theme.summary_points.join('\n')
+                      : '',
+                  })
+                )
+              : [],
+            key_takeaways: Array.isArray(rawData.key_takeaways)
+              ? (rawData.key_takeaways as string[])
+              : [],
+            golden_quotes: Array.isArray(rawData.notable_quotes)
+              ? (
+                  rawData.notable_quotes as Array<{
+                    quote?: string;
+                    speaker?: string;
+                    context?: string;
+                  }>
+                ).map((q) => ({
+                  quote: q.quote || '',
+                  speaker: q.speaker || 'Pembicara',
+                  context: q.context || '',
+                }))
+              : Array.isArray(rawData.golden_quotes)
+              ? (rawData.golden_quotes as Array<{ quote: string; speaker: string; context?: string }>)
+              : [],
+            referenced_resources: Array.isArray(rawData.referenced_resources)
+              ? (rawData.referenced_resources as unknown[]).map((r) => {
+                  if (typeof r === 'string') return { title: r, type: 'referensi', description: '' };
+                  if (typeof r === 'object' && r !== null)
+                    return r as { title?: string; type?: string; description?: string };
+                  return { title: String(r) };
+                })
+              : [],
+          };
+          const adaptedParsed = PodcastStructuredDataSchema.safeParse(adaptedPodcast);
+          if (adaptedParsed.success) {
+            return <PodcastRenderer data={adaptedParsed.data} />;
+          }
+        }
         break;
       }
 
@@ -172,11 +226,62 @@ export function SummaryViewer({ summary, isLoading = false, className }: Summary
         break;
     }
 
-    // Fallback to Markdown
+    // Failsafe Layer 2: Universal structured schema matching across known templates (specific templates prioritized first)
+    const momParsed = MomStructuredDataSchema.safeParse(rawData);
+    if (momParsed.success) {
+      return <MomRenderer data={momParsed.data} />;
+    }
+
+    const interviewParsed = InterviewStructuredDataSchema.safeParse(rawData);
+    if (interviewParsed.success) {
+      return <InterviewRenderer data={interviewParsed.data} />;
+    }
+
+    const techParsed = TechReviewStructuredDataSchema.safeParse(rawData);
+    if (techParsed.success) {
+      return <TechReviewRenderer data={techParsed.data} />;
+    }
+
+    const salesParsed = SalesDiscoveryStructuredDataSchema.safeParse(rawData);
+    if (salesParsed.success) {
+      return <SalesDiscoveryRenderer data={salesParsed.data} />;
+    }
+
+    const standupParsed = DailyStandupStructuredDataSchema.safeParse(rawData);
+    if (standupParsed.success) {
+      return <DailyStandupRenderer data={standupParsed.data} />;
+    }
+
+    const podcastParsed = PodcastStructuredDataSchema.safeParse(rawData);
+    if (podcastParsed.success) {
+      return <PodcastRenderer data={podcastParsed.data} />;
+    }
+
+    const lectureParsed = LectureStructuredDataSchema.safeParse(rawData);
+    if (lectureParsed.success) {
+      return <LectureRenderer data={lectureParsed.data} />;
+    }
+
+    const musicParsed = MusicLyricsStructuredDataSchema.safeParse(rawData);
+    if (musicParsed.success) {
+      return <MusicLyricsRenderer data={musicParsed.data} />;
+    }
+
+    const researchParsed = ResearchDeepdiveStructuredDataSchema.safeParse(rawData);
+    if (researchParsed.success) {
+      return <ResearchDeepdiveRenderer data={researchParsed.data} />;
+    }
+
+    const generalParsed = GeneralStructuredDataSchema.safeParse(rawData);
+    if (generalParsed.success) {
+      return <GeneralRenderer data={generalParsed.data} />;
+    }
+
+    // Failsafe Layer 3: Markdown fallback (with automated JSON-to-markdown conversion)
     return (
       <MarkdownFallback
         content={markdown_content || ''}
-        templateCategory={template_category}
+        templateCategory={summary.template_category}
       />
     );
   }, [isLoading, summary]);
