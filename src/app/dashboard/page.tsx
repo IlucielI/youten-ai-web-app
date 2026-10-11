@@ -268,12 +268,13 @@ export default function DashboardPage() {
       const res = await apiFetch<ApiResponse<{ is_share_enabled: boolean; share_token?: string }>>(
         `/api/recordings/${shareRecording.id}/share`,
         {
-          method: 'POST',
+          method: 'PATCH',
           body: JSON.stringify({ is_share_enabled: enable }),
         }
       );
-      if (res && res.data) {
-        setShareToken(res.data.share_token || null);
+      if (res?.data) {
+        const updatedToken = res.data.share_token || null;
+        setShareToken(updatedToken);
         toast.success(enable ? 'Tautan publik aktif' : 'Tautan publik dinonaktifkan');
       }
     } catch {
