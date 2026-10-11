@@ -20,26 +20,20 @@ describe('Navbar Component', () => {
     expect(screen.getByText('About')).toBeDefined();
   });
 
-  it('does not render userTier badge when userTier is "Free Member" or role defaults to free', () => {
+  it('does not render any user tier badges in frontend', () => {
     const { rerender } = render(<Navbar brandName="Youten AI" userTier="Free Member" />);
+    expect(screen.queryByTestId('navbar-tier-badge')).not.toBeInTheDocument();
+
+    rerender(<Navbar brandName="Youten AI" userTier="Pro Member" tierVariant="premium" />);
     expect(screen.queryByTestId('navbar-tier-badge')).not.toBeInTheDocument();
 
     rerender(<Navbar brandName="Youten AI" user={{ name: 'Bayu', email: 'bayu@youten.ai' }} />);
     expect(screen.queryByTestId('navbar-tier-badge')).not.toBeInTheDocument();
   });
 
-  it('renders userTier badge with default styling for explicit non-free tiers', () => {
-    render(<Navbar brandName="Youten AI" userTier="Enterprise" />);
-    const badge = screen.getByTestId('navbar-tier-badge');
-    expect(badge).toHaveTextContent('Enterprise');
-    expect(badge.className).toContain('text-primary');
-  });
-
-  it('renders userTier badge with premium styling when tierVariant is premium', () => {
-    render(<Navbar brandName="Youten AI" userTier="Pro Member" tierVariant="premium" />);
-    const badge = screen.getByTestId('navbar-tier-badge');
-    expect(badge).toHaveTextContent('Pro Member');
-    expect(badge.className).toContain('text-amber-800');
+  it('renders custom brandTag only when explicitly provided', () => {
+    render(<Navbar brandName="Youten AI" brandTag="Special" />);
+    expect(screen.getByText('Special')).toBeInTheDocument();
   });
 
   it('renders user dropdown with user name and options when user is authenticated', async () => {

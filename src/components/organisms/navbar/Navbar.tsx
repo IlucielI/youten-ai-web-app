@@ -42,9 +42,7 @@ const defaultLinks: NavLinkItem[] = [];
 export const Navbar: React.FC<NavbarProps> = ({
   brandName = 'Youten AI',
   brandHref = '/',
-  brandTag = 'Beta',
-  userTier,
-  tierVariant,
+  brandTag,
   links = defaultLinks,
   currentPath = '/',
   showStatus = false,
@@ -74,21 +72,6 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   const handleLogout = onLogoutProp !== undefined ? onLogoutProp : storeLogout;
 
-  // User tier badge: Free Member is removed per requirement. Only display explicit non-free tiers or PRO users.
-  const rawTier =
-    userTier ||
-    (activeUser?.role_code === 'PRO'
-      ? activeUser.role_name || 'Pro Member'
-      : undefined);
-
-  const effectiveUserTier =
-    rawTier && rawTier.toLowerCase() !== 'free member' && rawTier.toLowerCase() !== 'free'
-      ? rawTier
-      : undefined;
-
-  const effectiveTierVariant =
-    tierVariant || (activeUser?.role_code === 'PRO' ? 'premium' : 'default');
-
   return (
     <header className={`sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/80 ${className}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
@@ -99,18 +82,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             <span className="font-extrabold text-base tracking-tight text-slate-900 group-hover:text-primary transition-colors">
               {brandName}
             </span>
-            {effectiveUserTier ? (
-              <span
-                data-testid="navbar-tier-badge"
-                className={`text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full border ${
-                  effectiveTierVariant === 'premium'
-                    ? 'bg-amber-100 text-amber-800 border-amber-300'
-                    : 'bg-primary-subtle text-primary border-primary/20'
-                }`}
-              >
-                {effectiveUserTier}
-              </span>
-            ) : brandTag ? (
+            {brandTag ? (
               <span className="text-[10px] font-bold text-primary bg-primary-subtle px-2 py-0.5 rounded-full border border-primary/20">
                 {brandTag}
               </span>

@@ -276,9 +276,8 @@ export default function LandingPage() {
             <div className="flex items-center gap-2.5">
               <Sparkles className="h-4 w-4 text-primary shrink-0" />
               <span>
-                Selamat datang, <strong>{currentUser.full_name || currentUser.email}</strong>! Anda memiliki akses{' '}
-                <strong className="text-primary font-semibold">{currentUser.role_name || 'Member'}</strong> (Kuota tersisa hari ini:{' '}
-                <strong>{currentUser.quota_remaining ?? currentUser.daily_quota ?? 9998}</strong> rekaman).
+                Selamat datang, <strong>{currentUser.full_name || currentUser.email}</strong>! Kuota rekaman tersisa hari ini:{' '}
+                <strong>{currentUser.quota_remaining ?? currentUser.daily_quota ?? 9998}</strong> rekaman.
               </span>
             </div>
             <Link

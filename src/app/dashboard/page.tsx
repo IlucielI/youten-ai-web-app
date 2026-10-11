@@ -9,7 +9,6 @@ import { UserProfileResponse } from '@/server/dtos/auth.dto';
 import { RecordingListItemDTO } from '@/server/dtos/recording.dto';
 import { useAuthStore } from '@/stores/auth.store';
 import { RecordingStatus } from '@/server/constants/recording.constant';
-import { CustomerUserRole } from '@/server/constants/auth.constant';
 import { formatTime } from '@/lib/time';
 import { Button } from '@/components/atoms/button';
 import { Badge } from '@/components/atoms/badge';
@@ -335,14 +334,6 @@ export default function DashboardPage() {
               <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
                 Halo, {user?.full_name || 'Pengguna'} 👋
               </h1>
-              {(user?.role_code === CustomerUserRole.PRO || user?.role_code === CustomerUserRole.ENTERPRISE) && (
-                <span
-                  data-testid="user-tier-badge"
-                  className="text-[11px] font-extrabold uppercase px-2.5 py-0.5 rounded-full border bg-amber-100 text-amber-800 border-amber-300"
-                >
-                  {user.role_name || user.role_code}
-                </span>
-              )}
             </div>
             <p className="text-sm text-slate-500 leading-relaxed">
               Selamat datang di perpustakaan rekaman cerdas Anda. Akses transkrip, notulen rapat otomatis, dan intisari AI kapan saja.
