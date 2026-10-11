@@ -7,6 +7,7 @@ import { apiFetch } from '@/lib/api-client';
 import { cn } from '@/lib/utils';
 import { ApiResponse, BaseResponse } from '@/server/dtos/response.dto';
 import { UserProfileResponse, UserResponse } from '@/server/dtos/auth.dto';
+import { useAuthStore } from '@/stores/auth.store';
 import { Button } from '@/components/atoms/button';
 import { YoutenLogo } from '@/components/atoms/youten-logo';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/atoms/card';
@@ -62,14 +63,17 @@ export default function SettingsPage() {
         if (!isMounted) return;
         if (res && res.data) {
           setUser(res.data);
+          useAuthStore.getState().setUser(res.data);
           setFullName(res.data.full_name || '');
           setAuthLoading(false);
         } else {
+          useAuthStore.getState().setUser(null);
           router.push('/login?redirect=/settings');
         }
       })
       .catch(() => {
         if (isMounted) {
+          useAuthStore.getState().setUser(null);
           router.push('/login?redirect=/settings');
         }
       });
@@ -83,6 +87,8 @@ export default function SettingsPage() {
   const handleLogout = async () => {
     try {
       await apiFetch('/api/auth/logout', { method: 'POST' });
+      useAuthStore.getState().reset();
+      setUser(null);
       router.push('/login');
     } catch {
       toast.error('Gagal keluar dari sesi. Silakan coba kembali.');

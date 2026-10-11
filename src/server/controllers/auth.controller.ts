@@ -142,7 +142,19 @@ export class AuthController extends BaseController {
         }
       }
 
-      const result = await this.authService.logout({ refresh_token: refreshToken || 'empty_token' });
+      let result;
+      try {
+        result = await this.authService.logout({ refresh_token: refreshToken || 'empty_token' });
+      } catch {
+        this.logger?.warn('Upstream logout call failed, proceeding with local cookie clearance', { requestId });
+        result = {
+          status: 'success',
+          code: 'SUCCESS',
+          message: 'Session terminated successfully',
+          timestamp: new Date().toISOString(),
+        };
+      }
+
       const response = this.success(result, { requestId });
       response.cookies.set(AUTH_COOKIE_NAME, '', {
         ...AUTH_COOKIE_CONFIG,
@@ -155,7 +167,16 @@ export class AuthController extends BaseController {
       return response;
     } catch (error) {
       const action = this.resolveActionName(error, 'AuthController.logout');
-      return this.error(error, { requestId, action });
+      const response = this.error(error, { requestId, action });
+      response.cookies.set(AUTH_COOKIE_NAME, '', {
+        ...AUTH_COOKIE_CONFIG,
+        maxAge: 0,
+      });
+      response.cookies.set(REFRESH_COOKIE_NAME, '', {
+        ...AUTH_COOKIE_CONFIG,
+        maxAge: 0,
+      });
+      return response;
     }
   }
 

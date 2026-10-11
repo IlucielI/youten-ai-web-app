@@ -7,6 +7,7 @@ import { apiFetch } from '@/lib/api-client';
 import { cn } from '@/lib/utils';
 import { ApiResponse } from '@/server/dtos/response.dto';
 import { UserProfileResponse } from '@/server/dtos/auth.dto';
+import { useAuthStore } from '@/stores/auth.store';
 import { SpeakerSummaryDTO, SpeakerDirectoryResponse } from '@/server/dtos/workspace.dto';
 import { Button } from '@/components/atoms/button';
 import { YoutenLogo } from '@/components/atoms/youten-logo';
@@ -69,12 +70,15 @@ export default function SpeakersPage() {
         if (!isMounted) return;
         if (res && res.data) {
           setUser(res.data);
+          useAuthStore.getState().setUser(res.data);
         } else {
+          useAuthStore.getState().setUser(null);
           router.push('/login?redirect=/speakers');
         }
       })
       .catch(() => {
         if (isMounted) {
+          useAuthStore.getState().setUser(null);
           router.push('/login?redirect=/speakers');
         }
       })
@@ -125,6 +129,8 @@ export default function SpeakersPage() {
   const handleLogout = async () => {
     try {
       await apiFetch('/api/auth/logout', { method: 'POST' });
+      useAuthStore.getState().reset();
+      setUser(null);
       router.push('/login');
     } catch {
       toast.error('Gagal keluar dari sesi. Silakan coba kembali.');

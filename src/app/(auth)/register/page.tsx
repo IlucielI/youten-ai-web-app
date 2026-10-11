@@ -37,13 +37,19 @@ function RegisterForm() {
 
   // Prevent authenticated users from seeing the registration screen again
   useEffect(() => {
+    const hasRedirect = searchParams.get('redirect') || searchParams.get('from');
+    if (hasRedirect) {
+      // If user was redirected to registration with a target query param, clear any stale user store state
+      useAuthStore.getState().setUser(null);
+      return;
+    }
+
     const user = useAuthStore.getState().user;
     if (user) {
-      const redirectTo = searchParams.get('redirect') || searchParams.get('from');
       if (typeof router.replace === 'function') {
-        router.replace(redirectTo || '/dashboard');
+        router.replace('/dashboard');
       } else {
-        router.push(redirectTo || '/dashboard');
+        router.push('/dashboard');
       }
     }
   }, [router, searchParams]);

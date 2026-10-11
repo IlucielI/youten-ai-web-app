@@ -7,6 +7,7 @@ import { apiFetch, ApiClientError } from '@/lib/api-client';
 import { ApiResponse, BaseResponse } from '@/server/dtos/response.dto';
 import { UserProfileResponse } from '@/server/dtos/auth.dto';
 import { RecordingListItemDTO } from '@/server/dtos/recording.dto';
+import { useAuthStore } from '@/stores/auth.store';
 import { RecordingStatus } from '@/server/constants/recording.constant';
 import { CustomerUserRole } from '@/server/constants/auth.constant';
 import { formatTime } from '@/lib/time';
@@ -136,12 +137,15 @@ export default function DashboardPage() {
         const res = await apiFetch<ApiResponse<UserProfileResponse>>('/api/auth/me');
         if (mounted && res && res.status === 'success' && res.data) {
           setUser(res.data);
+          useAuthStore.getState().setUser(res.data);
           setAuthLoading(false);
         } else if (mounted) {
+          useAuthStore.getState().setUser(null);
           router.push('/login?redirect=/dashboard');
         }
       } catch {
         if (mounted) {
+          useAuthStore.getState().setUser(null);
           router.push('/login?redirect=/dashboard');
         }
       }
@@ -250,6 +254,8 @@ export default function DashboardPage() {
   const handleLogout = async () => {
     try {
       await apiFetch('/api/auth/logout', { method: 'POST' });
+      useAuthStore.getState().reset();
+      setUser(null);
       router.push('/login');
     } catch {
       toast.error('Gagal keluar dari sesi. Silakan coba kembali.');
