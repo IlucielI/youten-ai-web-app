@@ -23,8 +23,10 @@ import { claimGuestRecordings, claimSingleRecording } from '@/lib/claim';
 import { useTokenStore } from '@/stores/token.store';
 import { useAuthStore } from '@/stores/auth.store';
 import { toast } from 'sonner';
+import { useTranslation } from '@/locales';
 
 function VerifyEmailForm() {
+  const { t } = useTranslation();
   const router = useRouter();
   const searchParams = useSearchParams();
   const rawToken = searchParams.get('token');
@@ -69,7 +71,7 @@ function VerifyEmailForm() {
         if (response && response.status === 'success' && response.data) {
           if (!isMounted) return;
           setIsSuccess(true);
-          toast.success('Email berhasil diverifikasi!');
+          toast.success(t('notifications.success.emailVerified'));
 
           // Update auth store and clear guest session
           useTokenStore.getState().clearAnonSession();
@@ -93,7 +95,7 @@ function VerifyEmailForm() {
         } else {
           if (!isMounted) return;
           setErrorMessage(
-            response?.message || 'Tautan verifikasi tidak valid atau telah kedaluwarsa.'
+            response?.message || t('auth.verification.invalidOrExpiredToken')
           );
         }
       } catch (err: unknown) {
@@ -101,7 +103,7 @@ function VerifyEmailForm() {
         const msg =
           err instanceof Error
             ? err.message
-            : 'Tautan verifikasi tidak valid atau telah kedaluwarsa.';
+            : t('auth.verification.invalidOrExpiredToken');
         setErrorMessage(msg);
       } finally {
         if (isMounted) {
@@ -114,7 +116,7 @@ function VerifyEmailForm() {
     return () => {
       isMounted = false;
     };
-  }, [rawToken, router, claimId]);
+  }, [rawToken, router, claimId, t]);
 
   // Handle digit inputs
   const handleDigitChange = (index: number, value: string) => {
@@ -174,12 +176,12 @@ function VerifyEmailForm() {
   const handleSubmitCode = async (codeToSubmit?: string) => {
     const code = codeToSubmit || digits.join('');
     if (code.length !== 6) {
-      setErrorMessage('Mohon masukkan 6 digit kode verifikasi dengan lengkap.');
+      setErrorMessage(t('auth.verification.codeIncomplete'));
       return;
     }
 
     if (!email.trim()) {
-      setErrorMessage('Mohon masukkan alamat email Anda.');
+      setErrorMessage(t('auth.verification.emailRequired'));
       return;
     }
 
@@ -198,7 +200,7 @@ function VerifyEmailForm() {
 
       if (response && response.status === 'success' && response.data) {
         setIsSuccess(true);
-        toast.success('Email berhasil diverifikasi!');
+        toast.success(t('notifications.success.emailVerified'));
 
         useTokenStore.getState().clearAnonSession();
         if (response.data.user) {
@@ -219,14 +221,14 @@ function VerifyEmailForm() {
         }, 1500);
       } else {
         setErrorMessage(
-          response?.message || 'Kode verifikasi tidak valid atau telah kedaluwarsa.'
+          response?.message || t('auth.verification.invalidOrExpired')
         );
       }
     } catch (err: unknown) {
       const msg =
         err instanceof Error
           ? err.message
-          : 'Kode verifikasi tidak valid atau telah kedaluwarsa.';
+          : t('auth.verification.invalidOrExpired');
       setErrorMessage(msg);
     } finally {
       setIsLoading(false);
@@ -247,14 +249,14 @@ function VerifyEmailForm() {
       });
 
       if (res && (res.status === 'success' || (res.status as string) === 'SUCCESS')) {
-        toast.success('Kode verifikasi baru telah dikirim ke email Anda.');
+        toast.success(t('notifications.success.verificationCodeSent'));
         setResendCooldown(60);
       } else {
-        setErrorMessage(res?.message || 'Gagal mengirim ulang kode verifikasi.');
+        setErrorMessage(res?.message || t('auth.verification.resendFailed'));
       }
     } catch (err: unknown) {
       const msg =
-        err instanceof Error ? err.message : 'Gagal mengirim ulang kode verifikasi.';
+        err instanceof Error ? err.message : t('auth.verification.resendFailed');
       setErrorMessage(msg);
     } finally {
       setIsResending(false);
@@ -273,10 +275,10 @@ function VerifyEmailForm() {
             <Loader2 className="w-8 h-8 animate-spin" />
           </div>
           <CardTitle className="text-2xl font-extrabold text-slate-900 dark:text-white">
-            Memverifikasi Email...
+            {t('auth.verification.verifyingTitle')}
           </CardTitle>
           <CardDescription className="text-sm text-slate-500 dark:text-slate-400">
-            Mohon tunggu sebentar, kami sedang memvalidasi token verifikasi Anda.
+            {t('auth.verification.verifyingDesc')}
           </CardDescription>
         </CardHeader>
       </Card>
@@ -295,10 +297,10 @@ function VerifyEmailForm() {
             <CheckCircle2 className="w-8 h-8" />
           </div>
           <CardTitle className="text-2xl font-extrabold text-slate-900 dark:text-white">
-            Email Berhasil Diverifikasi!
+            {t('auth.verification.successTitle')}
           </CardTitle>
           <CardDescription className="text-sm text-slate-500 dark:text-slate-400">
-            Akun Anda kini telah aktif sepenuhnya. Mengalihkan Anda ke dashboard...
+            {t('auth.verification.successDesc')}
           </CardDescription>
         </CardHeader>
         <CardContent className="p-0 pt-2 flex justify-center">
@@ -306,7 +308,7 @@ function VerifyEmailForm() {
             onClick={() => router.push('/dashboard')}
             className="w-full sm:w-auto px-8"
           >
-            Buka Dashboard <ArrowRight className="w-4 h-4 ml-2" />
+            {t('auth.verification.openDashboard')} <ArrowRight className="w-4 h-4 ml-2" />
           </Button>
         </CardContent>
       </Card>
@@ -327,10 +329,10 @@ function VerifyEmailForm() {
           className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white"
           data-testid="verify-email-title"
         >
-          Verifikasi Email Anda
+          {t('auth.verification.title')}
         </CardTitle>
         <CardDescription className="text-sm sm:text-base text-slate-500 dark:text-slate-400 leading-relaxed">
-          Masukkan 6 digit kode OTP yang telah dikirimkan ke kotak masuk email Anda.
+          {t('auth.verification.subtitle')}
         </CardDescription>
       </CardHeader>
 
@@ -358,7 +360,7 @@ function VerifyEmailForm() {
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
               <Label htmlFor="verify-email" className="text-xs sm:text-sm font-semibold">
-                Alamat Email
+                {t('auth.verification.emailLabel')}
               </Label>
             </div>
             <Input
@@ -366,7 +368,7 @@ function VerifyEmailForm() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="nama@perusahaan.com"
+              placeholder={t('auth.verification.emailPlaceholder')}
               disabled={isLoading || isResending}
               className="h-11 rounded-xl bg-slate-50/70 dark:bg-slate-950/70 border-slate-200 dark:border-slate-800 text-sm"
               data-testid="verify-email-input"
@@ -376,7 +378,7 @@ function VerifyEmailForm() {
           {/* 6-Digit OTP Code Inputs */}
           <div className="space-y-2">
             <Label className="text-xs sm:text-sm font-semibold block text-center sm:text-left">
-              Kode Verifikasi (6 Digit)
+              {t('auth.verification.codeLabel')}
             </Label>
             <div
               className="flex items-center justify-between gap-1.5 sm:gap-2.5"
@@ -413,18 +415,18 @@ function VerifyEmailForm() {
             {isLoading ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Memverifikasi...
+                {t('auth.verification.submitting')}
               </>
             ) : (
               <>
-                Verifikasi Email Saya <ArrowRight className="w-4 h-4 ml-2" />
+                {t('auth.verification.submitButton')} <ArrowRight className="w-4 h-4 ml-2" />
               </>
             )}
           </Button>
 
           {/* Resend section */}
           <div className="flex flex-col sm:flex-row items-center justify-between gap-2 pt-2 border-t border-slate-100 dark:border-slate-800/60 text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-            <span>Tidak menerima kode?</span>
+            <span>{t('auth.verification.notReceived')}</span>
             <Button
               type="button"
               variant="ghost"
@@ -437,15 +439,15 @@ function VerifyEmailForm() {
               {isResending ? (
                 <>
                   <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
-                  Mengirim...
+                  {t('auth.verification.resending')}
                 </>
               ) : resendCooldown > 0 ? (
                 <>
                   <RefreshCw className="w-3.5 h-3.5 mr-1.5 animate-spin" />
-                  Kirim ulang dalam {resendCooldown}s
+                  {t('auth.verification.resendCooldown', { seconds: resendCooldown })}
                 </>
               ) : (
-                'Kirim Ulang Kode'
+                t('auth.verification.resendButton')
               )}
             </Button>
           </div>
@@ -453,22 +455,22 @@ function VerifyEmailForm() {
 
         <CardFooter className="p-0 pt-6 flex flex-col gap-3 text-center border-t border-slate-100 dark:border-slate-800/80 mt-6">
           <div className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-            Sudah selesai verifikasi?{' '}
+            {t('auth.verification.alreadyDone')}{' '}
             <Link
               href="/login"
               className="font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
               data-testid="back-to-login-link"
             >
-              Masuk ke akun Anda
+              {t('auth.verification.loginLink')}
             </Link>
           </div>
           <div className="text-xs text-slate-400 dark:text-slate-500">
-            Bukan email Anda?{' '}
+            {t('auth.verification.notYourEmail')}{' '}
             <Link
               href="/register"
               className="underline hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
             >
-              Daftar dengan email lain
+              {t('auth.verification.registerAnother')}
             </Link>
           </div>
         </CardFooter>

@@ -4,8 +4,10 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { StatusPill } from '@/components/molecules/status-pill';
 import { UserNavDropdown } from '@/components/molecules/user-nav-dropdown';
+import { LanguageSwitcher } from '@/components/molecules/language-switcher';
 import { YoutenLogo } from '@/components/atoms/youten-logo';
 import { useAuthStore } from '@/stores/auth.store';
+import { useTranslation } from '@/locales';
 
 export interface NavLinkItem {
   label: string;
@@ -42,20 +44,22 @@ const defaultLinks: NavLinkItem[] = [];
 export const Navbar: React.FC<NavbarProps> = ({
   brandName = 'Youten AI',
   brandHref = '/',
-  brandTag = 'Beta',
-  userTier,
-  tierVariant,
+  brandTag,
   links = defaultLinks,
   currentPath = '/',
   showStatus = false,
-  statusLabel = 'Sistem Aktif',
-  ctaText = 'Masuk',
+  statusLabel,
+  ctaText,
   ctaHref = '/login',
   className = '',
   user: userProp,
   onLogout: onLogoutProp,
 }) => {
+  const { t } = useTranslation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const effectiveStatusLabel = statusLabel ?? t('navbar.statusLabel');
+  const effectiveCtaText = ctaText !== undefined ? ctaText : t('navbar.ctaText');
 
   const storeUser = useAuthStore((s) => s.user);
   const storeLogout = useAuthStore((s) => s.logout);
@@ -74,15 +78,6 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   const handleLogout = onLogoutProp !== undefined ? onLogoutProp : storeLogout;
 
-  const effectiveUserTier =
-    userTier ||
-    (activeUser
-      ? activeUser.role_name || (activeUser.role_code === 'PRO' ? 'Pro Member' : 'Free Member')
-      : undefined);
-
-  const effectiveTierVariant =
-    tierVariant || (activeUser?.role_code === 'PRO' ? 'premium' : 'default');
-
   return (
     <header className={`sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/80 ${className}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
@@ -93,18 +88,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             <span className="font-extrabold text-base tracking-tight text-slate-900 group-hover:text-primary transition-colors">
               {brandName}
             </span>
-            {effectiveUserTier ? (
-              <span
-                data-testid="navbar-tier-badge"
-                className={`text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full border ${
-                  effectiveTierVariant === 'premium'
-                    ? 'bg-amber-100 text-amber-800 border-amber-300'
-                    : 'bg-primary-subtle text-primary border-primary/20'
-                }`}
-              >
-                {effectiveUserTier}
-              </span>
-            ) : brandTag ? (
+            {brandTag ? (
               <span className="text-[10px] font-bold text-primary bg-primary-subtle px-2 py-0.5 rounded-full border border-primary/20">
                 {brandTag}
               </span>
@@ -136,9 +120,11 @@ export const Navbar: React.FC<NavbarProps> = ({
         <div className="hidden sm:flex items-center gap-3">
           {showStatus && (
             <Link href="/health">
-              <StatusPill label={statusLabel} status="online" />
+              <StatusPill label={effectiveStatusLabel} status="online" />
             </Link>
           )}
+
+          <LanguageSwitcher />
 
           {activeUser ? (
             <div className="flex items-center" data-testid="navbar-user-section">
@@ -149,13 +135,13 @@ export const Navbar: React.FC<NavbarProps> = ({
                 showDashboard={true}
               />
             </div>
-          ) : ctaText ? (
+          ) : effectiveCtaText ? (
             <Link
               href={ctaHref}
               data-testid="navbar-cta-button"
               className="inline-flex items-center justify-center font-bold text-xs py-2 px-4 rounded-xl bg-primary hover:bg-primary-hover text-primary-foreground shadow-sm shadow-primary/20 transition-all active:scale-95"
             >
-              {ctaText}
+              {effectiveCtaText}
             </Link>
           ) : null}
         </div>
@@ -191,9 +177,13 @@ export const Navbar: React.FC<NavbarProps> = ({
             </Link>
           ))}
           <div className="pt-3 border-t border-slate-100 flex flex-col gap-2">
+            <div className="flex items-center justify-between px-1 py-1">
+              <span className="text-xs text-slate-500 font-medium">{t('common.labels.language')}</span>
+              <LanguageSwitcher />
+            </div>
             {showStatus && (
               <Link href="/health" onClick={() => setMobileMenuOpen(false)}>
-                <StatusPill label={statusLabel} status="online" />
+                <StatusPill label={effectiveStatusLabel} status="online" />
               </Link>
             )}
             {activeUser ? (
@@ -203,14 +193,14 @@ export const Navbar: React.FC<NavbarProps> = ({
                   onClick={() => setMobileMenuOpen(false)}
                   className="w-full text-center py-2 px-4 rounded-xl bg-primary text-primary-foreground text-xs font-bold shadow-sm"
                 >
-                  Dashboard
+                  {t('navbar.userMenu.dashboard')}
                 </Link>
                 <Link
                   href="/settings"
                   onClick={() => setMobileMenuOpen(false)}
                   className="w-full text-center py-2 px-4 rounded-xl border border-slate-200 text-slate-700 text-xs font-bold"
                 >
-                  Pengaturan
+                  {t('navbar.userMenu.settings')}
                 </Link>
                 <button
                   type="button"
@@ -220,16 +210,16 @@ export const Navbar: React.FC<NavbarProps> = ({
                   }}
                   className="w-full text-center py-2 px-4 rounded-xl border border-destructive/30 text-destructive hover:bg-destructive/10 text-xs font-bold transition-colors cursor-pointer"
                 >
-                  Keluar
+                  {t('navbar.userMenu.logout')}
                 </button>
               </>
-            ) : ctaText ? (
+            ) : effectiveCtaText ? (
               <Link
                 href={ctaHref}
                 onClick={() => setMobileMenuOpen(false)}
                 className="w-full text-center py-2 px-4 rounded-xl bg-primary text-primary-foreground text-xs font-bold shadow-sm"
               >
-                {ctaText}
+                {effectiveCtaText}
               </Link>
             ) : null}
           </div>

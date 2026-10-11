@@ -27,6 +27,7 @@ import { TranscriptSegment } from '@/components/molecules/transcript-segment';
 import { ChapterList } from '@/components/organisms/chapters-list';
 import { HighlightsGrid } from '@/components/organisms/highlights-grid';
 import { AudioPlayer } from '@/components/organisms/audio-player';
+import { Footer } from '@/components/organisms/footer';
 import { formatTime } from '@/lib/time';
 import { usePlayerStore } from '@/stores/player.store';
 import { apiFetch } from '@/lib/api-client';
@@ -190,7 +191,7 @@ export default function SharedRecordingPage() {
   return (
     <div
       data-testid="shared-recording-container"
-      className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 text-foreground selection:bg-primary/20 selection:text-primary pb-28"
+      className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 text-foreground selection:bg-primary/20 selection:text-primary"
     >
       {/* 1. Distraction-Free Powered-by Header Banner */}
       <header className="border-b border-border/60 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md sticky top-0 z-40">
@@ -394,6 +395,9 @@ export default function SharedRecordingPage() {
           </TabsContent>
         </Tabs>
       </main>
+
+      {/* Global Application Footer */}
+      <Footer className="pb-28 sm:pb-24" />
 
       {/* 4. Sticky Bottom Audio Player */}
       <AudioPlayer

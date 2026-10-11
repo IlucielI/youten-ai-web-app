@@ -20,6 +20,7 @@ import {
   Search,
 } from 'lucide-react';
 import { Navbar } from '@/components/organisms/navbar';
+import { Footer } from '@/components/organisms/footer';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/atoms/tabs';
 import { Button } from '@/components/atoms/button';
 import { Badge } from '@/components/atoms/badge';
@@ -809,6 +810,7 @@ export default function RecordingDetailPage() {
             <Link href="/">Kembali ke Beranda</Link>
           </Button>
         </div>
+        <Footer />
       </div>
     );
   }
@@ -816,7 +818,7 @@ export default function RecordingDetailPage() {
   return (
     <div
       data-testid="recording-detail-container"
-      className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 text-foreground selection:bg-primary/20 selection:text-primary pb-28"
+      className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 text-foreground selection:bg-primary/20 selection:text-primary"
     >
       {/* Top Navbar */}
       <Navbar />
@@ -1130,6 +1132,9 @@ export default function RecordingDetailPage() {
           )}
         </div>
       </main>
+
+      {/* Global Application Footer */}
+      <Footer className="pb-28 sm:pb-24" />
 
       {/* Sticky Bottom Audio Player Bar */}
       <div data-testid="sticky-audio-player-container">

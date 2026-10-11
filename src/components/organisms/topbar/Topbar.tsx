@@ -4,6 +4,7 @@ import React from 'react';
 import { Breadcrumb } from '@/components/molecules/breadcrumb';
 import { StatusPill } from '@/components/molecules/status-pill';
 import { UserNavDropdown } from '@/components/molecules/user-nav-dropdown';
+import { LanguageSwitcher } from '@/components/molecules/language-switcher';
 
 export interface TopbarProps {
   breadcrumbTitle?: string;
@@ -40,6 +41,8 @@ export const Topbar: React.FC<TopbarProps> = ({
       {/* Right: Controls & Profile */}
       <div className="flex items-center gap-3.5">
         <StatusPill label={statusText} status="online" />
+
+        <LanguageSwitcher />
 
         {actions}
 

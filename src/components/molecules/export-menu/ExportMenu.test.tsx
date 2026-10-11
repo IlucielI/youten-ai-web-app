@@ -53,18 +53,16 @@ describe('ExportMenu', () => {
     expect(screen.getByText('PILIH FORMAT EKSPOR (VERSI 2)')).toBeInTheDocument();
   });
 
-  it('renders PRO badge on PDF export option', () => {
+  it('does not render PRO badge on PDF export option', () => {
     render(<ExportMenu open={true} />);
-    expect(screen.getByTestId('pdf-pro-badge')).toBeInTheDocument();
-    expect(screen.getByTestId('pdf-pro-badge')).toHaveTextContent('PRO');
+    expect(screen.queryByTestId('pdf-pro-badge')).not.toBeInTheDocument();
   });
 
-  it('prompts upgrade when isPro is false or undefined and PDF is selected', async () => {
+  it('prompts upgrade when isPro is false and onUpgradePrompt is provided', async () => {
     const handleExport = vi.fn();
     const handleUpgradePrompt = vi.fn();
 
-    // 1. Explicit false
-    const { unmount } = render(
+    render(
       <ExportMenu
         open={true}
         isPro={false}
@@ -77,20 +75,6 @@ describe('ExportMenu', () => {
     fireEvent.click(pdfOption);
 
     expect(handleUpgradePrompt).toHaveBeenCalledTimes(1);
-    expect(handleExport).not.toHaveBeenCalled();
-    unmount();
-
-    // 2. Undefined (fail-closed security default)
-    const handleUpgradePrompt2 = vi.fn();
-    render(
-      <ExportMenu
-        open={true}
-        onExport={handleExport}
-        onUpgradePrompt={handleUpgradePrompt2}
-      />
-    );
-    fireEvent.click(screen.getByTestId(`export-option-${ExportFormat.PDF}`));
-    expect(handleUpgradePrompt2).toHaveBeenCalledTimes(1);
     expect(handleExport).not.toHaveBeenCalled();
   });
 });

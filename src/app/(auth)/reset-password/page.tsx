@@ -19,10 +19,12 @@ import { Alert, AlertDescription } from '@/components/atoms/alert';
 import { apiFetch } from '@/lib/api-client';
 import { BaseResponse } from '@/server/dtos/response.dto';
 import { YoutenLogo } from '@/components/atoms/youten-logo';
+import { useTranslation } from '@/locales';
 
 function ResetPasswordForm() {
   const searchParams = useSearchParams();
   const tokenFromUrl = searchParams.get('token') || '';
+  const { t } = useTranslation();
 
   const [token, setToken] = useState(tokenFromUrl);
   const [newPassword, setNewPassword] = useState('');
@@ -34,12 +36,12 @@ function ResetPasswordForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!token.trim()) {
-      setErrorMessage('Token pemulihan kata sandi diperlukan.');
+      setErrorMessage(t('auth.resetPassword.tokenRequired'));
       return;
     }
 
     if (newPassword.length < 8 || !/\d/.test(newPassword)) {
-      setErrorMessage('Kata sandi baru minimal 8 karakter dan harus mengandung setidaknya 1 angka.');
+      setErrorMessage(t('auth.resetPassword.passwordComplexity'));
       return;
     }
 
@@ -58,7 +60,7 @@ function ResetPasswordForm() {
 
       setIsSuccess(true);
     } catch (err: unknown) {
-      const errorMsg = err instanceof Error ? err.message : 'Gagal mengatur ulang kata sandi. Tautan mungkin telah kedaluwarsa.';
+      const errorMsg = err instanceof Error ? err.message : t('auth.resetPassword.errorFailed');
       setErrorMessage(errorMsg);
     } finally {
       setIsLoading(false);
@@ -78,10 +80,10 @@ function ResetPasswordForm() {
           className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white"
           data-testid="reset-password-title"
         >
-          Atur Ulang Kata Sandi
+          {t('auth.resetPassword.title')}
         </CardTitle>
         <CardDescription className="text-sm sm:text-base text-slate-500 dark:text-slate-400 leading-relaxed">
-          Masukkan kata sandi baru Anda untuk mengamankan akun.
+          {t('auth.resetPassword.subtitle')}
         </CardDescription>
       </CardHeader>
 
@@ -93,9 +95,9 @@ function ResetPasswordForm() {
           >
             <CheckCircle2 className="w-5 h-5 shrink-0 mt-0.5 text-emerald-600 dark:text-emerald-400" />
             <div className="space-y-1.5 text-sm">
-              <p className="font-bold text-base">Kata Sandi Berhasil Diperbarui!</p>
+              <p className="font-bold text-base">{t('auth.resetPassword.successTitle')}</p>
               <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-                Kata sandi baru Anda telah berhasil disimpan. Silakan masuk menggunakan kata sandi baru Anda.
+                {t('auth.resetPassword.successDescription')}
               </p>
             </div>
           </div>
@@ -105,7 +107,7 @@ function ResetPasswordForm() {
                 className="w-full h-12 text-sm sm:text-base font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-lg shadow-blue-600/25 active:scale-[0.99] transition-all cursor-pointer"
                 data-testid="to-login-btn"
               >
-                Masuk ke Akun Sekarang
+                {t('auth.resetPassword.backToLoginButton')}
               </Button>
             </Link>
           </div>
@@ -123,12 +125,12 @@ function ResetPasswordForm() {
 
             <div className="space-y-2">
               <Label htmlFor="reset-token" className="text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300">
-                Token Pemulihan
+                {t('auth.resetPassword.tokenLabel')}
               </Label>
               <Input
                 id="reset-token"
                 type="text"
-                placeholder="Masukkan kode token pemulihan"
+                placeholder={t('auth.resetPassword.tokenPlaceholder')}
                 value={token}
                 onChange={(e) => setToken(e.target.value)}
                 disabled={isLoading}
@@ -140,13 +142,13 @@ function ResetPasswordForm() {
 
             <div className="space-y-2">
               <Label htmlFor="reset-new-password" className="text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300">
-                Kata Sandi Baru
+                {t('auth.resetPassword.newPasswordLabel')}
               </Label>
               <div className="relative">
                 <Input
                   id="reset-new-password"
                   type={showPassword ? 'text' : 'password'}
-                  placeholder="Minimal 8 karakter & 1 angka"
+                  placeholder={t('auth.resetPassword.newPasswordPlaceholder')}
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   disabled={isLoading}
@@ -159,14 +161,14 @@ function ResetPasswordForm() {
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
-                  aria-label={showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'}
+                  aria-label={showPassword ? t('auth.login.hidePassword') : t('auth.login.showPassword')}
                   data-testid="toggle-password-visibility"
                 >
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                Gunakan minimal 8 karakter dengan kombinasi huruf dan angka.
+                {t('auth.resetPassword.passwordHint')}
               </p>
             </div>
           </CardContent>
@@ -181,12 +183,12 @@ function ResetPasswordForm() {
               {isLoading ? (
                 <>
                   <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                  Menyimpan Kata Sandi...
+                  {t('auth.resetPassword.submitting')}
                 </>
               ) : (
                 <>
                   <KeyRound className="w-5 h-5 mr-2" />
-                  Simpan Kata Sandi Baru
+                  {t('auth.resetPassword.submitButton')}
                 </>
               )}
             </Button>
@@ -197,7 +199,7 @@ function ResetPasswordForm() {
               data-testid="to-login-link"
             >
               <ArrowLeft className="w-4 h-4" />
-              Batal dan kembali ke masuk
+              {t('auth.resetPassword.cancelBackToLogin')}
             </Link>
           </CardFooter>
         </form>

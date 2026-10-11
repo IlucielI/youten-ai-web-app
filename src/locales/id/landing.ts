@@ -1,0 +1,46 @@
+export const idLanding = {
+  hero: {
+    badge: 'AI Voice & Conversation Intelligence',
+    title: 'Youten — Inti dari Setiap Percakapan',
+    subtitle:
+      'Transkripsi cerdas, intisari keputusan, dan tanya jawab bertenaga AI untuk rapat, wawancara, kuliah, dan catatan suara Anda.',
+  },
+  quota: {
+    welcome: 'Selamat datang',
+    remainingQuota: 'Kuota rekaman tersisa hari ini:',
+    recordingsUnit: 'rekaman.',
+    userBanner: 'Selamat datang, {name}! Kuota rekaman tersisa hari ini: {count} rekaman.',
+    userCta: 'Ke Dashboard',
+    guestBannerPrefix: '1 unggahan gratis per hari',
+    guestBannerSuffix: 'tanpa login. Rekaman tersimpan aman di peramban Anda.',
+    guestBanner: '1 unggahan gratis per hari tanpa login. Rekaman tersimpan aman di peramban Anda.',
+    guestCta: 'Masuk',
+    exhaustedTitle: 'Batas Kuota Tamu Tercapai:',
+    exhaustedUsage: 'Anda telah menggunakan 1 jatah rekaman gratis hari ini. Silakan',
+    orText: 'atau',
+    exhaustedSuffix: 'untuk melanjutkan tanpa batas.',
+    exhaustedDescription:
+      'Anda telah menggunakan 1 jatah rekaman gratis hari ini. Silakan {loginLink} atau {registerLink} untuk melanjutkan tanpa batas.',
+    loginText: 'Masuk',
+    registerText: 'Daftar',
+  },
+  tabs: {
+    upload: 'Unggah Berkas',
+    uploadShort: 'Unggah',
+    url: 'Tautan / URL',
+    urlShort: 'URL',
+    record: 'Rekam Langsung',
+    recordShort: 'Rekam',
+    bot: 'Bot Rapat',
+    botShort: 'Bot',
+    comingSoonBadge: 'Coming Soon',
+  },
+  templates: {
+    title: 'Template Ringkasan',
+    description: 'Pilih format keluaran intisari yang sesuai dengan kebutuhan Anda',
+    general: 'Umum & Standar',
+    meeting: 'Rapat Bisnis & Notula',
+    interview: 'Wawancara & Jurnalisme',
+    lecture: 'Kuliah & Edukasi',
+  },
+};

@@ -4,10 +4,12 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Navbar } from '@/components/organisms/navbar';
+import { Footer } from '@/components/organisms/footer';
 import { UploadDropzone } from '@/components/organisms/upload-dropzone';
 import { UrlImportForm } from '@/components/molecules/url-import-form';
 import { BrowserRecorder } from '@/components/organisms/browser-recorder';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/atoms/tabs';
+import { Badge } from '@/components/atoms/badge';
 import { MeetingBotForm } from '@/components/organisms/meeting-bot-form';
 import { LiveBotTracker } from '@/components/organisms/live-bot-tracker';
 import { useMeetingBotStore } from '@/stores/meeting-bot.store';
@@ -15,6 +17,7 @@ import { TemplateKey, DefaultTemplateKey } from '@/server/constants/template.con
 import { useTokenStore } from '@/stores/token.store';
 import { useAuthStore } from '@/stores/auth.store';
 import { apiFetch, ApiClientError } from '@/lib/api-client';
+import { useTranslation } from '@/locales';
 import { ApiResponse } from '@/server/dtos/response.dto';
 import {
   PresignUploadResponseDto,
@@ -33,6 +36,7 @@ import {
 
 export default function LandingPage() {
   const router = useRouter();
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<'upload' | 'url' | 'record' | 'bot'>('upload');
   const [isUrlImporting, setIsUrlImporting] = useState(false);
   const [quotaExhausted, setQuotaExhausted] = useState(false);
@@ -230,7 +234,7 @@ export default function LandingPage() {
     );
 
     const result = await handleUploadFile(file, {
-      title: options?.title || 'Rekaman Langsung',
+      title: options?.title || t('landing.tabs.record'),
       templateCategory: options?.templateCategory || DefaultTemplateKey,
     });
 
@@ -243,7 +247,7 @@ export default function LandingPage() {
       <Navbar
         brandName="Youten AI"
         brandTag="Beta"
-        ctaText="Masuk"
+        ctaText={t('navbar.ctaText')}
         ctaHref="/login"
         links={[]}
       />
@@ -253,16 +257,15 @@ export default function LandingPage() {
         <div className="text-center space-y-4 max-w-3xl mx-auto">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary border border-primary/20 animate-fade-in">
             <Sparkles className="h-3.5 w-3.5" />
-            <span>AI Voice & Conversation Intelligence</span>
+            <span>{t('landing.hero.badge')}</span>
           </div>
 
           <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-foreground leading-[1.15]">
-            Youten — Inti dari Setiap Percakapan
+            {t('landing.hero.title')}
           </h1>
 
           <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-            Transkripsi cerdas, intisari keputusan, dan tanya jawab bertenaga AI untuk rapat,
-            wawancara, kuliah, dan catatan suara Anda.
+            {t('landing.hero.subtitle')}
           </p>
         </div>
 
@@ -275,16 +278,15 @@ export default function LandingPage() {
             <div className="flex items-center gap-2.5">
               <Sparkles className="h-4 w-4 text-primary shrink-0" />
               <span>
-                Selamat datang, <strong>{currentUser.full_name || currentUser.email}</strong>! Anda memiliki akses{' '}
-                <strong className="text-primary font-semibold">{currentUser.role_name || 'Member'}</strong> (Kuota tersisa hari ini:{' '}
-                <strong>{currentUser.quota_remaining ?? currentUser.daily_quota ?? 9998}</strong> rekaman).
+                {t('landing.quota.welcome')}, <strong>{currentUser.full_name || currentUser.email}</strong>! {t('landing.quota.remainingQuota')}{' '}
+                <strong>{currentUser.quota_remaining ?? currentUser.daily_quota ?? 9998}</strong> {t('landing.quota.recordingsUnit')}
               </span>
             </div>
             <Link
               href="/dashboard"
               className="shrink-0 font-semibold text-primary hover:underline inline-flex items-center gap-1"
             >
-              Ke Dashboard <ArrowRight className="h-3.5 w-3.5" />
+              {t('landing.quota.userCta')} <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </div>
         ) : (
@@ -295,14 +297,14 @@ export default function LandingPage() {
             <div className="flex items-center gap-2.5">
               <Info className="h-4 w-4 text-primary shrink-0" />
               <span>
-                <strong>1 unggahan gratis per hari</strong> tanpa login. Rekaman tersimpan aman di peramban Anda.
+                <strong>{t('landing.quota.guestBannerPrefix')}</strong> {t('landing.quota.guestBannerSuffix')}
               </span>
             </div>
             <Link
               href="/login"
               className="shrink-0 font-semibold text-primary hover:underline inline-flex items-center gap-1"
             >
-              Masuk <ArrowRight className="h-3.5 w-3.5" />
+              {t('landing.quota.guestCta')} <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </div>
         )}
@@ -315,16 +317,15 @@ export default function LandingPage() {
           >
             <AlertTriangle className="h-4 w-4 shrink-0" />
             <div className="flex-1 leading-snug">
-              <strong>Batas Kuota Tamu Tercapai:</strong> Anda telah menggunakan 1 jatah rekaman gratis hari ini.
-              Silakan{' '}
+              <strong>{t('landing.quota.exhaustedTitle')}</strong> {t('landing.quota.exhaustedUsage')}{' '}
               <Link href="/login" className="underline font-semibold">
-                Masuk
+                {t('landing.quota.loginText')}
               </Link>{' '}
-              atau{' '}
+              {t('landing.quota.orText')}{' '}
               <Link href="/register" className="underline font-semibold">
-                Daftar
+                {t('landing.quota.registerText')}
               </Link>{' '}
-              untuk melanjutkan tanpa batas.
+              {t('landing.quota.exhaustedSuffix')}
             </div>
           </div>
         )}
@@ -354,8 +355,8 @@ export default function LandingPage() {
                 className="flex items-center gap-2 text-xs sm:text-sm font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm"
               >
                 <UploadCloud className="h-4 w-4" />
-                <span className="hidden sm:inline">Unggah Berkas</span>
-                <span className="sm:hidden">Unggah</span>
+                <span className="hidden sm:inline">{t('landing.tabs.upload')}</span>
+                <span className="sm:hidden">{t('landing.tabs.uploadShort')}</span>
               </TabsTrigger>
               <TabsTrigger
                 value="url"
@@ -364,8 +365,8 @@ export default function LandingPage() {
                 className="flex items-center gap-2 text-xs sm:text-sm font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm"
               >
                 <LinkIcon className="h-4 w-4" />
-                <span className="hidden sm:inline">Tautan / URL</span>
-                <span className="sm:hidden">URL</span>
+                <span className="hidden sm:inline">{t('landing.tabs.url')}</span>
+                <span className="sm:hidden">{t('landing.tabs.urlShort')}</span>
               </TabsTrigger>
               <TabsTrigger
                 value="record"
@@ -374,18 +375,24 @@ export default function LandingPage() {
                 className="flex items-center gap-2 text-xs sm:text-sm font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm"
               >
                 <Mic className="h-4 w-4" />
-                <span className="hidden sm:inline">Rekam Langsung</span>
-                <span className="sm:hidden">Rekam</span>
+                <span className="hidden sm:inline">{t('landing.tabs.record')}</span>
+                <span className="sm:hidden">{t('landing.tabs.recordShort')}</span>
               </TabsTrigger>
               <TabsTrigger
                 value="bot"
                 data-testid="tab-bot"
-                onClick={() => setActiveTab('bot')}
-                className="flex items-center gap-2 text-xs sm:text-sm font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm"
+                disabled
+                className="flex items-center gap-1.5 text-xs sm:text-sm font-medium opacity-60 cursor-not-allowed data-[state=active]:bg-background data-[state=active]:shadow-sm"
               >
                 <Bot className="h-4 w-4" />
-                <span className="hidden sm:inline">Bot Rapat</span>
-                <span className="sm:hidden">Bot</span>
+                <span className="hidden sm:inline">{t('landing.tabs.bot')}</span>
+                <span className="sm:hidden">{t('landing.tabs.botShort')}</span>
+                <Badge
+                  variant="secondary"
+                  className="ml-1 text-[10px] px-1.5 py-0 font-normal tracking-wide bg-muted-foreground/15 text-muted-foreground border-transparent"
+                >
+                  {t('landing.tabs.comingSoonBadge')}
+                </Badge>
               </TabsTrigger>
             </TabsList>
 
@@ -430,12 +437,8 @@ export default function LandingPage() {
 
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-border/60 bg-card/40 py-6 text-center text-xs text-muted-foreground">
-        <div className="max-w-7xl mx-auto px-4 flex items-center justify-center">
-          <p>© {new Date().getFullYear()} Youten AI. Seluruh hak cipta dilindungi.</p>
-        </div>
-      </footer>
+      {/* Global Application Footer */}
+      <Footer />
     </div>
   );
 }

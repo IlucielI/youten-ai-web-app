@@ -17,6 +17,7 @@ import {
   AlertTriangle,
   Loader2,
 } from 'lucide-react';
+import { useTranslation } from '@/locales';
 import { cn } from '@/lib/utils';
 
 export type RecorderState = 'idle' | 'recording' | 'paused' | 'stopped';
@@ -36,13 +37,19 @@ export interface BrowserRecorderProps {
   className?: string;
 }
 
-function extractErrorMessage(error: unknown, fallback: string): string {
+function extractErrorMessage(
+  error: unknown,
+  fallback: string,
+  t?: (key: string) => string
+): string {
   if (typeof error === 'object' && error !== null) {
     const errObj = error as { name?: string; message?: string };
     const name = errObj.name || '';
     const msg = (errObj.message || '').toLowerCase();
     if (msg.includes('permissions policy') || msg.includes('disallowed by permissions policy')) {
-      return 'Izin mikrofon terhalang oleh cache dokumen browser. Silakan muat ulang (refresh) halaman untuk memuat header izin terbaru.';
+      return t
+        ? t('ingestion.recorder.permissionsPolicyError')
+        : 'Izin mikrofon terhalang oleh cache dokumen browser. Silakan muat ulang (refresh) halaman untuk memuat header izin terbaru.';
     }
     if (
       name === 'NotAllowedError' ||
@@ -50,10 +57,14 @@ function extractErrorMessage(error: unknown, fallback: string): string {
       msg.includes('permission denied') ||
       msg.includes('permission dismissed')
     ) {
-      return 'Akses mikrofon diblokir atau ditolak oleh browser. Silakan klik ikon pengaturan/gembok di sebelah URL browser (localhost:3000), ubah izin Mikrofon menjadi "Izinkan" (Allow), lalu muat ulang halaman.';
+      return t
+        ? t('ingestion.recorder.micBlocked')
+        : 'Akses mikrofon diblokir atau ditolak oleh browser. Silakan klik ikon pengaturan/gembok di sebelah URL browser (localhost:3000), ubah izin Mikrofon menjadi "Izinkan" (Allow), lalu muat ulang halaman.';
     }
     if (name === 'NotFoundError' || name === 'DevicesNotFoundError' || msg.includes('not found')) {
-      return 'Perangkat mikrofon tidak ditemukan. Pastikan mikrofon telah terpasang dan aktif di perangkat Anda.';
+      return t
+        ? t('ingestion.recorder.micNotFound')
+        : 'Perangkat mikrofon tidak ditemukan. Pastikan mikrofon telah terpasang dan aktif di perangkat Anda.';
     }
     if (errObj.message && errObj.message.trim()) {
       return errObj.message;
@@ -67,6 +78,7 @@ export function BrowserRecorder({
   isProcessing = false,
   className,
 }: BrowserRecorderProps) {
+  const { t } = useTranslation();
   const [recorderState, setRecorderState] = useState<RecorderState>('idle');
   const [duration, setDuration] = useState(0);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -178,7 +190,7 @@ export function BrowserRecorder({
         !navigator.mediaDevices.getUserMedia ||
         typeof MediaRecorder === 'undefined'
       ) {
-        throw new Error('Perekaman audio tidak didukung oleh browser Anda.');
+        throw new Error(t('ingestion.recorder.notSupported'));
       }
 
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -195,7 +207,7 @@ export function BrowserRecorder({
 
       if (!mimeType) {
         cleanupStream();
-        throw new Error('Format perekaman audio tidak didukung oleh browser Anda.');
+        throw new Error(t('ingestion.recorder.formatNotSupported'));
       }
 
       const mediaRecorder = new MediaRecorder(stream, { mimeType });
@@ -210,7 +222,7 @@ export function BrowserRecorder({
       mediaRecorder.onstop = () => {
         const finalBlob = new Blob(audioChunksRef.current, { type: mimeType });
         setRecordedBlob(finalBlob);
-        setTitle((prev) => prev || 'Rekaman Langsung');
+        setTitle((prev) => prev || t('ingestion.recorder.defaultTitle'));
         cleanupStream();
       };
 
@@ -224,7 +236,8 @@ export function BrowserRecorder({
       cleanupStream();
       const msg = extractErrorMessage(
         err,
-        'Izin akses mikrofon ditolak atau mikrofon tidak ditemukan.'
+        t('ingestion.recorder.micPermissionDeniedFallback'),
+        t
       );
       setErrorMessage(msg);
       setRecorderState('idle');
@@ -280,11 +293,11 @@ export function BrowserRecorder({
     try {
       setErrorMessage(null);
       await onProcessRecording(recordedBlob, duration, {
-        title: title.trim() || 'Rekaman Langsung',
+        title: title.trim() || t('ingestion.recorder.defaultTitle'),
         templateCategory,
       });
     } catch (err: unknown) {
-      const msg = extractErrorMessage(err, 'Gagal memproses rekaman audio.');
+      const msg = extractErrorMessage(err, t('ingestion.recorder.defaultProcessError'), t);
       setErrorMessage(msg);
     }
   };
@@ -301,10 +314,10 @@ export function BrowserRecorder({
       <div className="space-y-1">
         <h3 className="text-base font-bold text-foreground flex items-center justify-center gap-2">
           <Mic className="h-5 w-5 text-primary" />
-          <span>Rekam Langsung dari Mikrofon</span>
+          <span>{t('ingestion.recorder.headerTitle')}</span>
         </h3>
         <p className="text-xs text-muted-foreground">
-          Tangkap percakapan tatap muka atau audio browser Anda secara langsung.
+          {t('ingestion.recorder.headerSubtitle')}
         </p>
       </div>
 
@@ -326,7 +339,11 @@ export function BrowserRecorder({
           ) : (
             <div className="flex items-center gap-2 text-muted-foreground/60 text-xs">
               <Mic className="h-6 w-6" />
-              <span>{recorderState === 'stopped' ? 'Rekaman selesai' : 'Siap merekam'}</span>
+              <span>
+                {recorderState === 'stopped'
+                  ? t('ingestion.recorder.recordingFinished')
+                  : t('ingestion.recorder.readyToRecord')}
+              </span>
             </div>
           )}
         </div>
@@ -344,14 +361,18 @@ export function BrowserRecorder({
           {recorderState === 'recording' && (
             <span className="inline-flex items-center gap-1.5 font-semibold text-rose-400">
               <span className="h-2 w-2 rounded-full bg-rose-500 animate-ping" />
-              Merekam Audio...
+              {t('ingestion.recorder.recordingAudio')}
             </span>
           )}
           {recorderState === 'paused' && (
-            <span className="font-semibold text-amber-400">Perekaman Dijeda</span>
+            <span className="font-semibold text-amber-400">
+              {t('ingestion.recorder.recordingPaused')}
+            </span>
           )}
           {recorderState === 'stopped' && (
-            <span className="font-semibold text-emerald-400">Rekaman Tersimpan ({formatTime(duration)})</span>
+            <span className="font-semibold text-emerald-400">
+              {t('ingestion.recorder.recordingSaved', { time: formatTime(duration) })}
+            </span>
           )}
         </div>
       </div>
@@ -362,7 +383,7 @@ export function BrowserRecorder({
           {audioPreviewUrl && (
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold text-foreground">
-                Pratinjau Hasil Rekaman:
+                {t('ingestion.recorder.previewLabel')}
               </Label>
               <audio
                 controls
@@ -376,14 +397,14 @@ export function BrowserRecorder({
           {/* Title Configuration */}
           <div className="space-y-1.5">
             <Label htmlFor="recording-title" className="text-xs font-semibold text-foreground">
-              Judul Rekaman:
+              {t('ingestion.recorder.titleLabel')}
             </Label>
             <Input
               id="recording-title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               disabled={isProcessing}
-              placeholder="Masukkan judul rekaman..."
+              placeholder={t('ingestion.recorder.titlePlaceholder')}
               className="text-xs"
               data-testid="recording-title-input"
             />
@@ -392,7 +413,7 @@ export function BrowserRecorder({
           {/* Template Category Picker */}
           <div className="space-y-1.5">
             <Label htmlFor="template-select" className="text-xs font-semibold text-foreground">
-              Kerangka Ringkasan Awal:
+              {t('ingestion.recorder.templateLabel')}
             </Label>
             <select
               id="template-select"
@@ -402,9 +423,9 @@ export function BrowserRecorder({
               className="w-full rounded-md border border-input bg-card px-3 py-2 text-xs shadow-sm cursor-pointer focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-50 disabled:cursor-not-allowed text-foreground"
               data-testid="template-select"
             >
-              {templates.map((t) => (
-                <option key={t.key} value={t.key} className="bg-popover text-foreground">
-                  {t.label}
+              {templates.map((tItem) => (
+                <option key={tItem.key} value={tItem.key} className="bg-popover text-foreground">
+                  {tItem.label}
                 </option>
               ))}
             </select>
@@ -424,7 +445,7 @@ export function BrowserRecorder({
             data-testid="start-record-btn"
           >
             <Mic className="h-4 w-4" />
-            <span>Mulai Rekam</span>
+            <span>{t('ingestion.recorder.startRecord')}</span>
           </Button>
         )}
 
@@ -441,12 +462,12 @@ export function BrowserRecorder({
               {recorderState === 'paused' ? (
                 <>
                   <Play className="h-3.5 w-3.5" />
-                  <span>Lanjutkan</span>
+                  <span>{t('ingestion.recorder.resume')}</span>
                 </>
               ) : (
                 <>
                   <Pause className="h-3.5 w-3.5" />
-                  <span>Jeda</span>
+                  <span>{t('ingestion.recorder.pause')}</span>
                 </>
               )}
             </Button>
@@ -460,7 +481,7 @@ export function BrowserRecorder({
               data-testid="stop-record-btn"
             >
               <Square className="h-3.5 w-3.5 fill-current" />
-              <span>Selesai</span>
+              <span>{t('ingestion.recorder.stop')}</span>
             </Button>
           </>
         )}
@@ -476,7 +497,7 @@ export function BrowserRecorder({
               data-testid="reset-record-btn"
             >
               <RotateCcw className="h-3.5 w-3.5" />
-              <span>Rekam Ulang</span>
+              <span>{t('ingestion.recorder.rerecord')}</span>
             </Button>
 
             <Button
@@ -490,12 +511,12 @@ export function BrowserRecorder({
               {isProcessing ? (
                 <>
                   <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                  <span>Memproses...</span>
+                  <span>{t('ingestion.recorder.processing')}</span>
                 </>
               ) : (
                 <>
                   <Sparkles className="h-3.5 w-3.5" />
-                  <span>Proses & Transkrip Audio</span>
+                  <span>{t('ingestion.recorder.processAudio')}</span>
                 </>
               )}
             </Button>
@@ -525,7 +546,7 @@ export function BrowserRecorder({
               }}
               data-testid="reload-page-btn"
             >
-              Muat Ulang
+              {t('ingestion.recorder.reload')}
             </Button>
             {recorderState === 'idle' && (
               <Button
@@ -535,7 +556,7 @@ export function BrowserRecorder({
                 onClick={handleStartRecording}
                 data-testid="retry-permission-btn"
               >
-                Coba Lagi
+                {t('ingestion.recorder.retry')}
               </Button>
             )}
             <Button
@@ -545,7 +566,7 @@ export function BrowserRecorder({
               onClick={() => setErrorMessage(null)}
               data-testid="dismiss-error-btn"
             >
-              Tutup
+              {t('ingestion.recorder.close')}
             </Button>
           </div>
         </div>
