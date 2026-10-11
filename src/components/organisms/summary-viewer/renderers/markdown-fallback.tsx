@@ -14,11 +14,188 @@ export interface MarkdownFallbackProps {
 }
 
 /**
+ * Formats a raw JSON object into clean, readable Markdown sections
+ * so that raw JSON never leaks to the end user.
+ */
+export function formatJSONAsMarkdown(data: Record<string, unknown>): string {
+  const parts: string[] = [];
+
+  // Title
+  const title =
+    data.episode_title ||
+    data.meeting_title ||
+    data.lecture_title ||
+    data.song_title ||
+    data.research_title ||
+    data.title;
+  if (typeof title === 'string' && title.trim()) {
+    parts.push(`# ${title.trim()}\n`);
+  }
+
+  // Overview / Executive Summary / Show Notes
+  const overview =
+    data.executive_overview ||
+    data.executive_summary ||
+    data.show_notes ||
+    data.course_summary ||
+    data.abstract_or_summary ||
+    data.summary;
+  if (typeof overview === 'string' && overview.trim()) {
+    parts.push(`## Ringkasan Eksekutif\n\n${overview.trim()}\n`);
+  }
+
+  // Key Takeaways / Poin Utama
+  const takeaways = data.key_takeaways || data.takeaways;
+  if (Array.isArray(takeaways) && takeaways.length > 0) {
+    parts.push(`## Poin-Poin Utama\n`);
+    for (const item of takeaways) {
+      if (typeof item === 'string' && item.trim()) {
+        parts.push(`- ${item.trim()}`);
+      }
+    }
+    parts.push('');
+  }
+
+  // Core Themes
+  if (Array.isArray(data.core_themes) && data.core_themes.length > 0) {
+    parts.push(`## Pembahasan Utama\n`);
+    for (const theme of data.core_themes) {
+      if (typeof theme === 'object' && theme !== null) {
+        const t = theme as { theme?: string; summary_points?: string[] };
+        if (t.theme) parts.push(`### ${t.theme}`);
+        if (Array.isArray(t.summary_points)) {
+          for (const sp of t.summary_points) {
+            parts.push(`- ${sp}`);
+          }
+        }
+        parts.push('');
+      }
+    }
+  }
+
+  // Topic Chapters
+  if (Array.isArray(data.topic_chapters) && data.topic_chapters.length > 0) {
+    parts.push(`## Babak Pembahasan\n`);
+    for (const ch of data.topic_chapters) {
+      if (typeof ch === 'object' && ch !== null) {
+        const c = ch as { timestamp?: string; topic?: string; summary?: string };
+        const timeHeader = c.timestamp ? `[${c.timestamp}] ` : '';
+        if (c.topic) parts.push(`### ${timeHeader}${c.topic}`);
+        if (c.summary) parts.push(`${c.summary}\n`);
+      }
+    }
+  }
+
+  // Quotes
+  const quotes = data.golden_quotes || data.notable_quotes || data.quotes;
+  if (Array.isArray(quotes) && quotes.length > 0) {
+    parts.push(`## Kutipan Penting\n`);
+    for (const q of quotes) {
+      if (typeof q === 'object' && q !== null) {
+        const quoteObj = q as { quote?: string; speaker?: string; context?: string };
+        if (quoteObj.quote) {
+          const speakerInfo = quoteObj.speaker ? ` — **${quoteObj.speaker}**` : '';
+          const contextInfo = quoteObj.context ? ` *(${quoteObj.context})*` : '';
+          parts.push(`> "${quoteObj.quote}"${speakerInfo}${contextInfo}\n`);
+        }
+      }
+    }
+  }
+
+  // Referenced Resources
+  if (Array.isArray(data.referenced_resources) && data.referenced_resources.length > 0) {
+    parts.push(`## Referensi & Sumber Daya\n`);
+    for (const r of data.referenced_resources) {
+      if (typeof r === 'string') {
+        parts.push(`- ${r}`);
+      } else if (typeof r === 'object' && r !== null) {
+        const res = r as { title?: string; type?: string; description?: string };
+        const typeBadge = res.type ? `*[${res.type}]* ` : '';
+        const titleStr = res.title ? `**${res.title}**` : '';
+        const descStr = res.description ? ` — ${res.description}` : '';
+        parts.push(`- ${typeBadge}${titleStr}${descStr}`);
+      }
+    }
+    parts.push('');
+  }
+
+  // If parts only has title or is empty, extract remaining keys as readable markdown sections
+  const handledKeys = new Set([
+    'episode_title',
+    'meeting_title',
+    'lecture_title',
+    'song_title',
+    'research_title',
+    'title',
+    'executive_overview',
+    'executive_summary',
+    'show_notes',
+    'course_summary',
+    'abstract_or_summary',
+    'summary',
+    'key_takeaways',
+    'takeaways',
+    'core_themes',
+    'topic_chapters',
+    'golden_quotes',
+    'notable_quotes',
+    'quotes',
+    'referenced_resources',
+    'markdown_content',
+  ]);
+
+  for (const [key, val] of Object.entries(data)) {
+    if (handledKeys.has(key) || !val) continue;
+    const formattedKey = key
+      .replace(/_/g, ' ')
+      .replace(/\b\w/g, (c) => c.toUpperCase());
+    if (typeof val === 'string' && val.trim()) {
+      parts.push(`## ${formattedKey}\n\n${val.trim()}\n`);
+    } else if (Array.isArray(val) && val.length > 0) {
+      parts.push(`## ${formattedKey}\n`);
+      for (const item of val) {
+        if (typeof item === 'string') {
+          parts.push(`- ${item}`);
+        } else if (typeof item === 'object' && item !== null) {
+          parts.push(`- ${JSON.stringify(item)}`);
+        }
+      }
+      parts.push('');
+    }
+  }
+
+  return parts.join('\n').trim();
+}
+
+/**
  * Strips raw AI artifact wrapper directives (such as :::writing{...} and closing :::)
  * commonly outputted by OpenAI / OmniRoute Canvas models.
+ * Automatically converts raw JSON payloads into human-readable Markdown.
  */
 export function cleanMarkdownContent(raw: string): string {
   if (!raw) return '';
+  const trimmed = raw.trim();
+
+  // Failsafe: if raw string is JSON, format it cleanly as Markdown
+  if (
+    (trimmed.startsWith('{') && trimmed.endsWith('}')) ||
+    (trimmed.startsWith('```json') && trimmed.includes('{')) ||
+    (trimmed.startsWith('```') && trimmed.includes('{'))
+  ) {
+    try {
+      const jsonStr = trimmed.startsWith('```')
+        ? trimmed.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '')
+        : trimmed;
+      const parsed = JSON.parse(jsonStr);
+      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+        const formatted = formatJSONAsMarkdown(parsed as Record<string, unknown>);
+        if (formatted) return formatted;
+      }
+    } catch {
+      // ignore JSON parse error, proceed to standard cleaning
+    }
+  }
+
   return raw
     // Strip opening :::directive{...} tags
     .replace(/:::[a-zA-Z0-9_-]+(\{[^}]*\})?\s*/g, '')

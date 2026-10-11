@@ -552,4 +552,107 @@ Peran individu terhadap negara dan organisasi.
     expect(screen.getByText(/Pipeline 3-pass mengurangi halusinasi/)).toBeInTheDocument();
     expect(screen.getByText(/Sistem dapat diandalkan/)).toBeInTheDocument();
   });
+
+  it('renders PODCAST correctly even when template_category is lowercase "podcast"', () => {
+    const podcastData = {
+      episode_title: 'Episode Podcast Case Insensitive',
+      show_notes: 'Show notes untuk episode huruf kecil.',
+      topic_chapters: [{ timestamp: '01:00', topic: 'Topik A', summary: 'Ringkasan A' }],
+      key_takeaways: ['Takeaway A'],
+      golden_quotes: [{ quote: 'Kutipan A', speaker: 'Speaker A' }],
+    };
+
+    render(
+      <SummaryViewer
+        summary={{
+          template_category: 'podcast',
+          structured_data: podcastData,
+        }}
+      />
+    );
+
+    expect(screen.getByTestId('podcast-summary-renderer')).toBeInTheDocument();
+    expect(screen.getByText('Episode Podcast Case Insensitive')).toBeInTheDocument();
+  });
+
+  it('adapts older podcast format with executive_overview and core_themes into PodcastRenderer', () => {
+    const legacyPodcastData = {
+      executive_overview: 'Diskusi podcast keluarga artis membahas karya musik dan album baru.',
+      core_themes: [
+        {
+          theme: 'Evolusi Musik Artis',
+          summary_points: ['Artis mulai terbuka terhadap kolaborasi'],
+        },
+      ],
+      key_takeaways: ['Menulis lagu dari pengalaman nyata'],
+      notable_quotes: [
+        {
+          quote: 'Perubahannya adalah caraku memandang sesuatu.',
+          speaker: 'Bernadya',
+          context: 'Membahas proses album',
+        },
+      ],
+      referenced_resources: ['Spotify', 'Album Terlintas'],
+    };
+
+    render(
+      <SummaryViewer
+        summary={{
+          template_category: 'podcast',
+          structured_data: legacyPodcastData,
+        }}
+      />
+    );
+
+    expect(screen.getByTestId('podcast-summary-renderer')).toBeInTheDocument();
+    expect(screen.getByText('Diskusi podcast keluarga artis membahas karya musik dan album baru.')).toBeInTheDocument();
+    expect(screen.getByText('Evolusi Musik Artis')).toBeInTheDocument();
+    expect(screen.getByText(/Perubahannya adalah caraku memandang/)).toBeInTheDocument();
+  });
+
+  it('renders GeneralRenderer as universal fallback when category is custom but structured_data matches General', () => {
+    const customSummary = {
+      executive_overview: 'Ringkasan umum untuk kategori yang tidak dikenal.',
+      core_themes: [{ theme: 'Tema Utama', summary_points: ['Poin ringkasan'] }],
+      key_takeaways: ['Takeaway pertama'],
+      notable_quotes: [{ quote: 'Kutipan', speaker: 'Pembicara', context: 'Konteks' }],
+    };
+
+    render(
+      <SummaryViewer
+        summary={{
+          template_category: 'CUSTOM_UNKNOWN_CATEGORY',
+          structured_data: customSummary,
+        }}
+      />
+    );
+
+    expect(screen.getByTestId('general-summary-renderer')).toBeInTheDocument();
+    expect(screen.getByText('Ringkasan umum untuk kategori yang tidak dikenal.')).toBeInTheDocument();
+  });
+
+  it('converts raw JSON string in markdown_content into clean readable Markdown rather than raw JSON braces', () => {
+    const rawJsonString = JSON.stringify({
+      custom_topic: 'Topik Kustom Terformat',
+      summary: 'Penjelasan topik tanpa membocorkan kurung kurawal.',
+      key_takeaways: ['Takeaway bersih 1', 'Takeaway bersih 2'],
+    });
+
+    render(
+      <SummaryViewer
+        summary={{
+          template_category: 'UNKNOWN_WITHOUT_SCHEMA',
+          structured_data: null,
+          markdown_content: rawJsonString,
+        }}
+      />
+    );
+
+    expect(screen.getByTestId('markdown-summary-fallback')).toBeInTheDocument();
+    expect(screen.getByText('Ringkasan Eksekutif')).toBeInTheDocument();
+    expect(screen.getByText('Penjelasan topik tanpa membocorkan kurung kurawal.')).toBeInTheDocument();
+    expect(screen.getByText('Takeaway bersih 1')).toBeInTheDocument();
+    // Ensure raw JSON brackets do not leak
+    expect(screen.queryByText(/\{"custom_topic"/)).not.toBeInTheDocument();
+  });
 });
