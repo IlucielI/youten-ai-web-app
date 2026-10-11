@@ -127,6 +127,13 @@ export default function ForgotPasswordPage() {
                 data-testid="forgot-email-input"
               />
             </div>
+
+            <div className="rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/70 dark:border-slate-800/80 p-3.5 flex items-start gap-3">
+              <span className="text-base select-none">💡</span>
+              <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                Pastikan alamat email sesuai dengan yang Anda daftarkan. Tautan pemulihan akan berlaku selama 15 menit demi keamanan akun Anda.
+              </p>
+            </div>
           </CardContent>
 
           <CardFooter className="p-0 flex flex-col gap-5 pt-6 pb-0">
