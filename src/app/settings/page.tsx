@@ -20,7 +20,6 @@ import {
   Shield,
   KeyRound,
   LayoutDashboard,
-  Search,
   Users,
   Save,
   CheckCircle2,
@@ -229,16 +228,6 @@ export default function SettingsPage() {
                 >
                   <LayoutDashboard className="w-3.5 h-3.5" />
                   <span>Dashboard</span>
-                </Button>
-              </Link>
-              <Link href="/search">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-slate-600 hover:text-blue-600 hover:bg-slate-100 gap-1.5 h-8 text-xs font-medium"
-                >
-                  <Search className="w-3.5 h-3.5" />
-                  <span>Pencarian Semantik</span>
                 </Button>
               </Link>
               <Link href="/speakers">
