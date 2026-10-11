@@ -207,16 +207,11 @@ export default function SettingsPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           {/* Brand Logo & Navigation Links */}
           <div className="flex items-center gap-6">
-            <Link href="/dashboard" className="flex items-center gap-2.5 group">
+            <Link href="/" className="flex items-center gap-2.5 group">
               <YoutenLogo size="sm" className="group-hover:scale-105 transition-transform" />
-              <div className="flex items-center gap-1.5">
-                <span className="font-extrabold text-base tracking-tight text-slate-900 group-hover:text-blue-600 transition-colors">
-                  Youten AI
-                </span>
-                <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200/50">
-                  Workspace
-                </span>
-              </div>
+              <span className="font-extrabold text-base tracking-tight text-slate-900 group-hover:text-blue-600 transition-colors">
+                Youten AI
+              </span>
             </Link>
 
             <nav className="hidden md:flex items-center gap-1 text-xs font-semibold">
