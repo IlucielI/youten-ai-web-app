@@ -8,6 +8,10 @@ import {
   SalesDiscoveryStructuredDataSchema,
   DailyStandupStructuredDataSchema,
   GeneralStructuredDataSchema,
+  PodcastStructuredDataSchema,
+  LectureStructuredDataSchema,
+  MusicLyricsStructuredDataSchema,
+  ResearchDeepdiveStructuredDataSchema,
 } from '@/server/schemas/summary.schema';
 import {
   MomRenderer,
@@ -17,6 +21,10 @@ import {
   SalesDiscoveryRenderer,
   DailyStandupRenderer,
   GeneralRenderer,
+  PodcastRenderer,
+  LectureRenderer,
+  MusicLyricsRenderer,
+  ResearchDeepdiveRenderer,
   MarkdownFallback,
 } from './renderers';
 import { Skeleton } from '@/components/atoms/skeleton';
@@ -46,7 +54,30 @@ export function SummaryViewer({ summary, isLoading = false, className }: Summary
     if (isLoading || !summary) return null;
 
     const { template_category, structured_data, markdown_content } = summary;
-    const rawData = structured_data || {};
+    let rawData: Record<string, unknown> =
+      structured_data && typeof structured_data === 'object' ? structured_data : {};
+
+    // Auto-parse fallback: If structured_data is empty or missing, but markdown_content contains JSON
+    if (Object.keys(rawData).length === 0 && markdown_content) {
+      const trimmed = markdown_content.trim();
+      if (
+        (trimmed.startsWith('{') && trimmed.endsWith('}')) ||
+        (trimmed.startsWith('```json') && trimmed.includes('{')) ||
+        (trimmed.startsWith('```') && trimmed.includes('{'))
+      ) {
+        try {
+          const jsonStr = trimmed.startsWith('```')
+            ? trimmed.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '')
+            : trimmed;
+          const parsedJSON = JSON.parse(jsonStr);
+          if (parsedJSON && typeof parsedJSON === 'object' && !Array.isArray(parsedJSON)) {
+            rawData = parsedJSON as Record<string, unknown>;
+          }
+        } catch {
+          // ignore parsing error, retain original rawData
+        }
+      }
+    }
 
     switch (template_category) {
       case TemplateKey.MOM: {
@@ -101,6 +132,38 @@ export function SummaryViewer({ summary, isLoading = false, className }: Summary
         const parsed = GeneralStructuredDataSchema.safeParse(rawData);
         if (parsed.success) {
           return <GeneralRenderer data={parsed.data} />;
+        }
+        break;
+      }
+
+      case TemplateKey.PODCAST: {
+        const parsed = PodcastStructuredDataSchema.safeParse(rawData);
+        if (parsed.success) {
+          return <PodcastRenderer data={parsed.data} />;
+        }
+        break;
+      }
+
+      case TemplateKey.LECTURE: {
+        const parsed = LectureStructuredDataSchema.safeParse(rawData);
+        if (parsed.success) {
+          return <LectureRenderer data={parsed.data} />;
+        }
+        break;
+      }
+
+      case TemplateKey.MUSIC_LYRICS: {
+        const parsed = MusicLyricsStructuredDataSchema.safeParse(rawData);
+        if (parsed.success) {
+          return <MusicLyricsRenderer data={parsed.data} />;
+        }
+        break;
+      }
+
+      case TemplateKey.RESEARCH_DEEPDIVE: {
+        const parsed = ResearchDeepdiveStructuredDataSchema.safeParse(rawData);
+        if (parsed.success) {
+          return <ResearchDeepdiveRenderer data={parsed.data} />;
         }
         break;
       }

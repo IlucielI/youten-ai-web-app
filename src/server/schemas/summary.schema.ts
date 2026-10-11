@@ -224,6 +224,111 @@ export const GeneralStructuredDataSchema = z.object({
 });
 export type GeneralStructuredData = z.infer<typeof GeneralStructuredDataSchema>;
 
+export const PodcastStructuredDataSchema = z.object({
+  episode_title: z.string(),
+  show_notes: z.string(),
+  guest_overview: z
+    .object({
+      guest_name: z.string().optional(),
+      guest_title: z.string().optional(),
+      bio_or_background: z.string().optional(),
+    })
+    .optional(),
+  topic_chapters: z.array(
+    z.object({
+      timestamp: z.string(),
+      topic: z.string(),
+      summary: z.string(),
+    })
+  ),
+  key_takeaways: z.array(z.string()),
+  golden_quotes: z.array(
+    z.object({
+      quote: z.string(),
+      speaker: z.string(),
+      context: z.string().optional(),
+    })
+  ),
+  referenced_resources: z
+    .array(
+      z.object({
+        title: z.string().optional(),
+        type: z.string().optional(),
+        description: z.string().optional(),
+        url: z.string().optional(),
+      })
+    )
+    .optional(),
+});
+export type PodcastStructuredData = z.infer<typeof PodcastStructuredDataSchema>;
+
+export const LectureStructuredDataSchema = z.object({
+  lecture_title: z.string(),
+  course_summary: z.string(),
+  learning_objectives: z.array(z.string()).optional(),
+  core_concepts: z.array(
+    z.object({
+      concept: z.string(),
+      explanation: z.string(),
+      examples: z.string().optional(),
+    })
+  ),
+  technical_glossary: z.array(
+    z.object({
+      term: z.string(),
+      definition: z.string(),
+    })
+  ),
+  topic_notes: z.array(
+    z.object({
+      topic: z.string(),
+      key_points: z.array(z.string()),
+    })
+  ),
+  exam_review_questions: z.array(
+    z.object({
+      question: z.string(),
+      hint_or_key_answer: z.string(),
+    })
+  ),
+});
+export type LectureStructuredData = z.infer<typeof LectureStructuredDataSchema>;
+
+export const MusicLyricsStructuredDataSchema = z.object({
+  song_title: z.string(),
+  artist_or_performers: z.string().optional(),
+  musical_style: z.string().optional(),
+  structured_lyrics: z.array(
+    z.object({
+      section: z.string(),
+      lyrics: z.string(),
+    })
+  ),
+  emotional_tone: z.object({
+    primary_mood: z.string(),
+    energy_level: z.string(),
+    sentiment_analysis: z.string().optional(),
+  }),
+  core_message: z.string(),
+  thematic_elements: z.array(z.string()).optional(),
+});
+export type MusicLyricsStructuredData = z.infer<typeof MusicLyricsStructuredDataSchema>;
+
+export const ResearchDeepdiveStructuredDataSchema = z.object({
+  research_title: z.string(),
+  abstract_or_summary: z.string(),
+  key_methodology: z.string().optional(),
+  literature_synthesis: z.array(z.string()).optional(),
+  key_findings: z.array(
+    z.object({
+      finding: z.string(),
+      implication: z.string().optional(),
+    })
+  ),
+  limitations_and_future_work: z.array(z.string()).optional(),
+});
+export type ResearchDeepdiveStructuredData = z.infer<typeof ResearchDeepdiveStructuredDataSchema>;
+
 /**
  * -----------------------------------------------------------------------------
  * 2. Summary & Versioning DTO Schemas
@@ -264,6 +369,10 @@ export const RegenerateSummaryRequestSchema = z.object({
     TemplateKey.SALES_DISCOVERY,
     TemplateKey.DAILY_STANDUP,
     TemplateKey.GENERAL,
+    TemplateKey.PODCAST,
+    TemplateKey.LECTURE,
+    TemplateKey.MUSIC_LYRICS,
+    TemplateKey.RESEARCH_DEEPDIVE,
   ]).optional(),
   custom_angle: z.string().trim().max(2000, 'Custom angle cannot exceed 2000 characters').nullable().optional(),
   ownership_token: z.string().optional(),

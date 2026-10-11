@@ -5,4 +5,8 @@ export * from './tech-review-renderer';
 export * from './sales-discovery-renderer';
 export * from './daily-standup-renderer';
 export * from './general-renderer';
+export * from './podcast-renderer';
+export * from './lecture-renderer';
+export * from './music-lyrics-renderer';
+export * from './research-deepdive-renderer';
 export * from './markdown-fallback';

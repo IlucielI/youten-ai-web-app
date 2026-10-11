@@ -354,4 +354,202 @@ Peran individu terhadap negara dan organisasi.
     // Directive tag should NOT be rendered in document
     expect(screen.queryByText(/:::writing/)).not.toBeInTheDocument();
   });
+
+  it('renders PODCAST structured template correctly', () => {
+    const podcastData = {
+      episode_title: 'Berbincang dengan Bernadya',
+      show_notes: 'Episode spesial mengulas perjalanan musikal dan pembuatan album terbaru.',
+      guest_overview: {
+        guest_name: 'Bernadya Ribka',
+        guest_title: 'Penyanyi & Penulis Lagu',
+        bio_or_background: 'Penyanyi muda berbakat asal Surabaya peraih berbagai penghargaan musik.',
+      },
+      topic_chapters: [
+        {
+          timestamp: '00:00 - 15:30',
+          topic: 'Awal Mula Karier Musik',
+          summary: 'Bernadya menceritakan awal mula ketertarikannya menulis lagu sejak masa remaja.',
+        },
+      ],
+      key_takeaways: ['Menulis lagu dari kejujuran perasaan pribadi'],
+      golden_quotes: [
+        {
+          quote: 'Musik adalah cara terbaikku untuk bercerita tanpa rasa takut.',
+          speaker: 'Bernadya',
+          context: 'Menjelaskan proses kreatif',
+        },
+      ],
+      referenced_resources: [
+        {
+          title: 'Album Sialnya, Hidup Harus Tetap Berjalan',
+          type: 'album',
+          description: 'Album debut',
+        },
+      ],
+    };
+
+    render(
+      <SummaryViewer
+        summary={{
+          template_category: TemplateKey.PODCAST,
+          structured_data: podcastData,
+        }}
+      />
+    );
+
+    expect(screen.getByTestId('podcast-summary-renderer')).toBeInTheDocument();
+    expect(screen.getByText('Berbincang dengan Bernadya')).toBeInTheDocument();
+    expect(screen.getByText('Bernadya Ribka')).toBeInTheDocument();
+    expect(screen.getByText('Awal Mula Karier Musik')).toBeInTheDocument();
+    expect(screen.getByText(/Musik adalah cara terbaikku/)).toBeInTheDocument();
+  });
+
+  it('auto-parses PODCAST structured JSON from markdown_content when structured_data is empty', () => {
+    const rawJsonPodcast = JSON.stringify({
+      episode_title: 'Podcast Auto-Parsed dari JSON',
+      show_notes: 'Catatan episode yang berhasil di-parse secara otomatis.',
+      topic_chapters: [
+        {
+          timestamp: '05:00',
+          topic: 'Pembahasan Utama',
+          summary: 'Ringkasan babak topik penting.',
+        },
+      ],
+      key_takeaways: ['Takeaway pertama'],
+      golden_quotes: [
+        {
+          quote: 'Kutipan berharga',
+          speaker: 'Pembicara A',
+        },
+      ],
+    });
+
+    render(
+      <SummaryViewer
+        summary={{
+          template_category: TemplateKey.PODCAST,
+          structured_data: {},
+          markdown_content: rawJsonPodcast,
+        }}
+      />
+    );
+
+    // Should successfully auto-parse and render structured PodcastRenderer instead of raw JSON string
+    expect(screen.getByTestId('podcast-summary-renderer')).toBeInTheDocument();
+    expect(screen.getByText('Podcast Auto-Parsed dari JSON')).toBeInTheDocument();
+    expect(screen.getByText('Pembahasan Utama')).toBeInTheDocument();
+  });
+
+  it('renders LECTURE structured template correctly', () => {
+    const lectureData = {
+      lecture_title: 'Pengantar Sistem Terdistribusi',
+      course_summary: 'Kuliah dasar mengenai konsensus, replikasi data, dan partisi jaringan.',
+      learning_objectives: ['Memahami teorema CAP'],
+      core_concepts: [
+        {
+          concept: 'Teorema CAP',
+          explanation: 'Sistem terdistribusi hanya dapat menjamin 2 dari Consistency, Availability, Partition tolerance.',
+          examples: 'Database Spanner vs Dynamo',
+        },
+      ],
+      technical_glossary: [
+        {
+          term: 'Split-Brain',
+          definition: 'Kondisi di mana node jaringan terisolasi dan bertindak sebagai leader ganda.',
+        },
+      ],
+      topic_notes: [
+        {
+          topic: 'Konsensus Raft',
+          key_points: ['Leader election', 'Log replication'],
+        },
+      ],
+      exam_review_questions: [
+        {
+          question: 'Jelaskan perbedaan synchronous dan asynchronous replication?',
+          hint_or_key_answer: 'Sync menjamin konsistensi kuat dengan trade-off latensi tinggi.',
+        },
+      ],
+    };
+
+    render(
+      <SummaryViewer
+        summary={{
+          template_category: TemplateKey.LECTURE,
+          structured_data: lectureData,
+        }}
+      />
+    );
+
+    expect(screen.getByTestId('lecture-summary-renderer')).toBeInTheDocument();
+    expect(screen.getByText('Pengantar Sistem Terdistribusi')).toBeInTheDocument();
+    expect(screen.getByText('Teorema CAP')).toBeInTheDocument();
+    expect(screen.getByText('Split-Brain')).toBeInTheDocument();
+  });
+
+  it('renders MUSIC_LYRICS structured template correctly', () => {
+    const musicData = {
+      song_title: 'Satu Bulan',
+      artist_or_performers: 'Bernadya',
+      musical_style: 'Indie Pop / Akustik',
+      structured_lyrics: [
+        {
+          section: 'Verse 1',
+          lyrics: 'Belum ada satu bulan\nKu yakin kau sudah lupa',
+        },
+      ],
+      emotional_tone: {
+        primary_mood: 'Melankolis',
+        energy_level: 'Lembut',
+        sentiment_analysis: 'Reflektif mengenai perpisahan',
+      },
+      core_message: 'Menerima kenyataan bahwa seseorang telah melangkah maju lebih cepat.',
+      thematic_elements: ['Patah Hati', 'Waktu', 'Penerimaan'],
+    };
+
+    render(
+      <SummaryViewer
+        summary={{
+          template_category: TemplateKey.MUSIC_LYRICS,
+          structured_data: musicData,
+        }}
+      />
+    );
+
+    expect(screen.getByTestId('music-lyrics-summary-renderer')).toBeInTheDocument();
+    expect(screen.getByText('Satu Bulan')).toBeInTheDocument();
+    expect(screen.getByText('Verse 1')).toBeInTheDocument();
+    expect(screen.getByText(/Belum ada satu bulan/)).toBeInTheDocument();
+    expect(screen.getByText('#Patah Hati')).toBeInTheDocument();
+  });
+
+  it('renders RESEARCH_DEEPDIVE structured template correctly', () => {
+    const researchData = {
+      research_title: 'Evaluasi Skalabilitas Model AI Agentic',
+      abstract_or_summary: 'Studi komparatif arsitektur agen otonom terhadap pemrosesan pipeline data skala besar.',
+      key_methodology: 'Eksperimen benchmark terkontrol dengan 100 instance paralel.',
+      literature_synthesis: ['Riset terdahulu menunjukkan koordinasi multi-agent mengurangi error sebesar 40%'],
+      key_findings: [
+        {
+          finding: 'Pipeline 3-pass mengurangi halusinasi diarization hingga 85%',
+          implication: 'Sistem dapat diandalkan untuk audio multi-speaker lebih dari 10 pembicara.',
+        },
+      ],
+      limitations_and_future_work: ['Pengujian pada audio berderau ekstrem di lingkungan outdoor'],
+    };
+
+    render(
+      <SummaryViewer
+        summary={{
+          template_category: TemplateKey.RESEARCH_DEEPDIVE,
+          structured_data: researchData,
+        }}
+      />
+    );
+
+    expect(screen.getByTestId('research-deepdive-summary-renderer')).toBeInTheDocument();
+    expect(screen.getByText('Evaluasi Skalabilitas Model AI Agentic')).toBeInTheDocument();
+    expect(screen.getByText(/Pipeline 3-pass mengurangi halusinasi/)).toBeInTheDocument();
+    expect(screen.getByText(/Sistem dapat diandalkan/)).toBeInTheDocument();
+  });
 });
