@@ -19,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/atoms/select';
-import { UserChip } from '@/components/molecules/user-chip';
+import { UserNavDropdown } from '@/components/molecules/user-nav-dropdown';
 import { EmptyState } from '@/components/molecules/empty-state';
 import { SpeakerCard, formatTalkDuration } from '@/components/molecules/speaker-card';
 import { toast } from 'sonner';
@@ -29,13 +29,11 @@ import {
   Clock,
   Search,
   RefreshCw,
-  LogOut,
   LayoutDashboard,
   Sparkles,
   ArrowUpDown,
   X,
   AlertCircle,
-  User,
 } from 'lucide-react';
 
 type SortOption = 'talk_time' | 'meetings' | 'last_active' | 'name';
@@ -235,45 +233,12 @@ export default function SpeakersPage() {
                   <span>Direktori Pembicara</span>
                 </Button>
               </Link>
-              <Link href="/settings">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-slate-600 hover:text-blue-600 hover:bg-slate-100 gap-1.5 h-8 text-xs font-medium"
-                >
-                  <User className="w-3.5 h-3.5" />
-                  <span>Pengaturan</span>
-                </Button>
-              </Link>
             </nav>
           </div>
 
           {/* Right Header Controls */}
           <div className="flex items-center gap-3">
-            <UserChip
-              name={user?.full_name || 'Pengguna'}
-              role={user?.email || 'Akun Terverifikasi'}
-              initials={
-                user?.full_name
-                  ? user.full_name
-                      .split(' ')
-                      .map((n) => n[0])
-                      .slice(0, 2)
-                      .join('')
-                      .toUpperCase()
-                  : 'U'
-              }
-            />
-
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleLogout}
-              className="text-slate-500 hover:text-rose-600 hover:bg-rose-50 text-xs gap-1.5"
-            >
-              <LogOut className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Keluar</span>
-            </Button>
+            <UserNavDropdown user={user} onLogout={handleLogout} />
           </div>
         </div>
       </header>

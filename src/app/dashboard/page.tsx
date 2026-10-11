@@ -40,7 +40,7 @@ import {
 import { StatusPill } from '@/components/molecules/status-pill';
 import { EmptyState } from '@/components/molecules/empty-state';
 import { ShareDialog } from '@/components/molecules/share-dialog';
-import { UserChip } from '@/components/molecules/user-chip';
+import { UserNavDropdown } from '@/components/molecules/user-nav-dropdown';
 import { toast } from 'sonner';
 import { useTemplates } from '@/hooks';
 import {
@@ -50,7 +50,6 @@ import {
   List,
   Sparkles,
   RefreshCw,
-  LogOut,
   ChevronLeft,
   ChevronRight,
   Trash2,
@@ -59,7 +58,6 @@ import {
   AlertTriangle,
   FolderOpen,
   Users,
-  User,
 } from 'lucide-react';
 
 const STATUS_OPTIONS = [
@@ -343,41 +341,7 @@ export default function DashboardPage() {
               </Button>
             </Link>
 
-            <Link href="/settings">
-              <Button
-                variant="outline"
-                size="sm"
-                className="hidden sm:flex items-center gap-1.5 text-xs text-slate-600 border-slate-200 hover:text-blue-600 hover:border-blue-300"
-              >
-                <User className="w-3.5 h-3.5 text-slate-400" />
-                <span>Pengaturan</span>
-              </Button>
-            </Link>
-
-            <UserChip
-              name={user?.full_name || 'Pengguna'}
-              role={user?.email || 'Akun Terverifikasi'}
-              initials={
-                user?.full_name
-                  ? user.full_name
-                      .split(' ')
-                      .map((n) => n[0])
-                      .slice(0, 2)
-                      .join('')
-                      .toUpperCase()
-                  : 'U'
-              }
-            />
-
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleLogout}
-              className="text-slate-500 hover:text-rose-600 hover:bg-rose-50 text-xs gap-1.5"
-            >
-              <LogOut className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Keluar</span>
-            </Button>
+            <UserNavDropdown user={user} onLogout={handleLogout} />
           </div>
         </div>
       </header>

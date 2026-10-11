@@ -13,7 +13,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { Input } from '@/components/atoms/input';
 import { Label } from '@/components/atoms/label';
 import { Progress } from '@/components/atoms/progress';
-import { UserChip } from '@/components/molecules/user-chip';
+import { UserNavDropdown } from '@/components/molecules/user-nav-dropdown';
 import { toast } from 'sonner';
 import {
   User,
@@ -22,7 +22,6 @@ import {
   LayoutDashboard,
   Search,
   Users,
-  LogOut,
   Save,
   CheckCircle2,
   AlertCircle,
@@ -252,46 +251,12 @@ export default function SettingsPage() {
                   <span>Direktori Pembicara</span>
                 </Button>
               </Link>
-              <Link href="/settings">
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  className="bg-blue-50 text-blue-700 hover:bg-blue-100 gap-1.5 h-8 text-xs font-semibold border border-blue-200/60"
-                >
-                  <User className="w-3.5 h-3.5" />
-                  <span>Pengaturan</span>
-                </Button>
-              </Link>
             </nav>
           </div>
 
           {/* Right Header Controls */}
           <div className="flex items-center gap-3">
-            <UserChip
-              name={user?.full_name || 'Pengguna'}
-              role={user?.email || 'Akun Terverifikasi'}
-              initials={
-                user?.full_name
-                  ? user.full_name
-                      .split(' ')
-                      .map((n) => n[0])
-                      .slice(0, 2)
-                      .join('')
-                      .toUpperCase()
-                  : 'U'
-              }
-            />
-
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleLogout}
-              data-testid="logout-btn"
-              className="text-slate-500 hover:text-rose-600 hover:bg-rose-50 text-xs gap-1.5"
-            >
-              <LogOut className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Keluar</span>
-            </Button>
+            <UserNavDropdown user={user} onLogout={handleLogout} />
           </div>
         </div>
       </header>

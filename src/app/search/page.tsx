@@ -34,7 +34,7 @@ import {
   CommandItem,
   CommandSeparator,
 } from '@/components/atoms/command';
-import { UserChip } from '@/components/molecules/user-chip';
+import { UserNavDropdown } from '@/components/molecules/user-nav-dropdown';
 import { EmptyState } from '@/components/molecules/empty-state';
 import { SearchResultCard } from '@/components/molecules/search-result-card';
 import { CitationBadge } from '@/components/atoms/citation-badge';
@@ -46,7 +46,6 @@ import {
   Bot,
   Send,
   RefreshCw,
-  LogOut,
   ArrowLeft,
   X,
   PlayCircle,
@@ -341,41 +340,7 @@ export default function SearchPage() {
               </Button>
             </Link>
 
-            <Link href="/settings">
-              <Button
-                variant="outline"
-                size="sm"
-                className="hidden sm:flex items-center gap-1.5 text-xs text-slate-600 border-slate-200 hover:text-blue-600 hover:border-blue-300 h-9"
-              >
-                <User className="w-3.5 h-3.5 text-slate-400" />
-                <span>Pengaturan</span>
-              </Button>
-            </Link>
-
-            <UserChip
-              name={user?.full_name || 'Pengguna'}
-              role={user?.email || 'Akun Terverifikasi'}
-              initials={
-                user?.full_name
-                  ? user.full_name
-                      .split(' ')
-                      .map((n) => n[0])
-                      .slice(0, 2)
-                      .join('')
-                      .toUpperCase()
-                  : 'U'
-              }
-            />
-
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleLogout}
-              className="text-slate-500 hover:text-rose-600 hover:bg-rose-50 text-xs gap-1.5"
-            >
-              <LogOut className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Keluar</span>
-            </Button>
+            <UserNavDropdown user={user} onLogout={handleLogout} />
           </div>
         </div>
       </header>

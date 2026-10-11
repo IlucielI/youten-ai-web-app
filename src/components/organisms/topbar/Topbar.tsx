@@ -3,7 +3,7 @@
 import React from 'react';
 import { Breadcrumb } from '@/components/molecules/breadcrumb';
 import { StatusPill } from '@/components/molecules/status-pill';
-import { UserChip } from '@/components/molecules/user-chip';
+import { UserNavDropdown } from '@/components/molecules/user-nav-dropdown';
 
 export interface TopbarProps {
   breadcrumbTitle?: string;
@@ -12,6 +12,7 @@ export interface TopbarProps {
   userName?: string;
   userRole?: string;
   userInitials?: string;
+  onLogout?: () => void;
   actions?: React.ReactNode;
   className?: string;
 }
@@ -23,6 +24,7 @@ export const Topbar: React.FC<TopbarProps> = ({
   userName = 'Developer',
   userRole = 'Admin',
   userInitials = 'DV',
+  onLogout,
   actions,
   className = '',
 }) => {
@@ -42,7 +44,12 @@ export const Topbar: React.FC<TopbarProps> = ({
         {actions}
 
         <div className="pl-2 border-l border-slate-200">
-          <UserChip name={userName} role={userRole} initials={userInitials} />
+          <UserNavDropdown
+            name={userName}
+            email={userRole}
+            initials={userInitials}
+            onLogout={onLogout}
+          />
         </div>
       </div>
     </header>

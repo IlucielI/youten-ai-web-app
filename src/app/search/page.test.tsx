@@ -339,7 +339,10 @@ describe('SearchPage Component', () => {
     const { rerender } = render(<SearchPage />);
     expect(await screen.findByText('Developer Youten')).toBeInTheDocument();
 
-    const logoutBtn = screen.getByRole('button', { name: /keluar/i });
+    const trigger = await screen.findByTestId('user-nav-dropdown-trigger');
+    fireEvent.pointerDown(trigger, { button: 0 });
+    fireEvent.click(trigger);
+    const logoutBtn = await screen.findByTestId('logout-btn');
     fireEvent.click(logoutBtn);
 
     await waitFor(() => {
@@ -349,7 +352,11 @@ describe('SearchPage Component', () => {
     // Test error case
     logoutFail = true;
     rerender(<SearchPage />);
-    fireEvent.click(logoutBtn);
+    const trigger2 = await screen.findByTestId('user-nav-dropdown-trigger');
+    fireEvent.pointerDown(trigger2, { button: 0 });
+    fireEvent.click(trigger2);
+    const logoutBtn2 = await screen.findByTestId('logout-btn');
+    fireEvent.click(logoutBtn2);
 
     await waitFor(() => {
       expect(toast.error).toHaveBeenCalledWith('Gagal keluar dari sesi. Silakan coba kembali.');
