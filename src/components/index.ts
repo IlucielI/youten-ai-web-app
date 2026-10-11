@@ -10,4 +10,5 @@ export {
   StatusPill,
   StepTracker,
   UserChip,
+  UserNavDropdown,
 } from './molecules';

@@ -69,6 +69,18 @@ describe('BrowserRecorder Organism', () => {
       writable: true,
       configurable: true,
     });
+
+    if (typeof window.URL.createObjectURL === 'undefined') {
+      window.URL.createObjectURL = vi.fn().mockReturnValue('blob:http://localhost/mock-audio');
+    } else {
+      vi.spyOn(window.URL, 'createObjectURL').mockReturnValue('blob:http://localhost/mock-audio');
+    }
+
+    if (typeof window.URL.revokeObjectURL === 'undefined') {
+      window.URL.revokeObjectURL = vi.fn();
+    } else {
+      vi.spyOn(window.URL, 'revokeObjectURL').mockImplementation(() => {});
+    }
   });
 
   afterEach(() => {
@@ -117,7 +129,7 @@ describe('BrowserRecorder Organism', () => {
     expect(mockMediaRecorderInstance?.resume).toHaveBeenCalled();
   });
 
-  it('stops recording and submits recorded blob on process', async () => {
+  it('stops recording and submits recorded blob on process with title and template options', async () => {
     const handleProcess = vi.fn();
     render(<BrowserRecorder onProcessRecording={handleProcess} />);
 
@@ -132,12 +144,31 @@ describe('BrowserRecorder Organism', () => {
     await waitFor(() => {
       expect(screen.getByTestId('process-record-btn')).toBeInTheDocument();
       expect(screen.getByTestId('reset-record-btn')).toBeInTheDocument();
+      expect(screen.getByTestId('recording-title-input')).toBeInTheDocument();
+      expect(screen.getByTestId('template-select')).toBeInTheDocument();
+      expect(screen.getByTestId('audio-preview')).toBeInTheDocument();
     });
+
+    // Verify default title is populated
+    const titleInput = screen.getByTestId('recording-title-input') as HTMLInputElement;
+    expect(titleInput.value).toBe('Rekaman Langsung');
+
+    // Customize title and template category
+    fireEvent.change(titleInput, { target: { value: 'Rapat Sinkronisasi Sprint 42' } });
+    const templateSelect = screen.getByTestId('template-select') as HTMLSelectElement;
+    fireEvent.change(templateSelect, { target: { value: 'INTERVIEW' } });
 
     fireEvent.click(screen.getByTestId('process-record-btn'));
 
     await waitFor(() => {
-      expect(handleProcess).toHaveBeenCalled();
+      expect(handleProcess).toHaveBeenCalledWith(
+        expect.any(Blob),
+        expect.any(Number),
+        {
+          title: 'Rapat Sinkronisasi Sprint 42',
+          templateCategory: 'INTERVIEW',
+        }
+      );
     });
   });
 
@@ -165,11 +196,13 @@ describe('BrowserRecorder Organism', () => {
     fireEvent.click(screen.getByTestId('stop-record-btn'));
     await waitFor(() => expect(screen.getByTestId('reset-record-btn')).toBeInTheDocument());
 
+    expect(screen.getByTestId('recording-title-input')).toBeInTheDocument();
     fireEvent.click(screen.getByTestId('reset-record-btn'));
 
     await waitFor(() => {
       expect(screen.getByTestId('start-record-btn')).toBeInTheDocument();
       expect(screen.queryByTestId('reset-record-btn')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('recording-title-input')).not.toBeInTheDocument();
     });
   });
 
@@ -256,4 +289,80 @@ describe('BrowserRecorder Organism', () => {
       expect(screen.getByText('Izin akses mikrofon ditolak atau mikrofon tidak ditemukan.')).toBeInTheDocument();
     });
   });
+
+  it('displays user-friendly guidance when microphone permission is denied', async () => {
+    Object.defineProperty(navigator, 'mediaDevices', {
+      value: {
+        getUserMedia: vi.fn().mockRejectedValue(new DOMException('Permission denied', 'NotAllowedError')),
+      },
+      writable: true,
+      configurable: true,
+    });
+
+    render(<BrowserRecorder />);
+    fireEvent.click(screen.getByTestId('start-record-btn'));
+
+    await waitFor(() => {
+      expect(screen.getByText(/Akses mikrofon diblokir atau ditolak oleh browser/i)).toBeInTheDocument();
+      expect(screen.getByTestId('retry-permission-btn')).toBeInTheDocument();
+      expect(screen.getByTestId('reload-page-btn')).toBeInTheDocument();
+      expect(screen.getByTestId('dismiss-error-btn')).toBeInTheDocument();
+    });
+
+    // Dismiss error alert
+    fireEvent.click(screen.getByTestId('dismiss-error-btn'));
+    expect(screen.queryByTestId('recorder-error-alert')).not.toBeInTheDocument();
+  });
+
+  it('displays permissions policy specific message when blocked by permissions policy', async () => {
+    Object.defineProperty(navigator, 'mediaDevices', {
+      value: {
+        getUserMedia: vi.fn().mockRejectedValue(
+          new DOMException('Access to the feature "microphone" is disallowed by permissions policy', 'NotAllowedError')
+        ),
+      },
+      writable: true,
+      configurable: true,
+    });
+
+    render(<BrowserRecorder />);
+    fireEvent.click(screen.getByTestId('start-record-btn'));
+
+    await waitFor(() => {
+      expect(screen.getByText(/Izin mikrofon terhalang oleh cache dokumen browser/i)).toBeInTheDocument();
+      expect(screen.getByTestId('reload-page-btn')).toBeInTheDocument();
+    });
+  });
+
+  it('allows retrying recording from error banner after permission issue is fixed', async () => {
+    const mockGetUserMedia = vi.fn()
+      .mockRejectedValueOnce(new DOMException('Permission denied', 'NotAllowedError'))
+      .mockResolvedValueOnce({
+        getTracks: vi.fn().mockReturnValue([{ stop: vi.fn() }]),
+      });
+
+    Object.defineProperty(navigator, 'mediaDevices', {
+      value: {
+        getUserMedia: mockGetUserMedia,
+      },
+      writable: true,
+      configurable: true,
+    });
+
+    render(<BrowserRecorder />);
+    fireEvent.click(screen.getByTestId('start-record-btn'));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('retry-permission-btn')).toBeInTheDocument();
+    });
+
+    // User clicks Coba Lagi button
+    fireEvent.click(screen.getByTestId('retry-permission-btn'));
+
+    await waitFor(() => {
+      expect(mockGetUserMedia).toHaveBeenCalledTimes(2);
+      expect(screen.getByText('Merekam Audio...')).toBeInTheDocument();
+    });
+  });
 });
+

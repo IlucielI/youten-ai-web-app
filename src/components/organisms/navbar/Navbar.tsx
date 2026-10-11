@@ -2,8 +2,8 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { LogOut } from 'lucide-react';
 import { StatusPill } from '@/components/molecules/status-pill';
+import { UserNavDropdown } from '@/components/molecules/user-nav-dropdown';
 import { YoutenLogo } from '@/components/atoms/youten-logo';
 import { useAuthStore } from '@/stores/auth.store';
 
@@ -37,12 +37,7 @@ export interface NavbarProps {
   onLogout?: () => void;
 }
 
-const defaultLinks: NavLinkItem[] = [
-  { label: 'Documentation', href: '#' },
-  { label: 'Architecture', href: '#architecture' },
-  { label: 'Design System', href: '#components' },
-  { label: 'Health API', href: '/api/health' },
-];
+const defaultLinks: NavLinkItem[] = [];
 
 export const Navbar: React.FC<NavbarProps> = ({
   brandName = 'Youten AI',
@@ -52,10 +47,10 @@ export const Navbar: React.FC<NavbarProps> = ({
   tierVariant,
   links = defaultLinks,
   currentPath = '/',
-  showStatus = true,
-  statusLabel = 'API Online',
-  ctaText = 'Get Started',
-  ctaHref = '#components',
+  showStatus = false,
+  statusLabel = 'Sistem Aktif',
+  ctaText = 'Masuk',
+  ctaHref = '/login',
   className = '',
   user: userProp,
   onLogout: onLogoutProp,
@@ -146,33 +141,13 @@ export const Navbar: React.FC<NavbarProps> = ({
           )}
 
           {activeUser ? (
-            <div className="flex items-center gap-2.5" data-testid="navbar-user-section">
-              <Link
-                href="/dashboard"
-                data-testid="navbar-dashboard-button"
-                className="inline-flex items-center justify-center font-bold text-xs py-2 px-3.5 rounded-xl bg-primary hover:bg-primary-hover text-primary-foreground shadow-sm shadow-primary/20 transition-all active:scale-95"
-              >
-                Dashboard
-              </Link>
-              <div className="flex items-center gap-2 pl-2 border-l border-slate-200">
-                <span
-                  data-testid="navbar-user-name"
-                  className="text-xs font-semibold text-slate-800 hidden lg:inline max-w-[120px] truncate"
-                  title={activeUser.name || activeUser.email}
-                >
-                  {activeUser.name || activeUser.email}
-                </span>
-                <button
-                  type="button"
-                  onClick={handleLogout}
-                  data-testid="navbar-logout-button"
-                  className="p-1.5 text-slate-500 hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors cursor-pointer text-xs font-semibold inline-flex items-center gap-1"
-                  title="Keluar"
-                >
-                  <LogOut className="w-3.5 h-3.5" />
-                  <span className="hidden xl:inline">Keluar</span>
-                </button>
-              </div>
+            <div className="flex items-center" data-testid="navbar-user-section">
+              <UserNavDropdown
+                name={activeUser.name}
+                email={activeUser.email}
+                onLogout={handleLogout}
+                showDashboard={true}
+              />
             </div>
           ) : ctaText ? (
             <Link
@@ -229,6 +204,13 @@ export const Navbar: React.FC<NavbarProps> = ({
                   className="w-full text-center py-2 px-4 rounded-xl bg-primary text-primary-foreground text-xs font-bold shadow-sm"
                 >
                   Dashboard
+                </Link>
+                <Link
+                  href="/settings"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="w-full text-center py-2 px-4 rounded-xl border border-slate-200 text-slate-700 text-xs font-bold"
+                >
+                  Pengaturan
                 </Link>
                 <button
                   type="button"

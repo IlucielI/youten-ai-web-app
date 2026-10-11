@@ -82,6 +82,7 @@ export const ChatRole = {
 export type ChatRole = (typeof ChatRole)[keyof typeof ChatRole];
 
 export const UserStatus = {
+  PENDING: 'pending',
   ACTIVE: 'active',
   SUSPENDED: 'suspended',
 } as const;

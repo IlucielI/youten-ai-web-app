@@ -95,7 +95,7 @@ export const SpeakerCard: React.FC<SpeakerCardProps> = ({
   const avatarClass = getAvatarColorClass(speaker.name);
   const formattedDuration = formatTalkDuration(speaker.total_talk_time);
   const formattedLastActive = formatLastActiveDate(speaker.last_active);
-  const searchHref = `/search?q=${encodeURIComponent(speaker.name)}`;
+  const searchHref = `/dashboard?search=${encodeURIComponent(speaker.name)}`;
 
   return (
     <Card

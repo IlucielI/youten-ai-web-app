@@ -99,7 +99,7 @@ export function UrlImportForm({
     >
       <div className="flex items-center gap-2 text-xs font-semibold text-primary">
         <LinkIcon className="h-4 w-4" />
-        <span>Impor dari Tautan Web (Direct Audio/Video Link)</span>
+        <span>Impor dari Tautan Web (YouTube / Direct Audio & Video)</span>
       </div>
 
       {/* URL Input */}
@@ -116,7 +116,7 @@ export function UrlImportForm({
             if (validationError) setValidationError(null);
           }}
           disabled={isLoading}
-          placeholder="https://example.com/audio/meeting-record.mp3"
+          placeholder="https://www.youtube.com/watch?v=... atau https://example.com/audio.mp3"
           className="text-xs"
           data-testid="media-url-input"
         />
@@ -189,7 +189,7 @@ export function UrlImportForm({
       <div className="flex items-start gap-2 rounded-xl border border-sky-500/20 bg-sky-500/5 p-3 text-[11px] text-muted-foreground">
         <ShieldCheck className="h-4 w-4 shrink-0 text-sky-400 mt-0.5" />
         <p className="leading-relaxed">
-          <span className="font-semibold text-foreground">Perhatian Keamanan:</span> Tautan harus merujuk ke file audio/video langsung yang dapat diakses publik. Tautan internal (localhost/IP privat) akan diblokir otomatis.
+          <span className="font-semibold text-foreground">Perhatian Keamanan:</span> Mendukung video YouTube dan tautan file audio/video langsung yang dapat diakses publik. Tautan internal (localhost/IP privat) akan diblokir otomatis.
         </p>
       </div>
 

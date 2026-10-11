@@ -298,11 +298,12 @@ describe('SettingsPage', () => {
 
     render(<SettingsPage />);
 
-    await waitFor(() => {
-      expect(screen.getByTestId('logout-btn')).toBeInTheDocument();
-    });
+    const trigger = await screen.findByTestId('user-nav-dropdown-trigger');
+    fireEvent.pointerDown(trigger, { button: 0 });
+    fireEvent.click(trigger);
 
-    fireEvent.click(screen.getByTestId('logout-btn'));
+    const logoutBtn = await screen.findByTestId('logout-btn');
+    fireEvent.click(logoutBtn);
 
     await waitFor(() => {
       expect(apiFetchSpy).toHaveBeenCalledWith('/api/auth/logout', { method: 'POST' });

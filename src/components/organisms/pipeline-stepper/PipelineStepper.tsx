@@ -158,19 +158,19 @@ export const PipelineStepper: React.FC<PipelineStepperProps> = ({
     <div
       data-testid="pipeline-stepper-container"
       className={cn(
-        'w-full rounded-3xl border border-border/80 bg-card/95 backdrop-blur-md shadow-xl p-6 sm:p-8 md:p-10 lg:p-12 space-y-8 sm:space-y-10',
+        'w-full rounded-2xl border border-border/80 bg-card/95 backdrop-blur-md shadow-lg p-5 sm:p-6 md:p-8 space-y-6 sm:space-y-7',
         className
       )}
     >
       {/* Top Header: Title, Live Timer, and Percentage */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <span className="text-xs sm:text-sm font-semibold text-primary uppercase tracking-wider">
+          <span className="text-[11px] sm:text-xs font-semibold text-primary uppercase tracking-wider">
             Youten Intelligence Pipeline
           </span>
           <h3
             data-testid="pipeline-headline"
-            className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-foreground mt-1.5"
+            className="text-lg sm:text-xl font-bold tracking-tight text-foreground mt-1"
           >
             {isCompleted
               ? 'Pemrosesan Selesai'
@@ -180,14 +180,14 @@ export const PipelineStepper: React.FC<PipelineStepperProps> = ({
           </h3>
           <p
             data-testid="pipeline-current-message"
-            className="text-sm sm:text-base text-muted-foreground mt-1.5 truncate max-w-xl"
+            className="text-xs sm:text-sm text-muted-foreground mt-1 truncate max-w-xl"
           >
             {message}
           </p>
         </div>
 
         {/* Status Pill & Live Timer Badge */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
           {isFailed && onRetry && (
             <Button
               type="button"
@@ -196,25 +196,25 @@ export const PipelineStepper: React.FC<PipelineStepperProps> = ({
               onClick={onRetry}
               disabled={isRetrying}
               data-testid="header-retry-button"
-              className="gap-2 cursor-pointer text-xs sm:text-sm font-semibold shadow-sm px-4 py-2"
+              className="gap-1.5 cursor-pointer text-xs font-semibold shadow-sm px-3 py-1.5 h-8"
             >
-              <RefreshCw className={cn('w-4 h-4', isRetrying && 'animate-spin')} />
+              <RefreshCw className={cn('w-3.5 h-3.5', isRetrying && 'animate-spin')} />
               <span>{isRetrying ? 'Memulai Ulang...' : 'Coba Lagi'}</span>
             </Button>
           )}
 
           <div
             data-testid="live-timer-badge"
-            className="flex items-center gap-2 px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-full bg-muted/80 border border-border/60 text-xs sm:text-sm font-mono font-medium text-foreground"
+            className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-muted/80 border border-border/60 text-xs font-mono font-medium text-foreground h-8"
           >
-            <Clock className="w-4 h-4 text-muted-foreground" />
+            <Clock className="w-3.5 h-3.5 text-muted-foreground" />
             <span>{formattedTimer}</span>
           </div>
 
           <div
             data-testid="progress-percentage-badge"
             className={cn(
-              'px-4 py-1.5 sm:px-5 sm:py-2 rounded-full text-xs sm:text-sm font-bold font-mono transition-colors',
+              'px-3 py-1 rounded-full text-xs font-bold font-mono transition-colors h-8 flex items-center justify-center',
               isCompleted
                 ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'
                 : isFailed
@@ -228,10 +228,10 @@ export const PipelineStepper: React.FC<PipelineStepperProps> = ({
       </div>
 
       {/* Progressive Percentage Bar */}
-      <div className="space-y-2">
+      <div className="space-y-1.5">
         <div
           data-testid="pipeline-progress-track"
-          className="relative h-3 sm:h-3.5 w-full overflow-hidden rounded-full bg-muted/80 shadow-inner"
+          className="relative h-2 sm:h-2.5 w-full overflow-hidden rounded-full bg-muted/80 shadow-inner"
         >
           <div
             data-testid="pipeline-progress-fill"
@@ -251,7 +251,7 @@ export const PipelineStepper: React.FC<PipelineStepperProps> = ({
       {/* 4-Stage Stepper Cards Grid */}
       <div
         data-testid="stepper-stages-grid"
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 lg:gap-6"
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4"
       >
         {PIPELINE_STEPS.map((step, idx) => {
           const StepIcon = step.icon;
@@ -264,11 +264,11 @@ export const PipelineStepper: React.FC<PipelineStepperProps> = ({
               key={step.id}
               data-testid={`pipeline-step-${step.id}`}
               className={cn(
-                'relative flex flex-col p-5 sm:p-6 rounded-2xl border transition-all duration-300 min-h-[170px] sm:min-h-[190px]',
+                'relative flex flex-col p-4 rounded-xl border transition-all duration-300 min-h-[140px] sm:min-h-[150px]',
                 isPassed &&
                   'bg-emerald-500/5 border-emerald-500/20 text-foreground',
                 isCurrent &&
-                  'bg-primary/5 border-primary/40 shadow-md ring-2 ring-primary/20 scale-[1.02]',
+                  'bg-primary/5 border-primary/40 shadow-md ring-2 ring-primary/20 scale-[1.01]',
                 isErrorStep &&
                   'bg-destructive/10 border-destructive/40 shadow-md ring-2 ring-destructive/20',
                 !isPassed &&
@@ -278,10 +278,10 @@ export const PipelineStepper: React.FC<PipelineStepperProps> = ({
               )}
             >
               {/* Top Step Icon & Step Number */}
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center justify-between mb-3">
                 <div
                   className={cn(
-                    'p-2.5 sm:p-3 rounded-xl sm:rounded-2xl transition-colors',
+                    'p-2 rounded-lg transition-colors',
                     isPassed && 'bg-emerald-500/15 text-emerald-500',
                     isCurrent && 'bg-primary text-primary-foreground shadow-sm',
                     isErrorStep && 'bg-destructive text-destructive-foreground shadow-sm',
@@ -289,26 +289,26 @@ export const PipelineStepper: React.FC<PipelineStepperProps> = ({
                   )}
                 >
                   {isPassed ? (
-                    <CheckCircle2 className="w-5 h-5" />
+                    <CheckCircle2 className="w-4 h-4" />
                   ) : isCurrent ? (
-                    <Loader2 className="w-5 h-5 animate-spin" />
+                    <Loader2 className="w-4 h-4 animate-spin" />
                   ) : isErrorStep ? (
-                    <AlertCircle className="w-5 h-5" />
+                    <AlertCircle className="w-4 h-4" />
                   ) : (
-                    <StepIcon className="w-5 h-5" />
+                    <StepIcon className="w-4 h-4" />
                   )}
                 </div>
 
-                <span className="text-xs sm:text-sm font-mono font-semibold text-muted-foreground">
+                <span className="text-xs font-mono font-medium text-muted-foreground">
                   0{idx + 1}
                 </span>
               </div>
 
               {/* Title & Description */}
-              <h5 className="text-sm sm:text-base font-bold text-foreground leading-snug">
+              <h5 className="text-xs sm:text-sm font-semibold text-foreground leading-snug">
                 {step.title}
               </h5>
-              <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed mt-1.5 flex-1">
+              <p className="text-[11px] sm:text-xs text-muted-foreground leading-relaxed mt-1 flex-1">
                 {step.description}
               </p>
             </div>

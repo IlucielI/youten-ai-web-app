@@ -106,6 +106,19 @@ describe('AuthController', () => {
         message: 'Password changed successfully',
         timestamp: new Date().toISOString(),
       }),
+      verifyEmail: vi.fn().mockResolvedValue({
+        status: ResponseStatus.SUCCESS,
+        code: ResponseCode.SUCCESS,
+        message: 'Email verified successfully',
+        data: mockAuthResponse,
+        timestamp: new Date().toISOString(),
+      }),
+      resendVerification: vi.fn().mockResolvedValue({
+        status: ResponseStatus.SUCCESS,
+        code: ResponseCode.SUCCESS,
+        message: 'Verification email sent',
+        timestamp: new Date().toISOString(),
+      }),
     };
 
     controller = new AuthController(mockService);
@@ -359,6 +372,76 @@ describe('AuthController', () => {
       const json = await res.json();
       expect(json.code).toBe(ResponseCode.BAD_REQUEST);
       expect(mockService.changePassword).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('verifyEmail', () => {
+    it('returns 200 and sets auth cookies on successful verification', async () => {
+      const req = new Request('http://localhost/api/auth/verify-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: 'user@example.com',
+          code: '123456',
+        }),
+      });
+
+      const res = await controller.verifyEmail(req);
+      expect(res.status).toBe(200);
+      const json = await res.json();
+      expect(json.message).toBe('Email verified successfully');
+      expect(mockService.verifyEmail).toHaveBeenCalledWith({
+        email: 'user@example.com',
+        code: '123456',
+      });
+      const setCookie = res.headers.get('set-cookie');
+      expect(setCookie).toContain(AUTH_COOKIE_NAME);
+    });
+
+    it('returns 400 when neither token nor code is provided', async () => {
+      const req = new Request('http://localhost/api/auth/verify-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      });
+
+      const res = await controller.verifyEmail(req);
+      expect(res.status).toBe(400);
+      expect(mockService.verifyEmail).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('resendVerification', () => {
+    it('returns 200 on valid email', async () => {
+      const req = new Request('http://localhost/api/auth/verify-email/resend', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: 'user@example.com',
+        }),
+      });
+
+      const res = await controller.resendVerification(req);
+      expect(res.status).toBe(200);
+      const json = await res.json();
+      expect(json.message).toBe('Verification email sent');
+      expect(mockService.resendVerification).toHaveBeenCalledWith({
+        email: 'user@example.com',
+      });
+    });
+
+    it('returns 400 on invalid email', async () => {
+      const req = new Request('http://localhost/api/auth/verify-email/resend', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: 'invalid-email',
+        }),
+      });
+
+      const res = await controller.resendVerification(req);
+      expect(res.status).toBe(400);
+      expect(mockService.resendVerification).not.toHaveBeenCalled();
     });
   });
 });

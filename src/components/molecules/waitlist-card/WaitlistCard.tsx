@@ -157,8 +157,8 @@ export const WaitlistCard: React.FC<WaitlistCardProps> = ({
           <div className="pt-2">
             <Button
               variant="outline"
+              size="sm"
               onClick={handleReset}
-              className="text-xs border-slate-200 hover:bg-slate-50 text-slate-700"
             >
               Daftarkan Email Lain
             </Button>

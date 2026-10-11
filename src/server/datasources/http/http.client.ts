@@ -309,13 +309,18 @@ export class HttpClient implements IHttpClient {
       errorPayload,
     });
 
+    const upstreamCode =
+      typeof errorPayload === 'object' && errorPayload !== null && 'code' in errorPayload && typeof (errorPayload as Record<string, unknown>).code === 'string'
+        ? ((errorPayload as Record<string, unknown>).code as string)
+        : undefined;
+
     switch (response.status) {
       case 400:
         throw new BadRequestError(message, errorPayload);
       case 401:
-        throw new UnauthorizedError(message, errorPayload);
+        throw new UnauthorizedError(message, errorPayload, upstreamCode || 'UNAUTHORIZED');
       case 403:
-        throw new ForbiddenError(message, errorPayload);
+        throw new ForbiddenError(message, errorPayload, upstreamCode || 'FORBIDDEN');
       case 404:
         throw new NotFoundError(message, errorPayload);
       case 409:

@@ -7,21 +7,21 @@ import { apiFetch } from '@/lib/api-client';
 import { cn } from '@/lib/utils';
 import { ApiResponse, BaseResponse } from '@/server/dtos/response.dto';
 import { UserProfileResponse, UserResponse } from '@/server/dtos/auth.dto';
+import { useAuthStore } from '@/stores/auth.store';
 import { Button } from '@/components/atoms/button';
+import { YoutenLogo } from '@/components/atoms/youten-logo';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/atoms/card';
 import { Input } from '@/components/atoms/input';
 import { Label } from '@/components/atoms/label';
 import { Progress } from '@/components/atoms/progress';
-import { UserChip } from '@/components/molecules/user-chip';
+import { UserNavDropdown } from '@/components/molecules/user-nav-dropdown';
 import { toast } from 'sonner';
 import {
   User,
   Shield,
   KeyRound,
   LayoutDashboard,
-  Search,
   Users,
-  LogOut,
   Save,
   CheckCircle2,
   AlertCircle,
@@ -63,14 +63,17 @@ export default function SettingsPage() {
         if (!isMounted) return;
         if (res && res.data) {
           setUser(res.data);
+          useAuthStore.getState().setUser(res.data);
           setFullName(res.data.full_name || '');
           setAuthLoading(false);
         } else {
+          useAuthStore.getState().setUser(null);
           router.push('/login?redirect=/settings');
         }
       })
       .catch(() => {
         if (isMounted) {
+          useAuthStore.getState().setUser(null);
           router.push('/login?redirect=/settings');
         }
       });
@@ -84,6 +87,8 @@ export default function SettingsPage() {
   const handleLogout = async () => {
     try {
       await apiFetch('/api/auth/logout', { method: 'POST' });
+      useAuthStore.getState().reset();
+      setUser(null);
       router.push('/login');
     } catch {
       toast.error('Gagal keluar dari sesi. Silakan coba kembali.');
@@ -208,18 +213,11 @@ export default function SettingsPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           {/* Brand Logo & Navigation Links */}
           <div className="flex items-center gap-6">
-            <Link href="/dashboard" className="flex items-center gap-2.5 group">
-              <div className="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center font-black text-sm tracking-tighter shadow-sm shadow-blue-500/20">
-                Y
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className="font-extrabold text-base tracking-tight text-slate-900 group-hover:text-blue-600 transition-colors">
-                  Youten AI
-                </span>
-                <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200/50">
-                  Workspace
-                </span>
-              </div>
+            <Link href="/" className="flex items-center gap-2.5 group">
+              <YoutenLogo size="sm" className="group-hover:scale-105 transition-transform" />
+              <span className="font-extrabold text-base tracking-tight text-slate-900 group-hover:text-blue-600 transition-colors">
+                Youten AI
+              </span>
             </Link>
 
             <nav className="hidden md:flex items-center gap-1 text-xs font-semibold">
@@ -233,16 +231,6 @@ export default function SettingsPage() {
                   <span>Dashboard</span>
                 </Button>
               </Link>
-              <Link href="/search">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-slate-600 hover:text-blue-600 hover:bg-slate-100 gap-1.5 h-8 text-xs font-medium"
-                >
-                  <Search className="w-3.5 h-3.5" />
-                  <span>Pencarian Semantik</span>
-                </Button>
-              </Link>
               <Link href="/speakers">
                 <Button
                   variant="ghost"
@@ -253,46 +241,12 @@ export default function SettingsPage() {
                   <span>Direktori Pembicara</span>
                 </Button>
               </Link>
-              <Link href="/settings">
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  className="bg-blue-50 text-blue-700 hover:bg-blue-100 gap-1.5 h-8 text-xs font-semibold border border-blue-200/60"
-                >
-                  <User className="w-3.5 h-3.5" />
-                  <span>Pengaturan</span>
-                </Button>
-              </Link>
             </nav>
           </div>
 
           {/* Right Header Controls */}
           <div className="flex items-center gap-3">
-            <UserChip
-              name={user?.full_name || 'Pengguna'}
-              role={user?.email || 'Akun Terverifikasi'}
-              initials={
-                user?.full_name
-                  ? user.full_name
-                      .split(' ')
-                      .map((n) => n[0])
-                      .slice(0, 2)
-                      .join('')
-                      .toUpperCase()
-                  : 'U'
-              }
-            />
-
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleLogout}
-              data-testid="logout-btn"
-              className="text-slate-500 hover:text-rose-600 hover:bg-rose-50 text-xs gap-1.5"
-            >
-              <LogOut className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Keluar</span>
-            </Button>
+            <UserNavDropdown user={user} onLogout={handleLogout} />
           </div>
         </div>
       </header>

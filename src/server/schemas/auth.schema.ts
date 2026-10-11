@@ -77,11 +77,34 @@ export const ChangePasswordRequestSchema = z
   });
 export type ChangePasswordRequestInput = z.infer<typeof ChangePasswordRequestSchema>;
 
+export const VerifyEmailRequestSchema = z
+  .object({
+    code: z
+      .string()
+      .trim()
+      .regex(/^[0-9]{6}$/, 'Verification code must be exactly 6 digits')
+      .optional(),
+    token: z.string().trim().min(1, 'Token cannot be empty').optional(),
+    email: EmailSchema.optional(),
+  })
+  .refine(
+    (data) => Boolean(data.token || (data.code && data.email)),
+    {
+      message: 'Either a valid token or a 6-digit code with email must be provided',
+    }
+  );
+export type VerifyEmailRequestInput = z.infer<typeof VerifyEmailRequestSchema>;
+
+export const ResendVerificationRequestSchema = z.object({
+  email: EmailSchema,
+});
+export type ResendVerificationRequestInput = z.infer<typeof ResendVerificationRequestSchema>;
+
 export const UserResponseSchema = z.object({
   id: z.string().uuid(),
   email: z.string().email(),
   full_name: z.string(),
-  status: z.enum([UserStatus.ACTIVE, UserStatus.SUSPENDED]),
+  status: z.enum([UserStatus.PENDING, UserStatus.ACTIVE, UserStatus.SUSPENDED]),
   role_id: z.string().uuid().nullable().optional(),
   role_code: z.string().optional(),
   role_name: z.string().optional(),
@@ -97,7 +120,7 @@ export const UserProfileResponseSchema = z.object({
   id: z.string().uuid(),
   email: z.string().email(),
   full_name: z.string(),
-  status: z.enum([UserStatus.ACTIVE, UserStatus.SUSPENDED]),
+  status: z.enum([UserStatus.PENDING, UserStatus.ACTIVE, UserStatus.SUSPENDED]),
   role_id: z.string().uuid().nullable().optional(),
   role_code: z.string().optional(),
   role_name: z.string().optional(),

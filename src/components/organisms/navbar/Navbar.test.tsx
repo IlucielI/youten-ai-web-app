@@ -1,6 +1,6 @@
 import React from 'react';
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { Navbar } from './Navbar';
 
 describe('Navbar Component', () => {
@@ -34,7 +34,7 @@ describe('Navbar Component', () => {
     expect(badge.className).toContain('text-amber-800');
   });
 
-  it('renders user section with Dashboard button, user name, and logout button when user is authenticated', () => {
+  it('renders user dropdown with user name and options when user is authenticated', async () => {
     const handleLogout = vi.fn();
     render(
       <Navbar
@@ -45,13 +45,19 @@ describe('Navbar Component', () => {
     );
 
     expect(screen.getByTestId('navbar-user-section')).toBeInTheDocument();
-    expect(screen.getByTestId('navbar-dashboard-button')).toHaveTextContent('Dashboard');
-    expect(screen.getByTestId('navbar-user-name')).toHaveTextContent('Bayu');
-    expect(screen.getByTestId('navbar-logout-button')).toBeInTheDocument();
+    expect(screen.getByText('Bayu')).toBeInTheDocument();
     expect(screen.queryByTestId('navbar-cta-button')).not.toBeInTheDocument();
+
+    const trigger = screen.getByTestId('user-nav-dropdown-trigger');
+    fireEvent.pointerDown(trigger, { button: 0 });
+    fireEvent.click(trigger);
+
+    expect(await screen.findByTestId('dashboard-nav-item')).toBeInTheDocument();
+    expect(await screen.findByTestId('settings-nav-item')).toBeInTheDocument();
+    expect(await screen.findByTestId('logout-btn')).toBeInTheDocument();
   });
 
-  it('triggers onLogout callback when logout button is clicked', () => {
+  it('triggers onLogout callback when logout button is clicked from dropdown', async () => {
     const handleLogout = vi.fn();
     render(
       <Navbar
@@ -61,8 +67,12 @@ describe('Navbar Component', () => {
       />
     );
 
-    const logoutBtn = screen.getByTestId('navbar-logout-button');
-    logoutBtn.click();
+    const trigger = screen.getByTestId('user-nav-dropdown-trigger');
+    fireEvent.pointerDown(trigger, { button: 0 });
+    fireEvent.click(trigger);
+
+    const logoutBtn = await screen.findByTestId('logout-btn');
+    fireEvent.click(logoutBtn);
     expect(handleLogout).toHaveBeenCalledTimes(1);
   });
 

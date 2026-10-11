@@ -403,7 +403,10 @@ describe('DashboardPage', () => {
     });
 
     render(<DashboardPage />);
-    const logoutBtn = await screen.findByRole('button', { name: /keluar/i });
+    const trigger = await screen.findByTestId('user-nav-dropdown-trigger');
+    fireEvent.pointerDown(trigger, { button: 0 });
+    fireEvent.click(trigger);
+    const logoutBtn = await screen.findByTestId('logout-btn');
     fireEvent.click(logoutBtn);
 
     await waitFor(() => {
@@ -445,7 +448,10 @@ describe('DashboardPage', () => {
     });
 
     render(<DashboardPage />);
-    const logoutBtn = await screen.findByRole('button', { name: /keluar/i });
+    const trigger = await screen.findByTestId('user-nav-dropdown-trigger');
+    fireEvent.pointerDown(trigger, { button: 0 });
+    fireEvent.click(trigger);
+    const logoutBtn = await screen.findByTestId('logout-btn');
     fireEvent.click(logoutBtn);
 
     await waitFor(() => {
