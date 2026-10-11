@@ -226,12 +226,7 @@ export function SummaryViewer({ summary, isLoading = false, className }: Summary
         break;
     }
 
-    // Failsafe Layer 2: Universal structured schema matching across known templates
-    const generalParsed = GeneralStructuredDataSchema.safeParse(rawData);
-    if (generalParsed.success) {
-      return <GeneralRenderer data={generalParsed.data} />;
-    }
-
+    // Failsafe Layer 2: Universal structured schema matching across known templates (specific templates prioritized first)
     const momParsed = MomStructuredDataSchema.safeParse(rawData);
     if (momParsed.success) {
       return <MomRenderer data={momParsed.data} />;
@@ -275,6 +270,11 @@ export function SummaryViewer({ summary, isLoading = false, className }: Summary
     const researchParsed = ResearchDeepdiveStructuredDataSchema.safeParse(rawData);
     if (researchParsed.success) {
       return <ResearchDeepdiveRenderer data={researchParsed.data} />;
+    }
+
+    const generalParsed = GeneralStructuredDataSchema.safeParse(rawData);
+    if (generalParsed.success) {
+      return <GeneralRenderer data={generalParsed.data} />;
     }
 
     // Failsafe Layer 3: Markdown fallback (with automated JSON-to-markdown conversion)

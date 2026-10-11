@@ -61,11 +61,13 @@ export function formatJSONAsMarkdown(data: Record<string, unknown>): string {
     parts.push(`## Pembahasan Utama\n`);
     for (const theme of data.core_themes) {
       if (typeof theme === 'object' && theme !== null) {
-        const t = theme as { theme?: string; summary_points?: string[] };
+        const t = theme as { theme?: string; summary_points?: unknown[] };
         if (t.theme) parts.push(`### ${t.theme}`);
         if (Array.isArray(t.summary_points)) {
           for (const sp of t.summary_points) {
-            parts.push(`- ${sp}`);
+            if (typeof sp === 'string' && sp.trim()) {
+              parts.push(`- ${sp.trim()}`);
+            }
           }
         }
         parts.push('');
@@ -157,7 +159,10 @@ export function formatJSONAsMarkdown(data: Record<string, unknown>): string {
         if (typeof item === 'string') {
           parts.push(`- ${item}`);
         } else if (typeof item === 'object' && item !== null) {
-          parts.push(`- ${JSON.stringify(item)}`);
+          const formattedItem = Object.entries(item as Record<string, unknown>)
+            .map(([itemKey, itemVal]) => `${itemKey.replace(/_/g, ' ')}: ${String(itemVal)}`)
+            .join(', ');
+          parts.push(`- ${formattedItem}`);
         }
       }
       parts.push('');
