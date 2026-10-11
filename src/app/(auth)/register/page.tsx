@@ -18,7 +18,7 @@ import { Button } from '@/components/atoms/button';
 import { Alert, AlertDescription } from '@/components/atoms/alert';
 import { apiFetch } from '@/lib/api-client';
 import { ApiResponse } from '@/server/dtos/response.dto';
-import { AuthResponse } from '@/server/dtos/auth.dto';
+import { AuthResponse, UserProfileResponse } from '@/server/dtos/auth.dto';
 import { claimGuestRecordings, claimSingleRecording } from '@/lib/claim';
 import { useTokenStore } from '@/stores/token.store';
 import { useAuthStore } from '@/stores/auth.store';
@@ -87,6 +87,11 @@ function RegisterForm() {
         // Clear anonymous session on successful registration
         useTokenStore.getState().clearAnonSession();
 
+        // Update global auth store with logged-in user profile
+        if (response.data?.user) {
+          useAuthStore.getState().setUser(response.data.user as unknown as UserProfileResponse);
+        }
+
         // Auto-claim any guest recordings stored in localStorage
         await claimGuestRecordings();
 
@@ -95,7 +100,8 @@ function RegisterForm() {
           await claimSingleRecording(claimId);
           router.push(`/recordings/${claimId}`);
         } else {
-          router.push('/');
+          const redirectTo = searchParams.get('redirect') || searchParams.get('from');
+          router.push(redirectTo || '/');
         }
       } else {
         setErrorMessage(response?.message || 'Pendaftaran gagal. Silakan coba kembali.');

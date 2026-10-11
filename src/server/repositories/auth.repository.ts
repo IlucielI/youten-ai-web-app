@@ -52,7 +52,38 @@ export class AuthRepository implements IAuthRepository {
       const data = this.mock.register(payload);
       return this.successResponse(data, 'User registered successfully');
     }
-    return this.http.post<ApiResponse<AuthResponse>>('/v1/auth/register', payload);
+    const regRes = await this.http.post<ApiResponse<UserResponse>>('/v1/auth/register', payload);
+    if (!regRes || regRes.status !== 'success' || !regRes.data) {
+      return regRes as unknown as ApiResponse<AuthResponse>;
+    }
+
+    try {
+      const loginRes = await this.login({
+        email: payload.email,
+        password: payload.password,
+        anon_token: payload.anon_token,
+      });
+      if (loginRes && loginRes.status === 'success') {
+        return loginRes;
+      }
+    } catch {
+      // Return structured response with user data if auto-login exchange is deferred
+    }
+
+    return {
+      status: regRes.status,
+      code: regRes.code,
+      message: regRes.message,
+      data: {
+        access_token: '',
+        refresh_token: '',
+        token_type: 'Bearer',
+        expires_in: 900,
+        refresh_expires_in: 604800,
+        user: regRes.data,
+      },
+      timestamp: regRes.timestamp,
+    };
   }
 
   async login(payload: LoginRequest): Promise<ApiResponse<AuthResponse>> {
