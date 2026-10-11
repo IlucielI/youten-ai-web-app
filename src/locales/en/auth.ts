@@ -3,7 +3,7 @@ import { idAuth } from '../id/auth';
 export const enAuth: typeof idAuth = {
   login: {
     title: 'Sign in to your account',
-    subtitle: 'Access smart meeting minutes and recordings transcripts.',
+    subtitle: 'Access smart meeting minutes and recording transcripts.',
     emailLabel: 'Email Address',
     emailPlaceholder: 'name@email.com',
     passwordLabel: 'Password',

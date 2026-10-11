@@ -88,8 +88,10 @@ export function ExportMenu({
   const handleSelectFormat = async (format: ExportFormat) => {
     if (exportingFormat || disabled) return;
 
-    if (format === ExportFormat.PDF && isPro === false && onUpgradePrompt) {
-      onUpgradePrompt();
+    if (format === ExportFormat.PDF && isPro === false) {
+      if (onUpgradePrompt) {
+        onUpgradePrompt();
+      }
       return;
     }
 

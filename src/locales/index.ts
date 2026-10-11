@@ -59,11 +59,11 @@ export function getTranslation(
   }
 
   let text = typeof currentActive === 'string' ? currentActive : undefined;
-  if (!text && typeof currentFallback === 'string') {
+  if (text === undefined && typeof currentFallback === 'string') {
     text = currentFallback;
   }
 
-  if (!text) {
+  if (text === undefined) {
     return path;
   }
 
