@@ -78,31 +78,17 @@ describe('LandingPage', () => {
     expect(screen.getByTestId('browser-recorder')).toBeInTheDocument();
   });
 
-  it('switches to meeting bot tab and renders meeting bot form', () => {
+  it('disables meeting bot tab and displays coming soon badge', () => {
     render(<LandingPage />);
 
-    fireEvent.click(screen.getByTestId('tab-bot'));
-    expect(screen.getByTestId('voice-bot-tab-content')).toBeInTheDocument();
-    expect(screen.getByTestId('meeting-bot-form')).toBeInTheDocument();
-  });
+    const botTab = screen.getByTestId('tab-bot');
+    expect(botTab).toBeDisabled();
+    expect(screen.getByText('Coming Soon')).toBeInTheDocument();
 
-  it('renders live bot tracker when active bot session exists', () => {
-    useMeetingBotStore.setState({
-      activeSession: {
-        sessionId: 'sess-active-123',
-        recordingId: 'rec-123',
-        provider: 'google_meet',
-        meetingUrl: 'https://meet.google.com/abc-defg-hij',
-        status: 'JOINED',
-        startedAt: new Date().toISOString(),
-      },
-    });
-
-    render(<LandingPage />);
-
-    fireEvent.click(screen.getByTestId('tab-bot'));
-    expect(screen.getByTestId('voice-bot-tab-content')).toBeInTheDocument();
-    expect(screen.getByTestId('live-bot-tracker')).toBeInTheDocument();
+    // Clicking disabled tab must not switch away from upload tab
+    fireEvent.click(botTab);
+    expect(screen.getByTestId('upload-dropzone')).toBeInTheDocument();
+    expect(screen.queryByTestId('voice-bot-tab-content')).not.toBeInTheDocument();
   });
 
   it('handles URL import successfully and saves guest token before redirect', async () => {

@@ -9,6 +9,7 @@ import { UploadDropzone } from '@/components/organisms/upload-dropzone';
 import { UrlImportForm } from '@/components/molecules/url-import-form';
 import { BrowserRecorder } from '@/components/organisms/browser-recorder';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/atoms/tabs';
+import { Badge } from '@/components/atoms/badge';
 import { MeetingBotForm } from '@/components/organisms/meeting-bot-form';
 import { LiveBotTracker } from '@/components/organisms/live-bot-tracker';
 import { useMeetingBotStore } from '@/stores/meeting-bot.store';
@@ -380,12 +381,18 @@ export default function LandingPage() {
               <TabsTrigger
                 value="bot"
                 data-testid="tab-bot"
-                onClick={() => setActiveTab('bot')}
-                className="flex items-center gap-2 text-xs sm:text-sm font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm"
+                disabled
+                className="flex items-center gap-1.5 text-xs sm:text-sm font-medium opacity-60 cursor-not-allowed data-[state=active]:bg-background data-[state=active]:shadow-sm"
               >
                 <Bot className="h-4 w-4" />
                 <span className="hidden sm:inline">Bot Rapat</span>
                 <span className="sm:hidden">Bot</span>
+                <Badge
+                  variant="secondary"
+                  className="ml-1 text-[10px] px-1.5 py-0 font-normal tracking-wide bg-muted-foreground/15 text-muted-foreground border-transparent"
+                >
+                  Coming Soon
+                </Badge>
               </TabsTrigger>
             </TabsList>
 
