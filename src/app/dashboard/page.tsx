@@ -42,6 +42,7 @@ import { StatusPill } from '@/components/molecules/status-pill';
 import { EmptyState } from '@/components/molecules/empty-state';
 import { ShareDialog } from '@/components/molecules/share-dialog';
 import { UserNavDropdown } from '@/components/molecules/user-nav-dropdown';
+import { Footer } from '@/components/organisms/footer';
 import { toast } from 'sonner';
 import { useTemplates } from '@/hooks';
 import {
@@ -306,7 +307,7 @@ export default function DashboardPage() {
   const safeRecordings = Array.isArray(recordings) ? recordings : [];
 
   return (
-    <div data-testid="dashboard-page" className="min-h-screen bg-slate-50/60 font-sans">
+    <div data-testid="dashboard-page" className="min-h-screen bg-slate-50/60 font-sans flex flex-col">
       {/* Top Navigation */}
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/90 shadow-2xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
@@ -334,14 +335,10 @@ export default function DashboardPage() {
               <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
                 Halo, {user?.full_name || 'Pengguna'} 👋
               </h1>
-              {user?.role_code && (
+              {(user?.role_code === CustomerUserRole.PRO || user?.role_code === CustomerUserRole.ENTERPRISE) && (
                 <span
                   data-testid="user-tier-badge"
-                  className={`text-[11px] font-extrabold uppercase px-2.5 py-0.5 rounded-full border ${
-                    user.role_code === CustomerUserRole.PRO || user.role_code === CustomerUserRole.ENTERPRISE
-                      ? 'bg-amber-100 text-amber-800 border-amber-300'
-                      : 'bg-slate-100 text-slate-700 border-slate-300'
-                  }`}
+                  className="text-[11px] font-extrabold uppercase px-2.5 py-0.5 rounded-full border bg-amber-100 text-amber-800 border-amber-300"
                 >
                   {user.role_name || user.role_code}
                 </span>
@@ -690,6 +687,9 @@ export default function DashboardPage() {
           </footer>
         )}
       </main>
+
+      {/* Global Application Footer */}
+      <Footer className="mt-auto" />
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog

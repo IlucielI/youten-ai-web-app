@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Sparkles, FileAudio, ExternalLink, RefreshCw } from 'lucide-react';
 import { Navbar } from '@/components/organisms/navbar';
+import { Footer } from '@/components/organisms/footer';
 import { PipelineStepper } from '@/components/organisms/pipeline-stepper';
 import { Button } from '@/components/atoms/button';
 import { cn } from '@/lib/utils';
@@ -362,6 +363,9 @@ export default function RecordingProcessingPage() {
           </p>
         </div>
       </main>
+
+      {/* Global Application Footer */}
+      <Footer />
     </div>
   );
 }

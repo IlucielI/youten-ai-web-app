@@ -20,10 +20,18 @@ describe('Navbar Component', () => {
     expect(screen.getByText('About')).toBeDefined();
   });
 
-  it('renders userTier badge with default styling', () => {
-    render(<Navbar brandName="Youten AI" userTier="Free Member" />);
+  it('does not render userTier badge when userTier is "Free Member" or role defaults to free', () => {
+    const { rerender } = render(<Navbar brandName="Youten AI" userTier="Free Member" />);
+    expect(screen.queryByTestId('navbar-tier-badge')).not.toBeInTheDocument();
+
+    rerender(<Navbar brandName="Youten AI" user={{ name: 'Bayu', email: 'bayu@youten.ai' }} />);
+    expect(screen.queryByTestId('navbar-tier-badge')).not.toBeInTheDocument();
+  });
+
+  it('renders userTier badge with default styling for explicit non-free tiers', () => {
+    render(<Navbar brandName="Youten AI" userTier="Enterprise" />);
     const badge = screen.getByTestId('navbar-tier-badge');
-    expect(badge).toHaveTextContent('Free Member');
+    expect(badge).toHaveTextContent('Enterprise');
     expect(badge.className).toContain('text-primary');
   });
 

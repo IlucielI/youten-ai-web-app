@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Navbar } from '@/components/organisms/navbar';
+import { Footer } from '@/components/organisms/footer';
 import { UploadDropzone } from '@/components/organisms/upload-dropzone';
 import { UrlImportForm } from '@/components/molecules/url-import-form';
 import { BrowserRecorder } from '@/components/organisms/browser-recorder';
@@ -430,12 +431,8 @@ export default function LandingPage() {
 
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-border/60 bg-card/40 py-6 text-center text-xs text-muted-foreground">
-        <div className="max-w-7xl mx-auto px-4 flex items-center justify-center">
-          <p>© {new Date().getFullYear()} Youten AI. Seluruh hak cipta dilindungi.</p>
-        </div>
-      </footer>
+      {/* Global Application Footer */}
+      <Footer />
     </div>
   );
 }

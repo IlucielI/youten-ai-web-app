@@ -74,11 +74,17 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   const handleLogout = onLogoutProp !== undefined ? onLogoutProp : storeLogout;
 
-  const effectiveUserTier =
+  // User tier badge: Free Member is removed per requirement. Only display explicit non-free tiers or PRO users.
+  const rawTier =
     userTier ||
-    (activeUser
-      ? activeUser.role_name || (activeUser.role_code === 'PRO' ? 'Pro Member' : 'Free Member')
+    (activeUser?.role_code === 'PRO'
+      ? activeUser.role_name || 'Pro Member'
       : undefined);
+
+  const effectiveUserTier =
+    rawTier && rawTier.toLowerCase() !== 'free member' && rawTier.toLowerCase() !== 'free'
+      ? rawTier
+      : undefined;
 
   const effectiveTierVariant =
     tierVariant || (activeUser?.role_code === 'PRO' ? 'premium' : 'default');
