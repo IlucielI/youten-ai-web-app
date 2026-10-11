@@ -14,12 +14,22 @@ export interface AnalyticsCardsProps {
 }
 
 const SPEAKER_PALETTES = [
-  { bar: 'bg-primary', text: 'text-primary', bg: 'bg-primary/10' },
+  { bar: 'bg-indigo-500', text: 'text-indigo-500', bg: 'bg-indigo-500/10' },
   { bar: 'bg-emerald-500', text: 'text-emerald-500', bg: 'bg-emerald-500/10' },
   { bar: 'bg-amber-500', text: 'text-amber-500', bg: 'bg-amber-500/10' },
-  { bar: 'bg-violet-500', text: 'text-violet-500', bg: 'bg-violet-500/10' },
-  { bar: 'bg-sky-500', text: 'text-sky-500', bg: 'bg-sky-500/10' },
   { bar: 'bg-rose-500', text: 'text-rose-500', bg: 'bg-rose-500/10' },
+  { bar: 'bg-cyan-500', text: 'text-cyan-500', bg: 'bg-cyan-500/10' },
+  { bar: 'bg-purple-500', text: 'text-purple-500', bg: 'bg-purple-500/10' },
+  { bar: 'bg-sky-500', text: 'text-sky-500', bg: 'bg-sky-500/10' },
+  { bar: 'bg-teal-500', text: 'text-teal-500', bg: 'bg-teal-500/10' },
+  { bar: 'bg-orange-500', text: 'text-orange-500', bg: 'bg-orange-500/10' },
+  { bar: 'bg-pink-500', text: 'text-pink-500', bg: 'bg-pink-500/10' },
+  { bar: 'bg-violet-500', text: 'text-violet-500', bg: 'bg-violet-500/10' },
+  { bar: 'bg-fuchsia-500', text: 'text-fuchsia-500', bg: 'bg-fuchsia-500/10' },
+  { bar: 'bg-lime-500', text: 'text-lime-500', bg: 'bg-lime-500/10' },
+  { bar: 'bg-yellow-500', text: 'text-yellow-500', bg: 'bg-yellow-500/10' },
+  { bar: 'bg-blue-500', text: 'text-blue-500', bg: 'bg-blue-500/10' },
+  { bar: 'bg-slate-500', text: 'text-slate-500', bg: 'bg-slate-500/10' },
 ];
 
 function getInitials(name?: string): string {
