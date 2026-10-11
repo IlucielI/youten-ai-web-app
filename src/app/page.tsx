@@ -29,8 +29,6 @@ import {
   Info,
   AlertTriangle,
   ArrowRight,
-  ShieldCheck,
-  CheckCircle2,
 } from 'lucide-react';
 
 export default function LandingPage() {
@@ -249,7 +247,6 @@ export default function LandingPage() {
         ctaHref="/login"
         links={[
           { label: 'Beranda', href: '/', active: true },
-          { label: 'Fitur', href: '#features' },
           { label: 'Waitlist Bot', href: '/waitlist' },
         ]}
       />
@@ -429,38 +426,6 @@ export default function LandingPage() {
           </Tabs>
         </div>
 
-        {/* Trust & Feature Badges */}
-        <div id="features" className="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-6">
-          <div className="rounded-xl border border-border/60 bg-card/60 p-4 space-y-2 text-left">
-            <div className="flex items-center gap-2 text-primary font-semibold text-sm">
-              <ShieldCheck className="h-4 w-4" />
-              <span>Privasi Terjaga</span>
-            </div>
-            <p className="text-xs text-muted-foreground leading-relaxed">
-              Berkas audio dienkripsi dan diproses secara aman tanpa menjual data percakapan Anda.
-            </p>
-          </div>
-
-          <div className="rounded-xl border border-border/60 bg-card/60 p-4 space-y-2 text-left">
-            <div className="flex items-center gap-2 text-primary font-semibold text-sm">
-              <CheckCircle2 className="h-4 w-4" />
-              <span>7 Format Ringkasan</span>
-            </div>
-            <p className="text-xs text-muted-foreground leading-relaxed">
-              Pilihan template MoM, 1-on-1, Interview, Daily Standup, hingga Sales Discovery.
-            </p>
-          </div>
-
-          <div className="rounded-xl border border-border/60 bg-card/60 p-4 space-y-2 text-left">
-            <div className="flex items-center gap-2 text-primary font-semibold text-sm">
-              <Sparkles className="h-4 w-4" />
-              <span>Tanya AI Berbasis Waktu</span>
-            </div>
-            <p className="text-xs text-muted-foreground leading-relaxed">
-              Ajukan pertanyaan dan AI akan mengutip langsung segmen waktu audio yang relevan.
-            </p>
-          </div>
-        </div>
       </main>
 
       {/* Footer */}
