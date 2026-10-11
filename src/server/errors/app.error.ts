@@ -39,14 +39,14 @@ export class BadRequestError extends AppError {
 }
 
 export class UnauthorizedError extends AppError {
-  constructor(message = 'Unauthorized', details?: unknown) {
-    super(message, 401, 'UNAUTHORIZED', true, details);
+  constructor(message = 'Unauthorized', details?: unknown, code = 'UNAUTHORIZED') {
+    super(message, 401, code, true, details);
   }
 }
 
 export class ForbiddenError extends AppError {
-  constructor(message = 'Forbidden', details?: unknown) {
-    super(message, 403, 'FORBIDDEN', true, details);
+  constructor(message = 'Forbidden', details?: unknown, code = 'FORBIDDEN') {
+    super(message, 403, code, true, details);
   }
 }
 

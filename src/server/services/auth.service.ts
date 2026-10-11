@@ -8,6 +8,8 @@ import {
   LogoutRequest,
   ForgotPasswordRequest,
   ResetPasswordRequest,
+  VerifyEmailRequest,
+  ResendVerificationRequest,
   UpdateProfileRequest,
   ChangePasswordRequest,
   AuthResponse,
@@ -48,6 +50,14 @@ export class AuthService implements IAuthService {
 
   async resetPassword(payload: ResetPasswordRequest): Promise<BaseResponse> {
     return this.authRepo.resetPassword(payload);
+  }
+
+  async verifyEmail(payload: VerifyEmailRequest): Promise<ApiResponse<AuthResponse>> {
+    return this.authRepo.verifyEmail(payload);
+  }
+
+  async resendVerification(payload: ResendVerificationRequest): Promise<BaseResponse> {
+    return this.authRepo.resendVerification(payload);
   }
 
   async getMe(): Promise<ApiResponse<UserProfileResponse>> {

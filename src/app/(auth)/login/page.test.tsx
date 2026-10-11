@@ -9,6 +9,7 @@ import { useAuthStore } from '@/stores/auth.store';
 const mockPush = vi.fn();
 const mockReplace = vi.fn();
 let mockClaimParam: string | null = null;
+let mockVerifiedParam: string | null = null;
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({
@@ -16,7 +17,11 @@ vi.mock('next/navigation', () => ({
     replace: mockReplace,
   }),
   useSearchParams: () => ({
-    get: (key: string) => (key === 'claim' ? mockClaimParam : null),
+    get: (key: string) => {
+      if (key === 'claim') return mockClaimParam;
+      if (key === 'verified') return mockVerifiedParam;
+      return null;
+    },
   }),
 }));
 
@@ -25,6 +30,7 @@ describe('LoginPage', () => {
     vi.clearAllMocks();
     useAuthStore.getState().reset();
     mockClaimParam = null;
+    mockVerifiedParam = null;
   });
 
   afterEach(() => {
@@ -199,5 +205,42 @@ describe('LoginPage', () => {
     render(<LoginPage />);
 
     expect(mockReplace).toHaveBeenCalledWith('/dashboard');
+  });
+
+  it('displays unverified email alert and verification CTA when login returns ERR_EMAIL_NOT_VERIFIED', async () => {
+    const error = new apiClient.ApiClientError(
+      401,
+      'ERR_EMAIL_NOT_VERIFIED',
+      'Email address has not been verified yet.'
+    );
+    vi.spyOn(apiClient, 'apiFetch').mockRejectedValueOnce(error);
+
+    render(<LoginPage />);
+
+    fireEvent.change(screen.getByTestId('login-email-input'), {
+      target: { value: 'unverified@example.com' },
+    });
+    fireEvent.change(screen.getByTestId('login-password-input'), {
+      target: { value: 'Password123' },
+    });
+
+    fireEvent.click(screen.getByTestId('login-submit-button'));
+
+    expect(await screen.findByTestId('verify-email-cta-button')).toBeInTheDocument();
+    expect(screen.getByText(/Email Belum Terverifikasi/i)).toBeInTheDocument();
+    expect(screen.getByTestId('verify-email-cta-button')).toHaveAttribute(
+      'href',
+      '/verify-email?email=unverified%40example.com'
+    );
+  });
+
+  it('displays verified success banner when verified=true is present in query parameters', () => {
+    mockVerifiedParam = 'true';
+
+    render(<LoginPage />);
+
+    expect(
+      screen.getByText(/Email Anda berhasil diverifikasi! Silakan masuk ke akun Anda/i)
+    ).toBeInTheDocument();
   });
 });

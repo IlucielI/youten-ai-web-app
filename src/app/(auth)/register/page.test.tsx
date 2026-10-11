@@ -2,7 +2,6 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import RegisterPage from './page';
 import * as apiClient from '@/lib/api-client';
-import * as claimLib from '@/lib/claim';
 import { ResponseStatus, ResponseCode } from '@/server/constants';
 
 const mockPush = vi.fn();
@@ -99,11 +98,6 @@ describe('RegisterPage', () => {
       timestamp: new Date().toISOString(),
     });
 
-    const claimSpy = vi.spyOn(claimLib, 'claimGuestRecordings').mockResolvedValueOnce({
-      claimedCount: 1,
-      recordingIds: ['rec-new-1'],
-    });
-
     render(<RegisterPage />);
 
     fireEvent.change(screen.getByTestId('register-name-input'), {
@@ -119,12 +113,11 @@ describe('RegisterPage', () => {
     fireEvent.click(screen.getByTestId('register-submit-button'));
 
     await waitFor(() => {
-      expect(claimSpy).toHaveBeenCalled();
-      expect(mockPush).toHaveBeenCalledWith('/');
+      expect(mockPush).toHaveBeenCalledWith('/verify-email?email=budi%40example.com');
     });
   });
 
-  it('claims single recording and redirects to recording detail when claim query param is present on register', async () => {
+  it('preserves claim query param and redirects to verify-email when claim is present on register', async () => {
     mockClaimParam = 'rec-guest-555';
 
     vi.spyOn(apiClient, 'apiFetch').mockResolvedValueOnce({
@@ -150,9 +143,6 @@ describe('RegisterPage', () => {
       timestamp: new Date().toISOString(),
     });
 
-    const autoClaimSpy = vi.spyOn(claimLib, 'claimGuestRecordings').mockResolvedValueOnce(null);
-    const singleClaimSpy = vi.spyOn(claimLib, 'claimSingleRecording').mockResolvedValueOnce(true);
-
     render(<RegisterPage />);
 
     fireEvent.change(screen.getByTestId('register-name-input'), {
@@ -168,9 +158,7 @@ describe('RegisterPage', () => {
     fireEvent.click(screen.getByTestId('register-submit-button'));
 
     await waitFor(() => {
-      expect(autoClaimSpy).toHaveBeenCalled();
-      expect(singleClaimSpy).toHaveBeenCalledWith('rec-guest-555');
-      expect(mockPush).toHaveBeenCalledWith('/recordings/rec-guest-555');
+      expect(mockPush).toHaveBeenCalledWith('/verify-email?email=budi%40example.com&claim=rec-guest-555');
     });
   });
 

@@ -18,11 +18,11 @@ import { Button } from '@/components/atoms/button';
 import { Alert, AlertDescription } from '@/components/atoms/alert';
 import { apiFetch } from '@/lib/api-client';
 import { ApiResponse } from '@/server/dtos/response.dto';
-import { AuthResponse, UserProfileResponse } from '@/server/dtos/auth.dto';
-import { claimGuestRecordings, claimSingleRecording } from '@/lib/claim';
+import { AuthResponse } from '@/server/dtos/auth.dto';
 import { useTokenStore } from '@/stores/token.store';
 import { useAuthStore } from '@/stores/auth.store';
 import { YoutenLogo } from '@/components/atoms/youten-logo';
+import { toast } from 'sonner';
 
 function RegisterForm() {
   const router = useRouter();
@@ -84,25 +84,11 @@ function RegisterForm() {
       });
 
       if (response && response.status === 'success') {
-        // Clear anonymous session on successful registration
-        useTokenStore.getState().clearAnonSession();
-
-        // Update global auth store with logged-in user profile
-        if (response.data?.user) {
-          useAuthStore.getState().setUser(response.data.user as unknown as UserProfileResponse);
-        }
-
-        // Auto-claim any guest recordings stored in localStorage
-        await claimGuestRecordings();
-
-        // If specific recording was requested via ?claim=<id>, claim it and navigate there
-        if (claimId) {
-          await claimSingleRecording(claimId);
-          router.push(`/recordings/${claimId}`);
-        } else {
-          const redirectTo = searchParams.get('redirect') || searchParams.get('from');
-          router.push(redirectTo || '/');
-        }
+        toast.success('Pendaftaran berhasil! Kode verifikasi telah dikirim ke email Anda.');
+        const redirectUrl = `/verify-email?email=${encodeURIComponent(email.trim())}${
+          claimId ? `&claim=${claimId}` : ''
+        }`;
+        router.push(redirectUrl);
       } else {
         setErrorMessage(response?.message || 'Pendaftaran gagal. Silakan coba kembali.');
       }

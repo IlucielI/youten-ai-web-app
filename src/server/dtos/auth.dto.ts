@@ -94,3 +94,13 @@ export interface ResetPasswordRequest {
   new_password: string;
 }
 
+export interface VerifyEmailRequest {
+  code?: string;
+  token?: string;
+  email?: string;
+}
+
+export interface ResendVerificationRequest {
+  email: string;
+}
+

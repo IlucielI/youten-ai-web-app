@@ -94,6 +94,19 @@ describe('AuthService', () => {
       }),
       updateProfile: vi.fn(),
       changePassword: vi.fn(),
+      verifyEmail: vi.fn().mockResolvedValue({
+        status: ResponseStatus.SUCCESS,
+        code: ResponseCode.SUCCESS,
+        message: 'Email verified',
+        data: mockAuthResponse,
+        timestamp: new Date().toISOString(),
+      }),
+      resendVerification: vi.fn().mockResolvedValue({
+        status: ResponseStatus.SUCCESS,
+        code: ResponseCode.SUCCESS,
+        message: 'Verification resent',
+        timestamp: new Date().toISOString(),
+      }),
     };
 
     service = new AuthService(mockRepo as unknown as IAuthRepository);
@@ -189,5 +202,19 @@ describe('AuthService', () => {
     const res = await service.changePassword(payload);
     expect(mockRepo.changePassword).toHaveBeenCalledWith(payload);
     expect(res.message).toBe('Password changed successfully');
+  });
+
+  it('delegates verifyEmail to repository', async () => {
+    const payload = { email: 'test@example.com', code: '123456' };
+    const res = await service.verifyEmail(payload);
+    expect(mockRepo.verifyEmail).toHaveBeenCalledWith(payload);
+    expect(res.data?.access_token).toBe('acc-token');
+  });
+
+  it('delegates resendVerification to repository', async () => {
+    const payload = { email: 'test@example.com' };
+    const res = await service.resendVerification(payload);
+    expect(mockRepo.resendVerification).toHaveBeenCalledWith(payload);
+    expect(res.message).toBe('Verification resent');
   });
 });

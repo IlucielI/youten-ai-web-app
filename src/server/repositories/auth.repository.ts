@@ -9,6 +9,8 @@ import {
   LogoutRequest,
   ForgotPasswordRequest,
   ResetPasswordRequest,
+  VerifyEmailRequest,
+  ResendVerificationRequest,
   UpdateProfileRequest,
   ChangePasswordRequest,
   AuthResponse,
@@ -57,19 +59,6 @@ export class AuthRepository implements IAuthRepository {
       return regRes as unknown as ApiResponse<AuthResponse>;
     }
 
-    try {
-      const loginRes = await this.login({
-        email: payload.email,
-        password: payload.password,
-        anon_token: payload.anon_token,
-      });
-      if (loginRes && loginRes.status === 'success') {
-        return loginRes;
-      }
-    } catch {
-      // Return structured response with user data if auto-login exchange is deferred
-    }
-
     return {
       status: regRes.status,
       code: regRes.code,
@@ -78,8 +67,8 @@ export class AuthRepository implements IAuthRepository {
         access_token: '',
         refresh_token: '',
         token_type: 'Bearer',
-        expires_in: 900,
-        refresh_expires_in: 604800,
+        expires_in: 0,
+        refresh_expires_in: 0,
         user: regRes.data,
       },
       timestamp: regRes.timestamp,
@@ -121,6 +110,31 @@ export class AuthRepository implements IAuthRepository {
       return this.baseSuccessResponse('Password reset successfully');
     }
     return this.http.post<BaseResponse>('/v1/auth/reset-password', payload);
+  }
+
+  async verifyEmail(payload: VerifyEmailRequest): Promise<ApiResponse<AuthResponse>> {
+    if (this.useMock) {
+      const user = this.mock.getMe();
+      return this.successResponse(
+        {
+          access_token: 'mock-verified-token',
+          refresh_token: 'mock-verified-refresh',
+          token_type: 'Bearer',
+          expires_in: 86400,
+          refresh_expires_in: 604800,
+          user: { ...user, email_verified: true, status: 'active' },
+        },
+        'Email verified successfully'
+      );
+    }
+    return this.http.post<ApiResponse<AuthResponse>>('/v1/auth/verify-email', payload);
+  }
+
+  async resendVerification(payload: ResendVerificationRequest): Promise<BaseResponse> {
+    if (this.useMock) {
+      return this.baseSuccessResponse('Verification email sent successfully');
+    }
+    return this.http.post<BaseResponse>('/v1/auth/verify-email/resend', payload);
   }
 
   async getMe(): Promise<ApiResponse<UserProfileResponse>> {

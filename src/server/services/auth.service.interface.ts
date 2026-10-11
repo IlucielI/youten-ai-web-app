@@ -5,6 +5,8 @@ import {
   LogoutRequest,
   ForgotPasswordRequest,
   ResetPasswordRequest,
+  VerifyEmailRequest,
+  ResendVerificationRequest,
   UpdateProfileRequest,
   ChangePasswordRequest,
   AuthResponse,
@@ -22,6 +24,8 @@ export interface IAuthService {
   logout(payload: LogoutRequest): Promise<BaseResponse>;
   forgotPassword(payload: ForgotPasswordRequest): Promise<BaseResponse>;
   resetPassword(payload: ResetPasswordRequest): Promise<BaseResponse>;
+  verifyEmail(payload: VerifyEmailRequest): Promise<ApiResponse<AuthResponse>>;
+  resendVerification(payload: ResendVerificationRequest): Promise<BaseResponse>;
   getMe(): Promise<ApiResponse<UserProfileResponse>>;
   updateProfile(payload: UpdateProfileRequest): Promise<ApiResponse<UserResponse>>;
   changePassword(payload: ChangePasswordRequest): Promise<BaseResponse>;

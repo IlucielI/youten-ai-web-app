@@ -7,6 +7,8 @@ import {
   LoginRequestSchema,
   ForgotPasswordRequestSchema,
   ResetPasswordRequestSchema,
+  VerifyEmailRequestSchema,
+  ResendVerificationRequestSchema,
   UpdateProfileRequestSchema,
   ChangePasswordRequestSchema,
 } from '../schemas/auth.schema';
@@ -61,7 +63,7 @@ export class AuthController extends BaseController {
       const result = await this.authService.register(payload);
 
       const response = this.success(result, { requestId, status: 201 });
-      if (result.data) {
+      if (result.data?.access_token) {
         response.cookies.set(AUTH_COOKIE_NAME, result.data.access_token, {
           ...AUTH_COOKIE_CONFIG,
           maxAge: result.data.expires_in || ACCESS_TOKEN_MAX_AGE,
@@ -211,6 +213,41 @@ export class AuthController extends BaseController {
     return this.handle(req, async () => {
       const body = await this.getBody(req, ResetPasswordRequestSchema);
       return this.authService.resetPassword(body);
+    });
+  }
+
+  async verifyEmail(req: Request): Promise<NextResponse> {
+    const requestId = this.getRequestId(req);
+    try {
+      const body = await this.getBody(req, VerifyEmailRequestSchema);
+      const result = await this.authService.verifyEmail(body);
+
+      const response = this.success(result, { requestId, status: 200 });
+      if (result.data?.access_token) {
+        response.cookies.set(AUTH_COOKIE_NAME, result.data.access_token, {
+          ...AUTH_COOKIE_CONFIG,
+          maxAge: result.data.expires_in || ACCESS_TOKEN_MAX_AGE,
+        });
+        response.cookies.set(REFRESH_COOKIE_NAME, result.data.refresh_token, {
+          ...AUTH_COOKIE_CONFIG,
+          maxAge: result.data.refresh_expires_in || REFRESH_TOKEN_MAX_AGE,
+        });
+        response.cookies.set(GUEST_COOKIE_NAME, '', {
+          ...AUTH_COOKIE_CONFIG,
+          maxAge: 0,
+        });
+      }
+      return response;
+    } catch (error) {
+      const action = this.resolveActionName(error, 'AuthController.verifyEmail');
+      return this.error(error, { requestId, action });
+    }
+  }
+
+  async resendVerification(req: Request): Promise<NextResponse> {
+    return this.handle(req, async () => {
+      const body = await this.getBody(req, ResendVerificationRequestSchema);
+      return this.authService.resendVerification(body);
     });
   }
 }
