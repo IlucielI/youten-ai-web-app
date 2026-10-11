@@ -1,9 +1,10 @@
 import React from 'react';
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { YoutenLogo } from '@/components/atoms/youten-logo';
 
-export const metadata = {
-  title: 'Autentikasi — Youten AI',
+export const metadata: Metadata = {
+  title: 'Autentikasi',
   description: 'Masuk atau daftar ke platform Youten AI untuk transkripsi dan notula rapat otomatis.',
 };
 
