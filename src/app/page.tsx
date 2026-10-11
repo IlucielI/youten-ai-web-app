@@ -245,10 +245,7 @@ export default function LandingPage() {
         brandTag="Beta"
         ctaText="Masuk"
         ctaHref="/login"
-        links={[
-          { label: 'Beranda', href: '/', active: true },
-          { label: 'Waitlist Bot', href: '/waitlist' },
-        ]}
+        links={[]}
       />
 
       {/* Hero Section */}
