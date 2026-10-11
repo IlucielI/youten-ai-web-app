@@ -7,11 +7,13 @@ import { apiFetch, ApiClientError } from '@/lib/api-client';
 import { ApiResponse, BaseResponse } from '@/server/dtos/response.dto';
 import { UserProfileResponse } from '@/server/dtos/auth.dto';
 import { RecordingListItemDTO } from '@/server/dtos/recording.dto';
+import { useAuthStore } from '@/stores/auth.store';
 import { RecordingStatus } from '@/server/constants/recording.constant';
 import { CustomerUserRole } from '@/server/constants/auth.constant';
 import { formatTime } from '@/lib/time';
 import { Button } from '@/components/atoms/button';
 import { Badge } from '@/components/atoms/badge';
+import { YoutenLogo } from '@/components/atoms/youten-logo';
 import { Skeleton } from '@/components/atoms/skeleton';
 import {
   Table,
@@ -39,7 +41,7 @@ import {
 import { StatusPill } from '@/components/molecules/status-pill';
 import { EmptyState } from '@/components/molecules/empty-state';
 import { ShareDialog } from '@/components/molecules/share-dialog';
-import { UserChip } from '@/components/molecules/user-chip';
+import { UserNavDropdown } from '@/components/molecules/user-nav-dropdown';
 import { toast } from 'sonner';
 import { useTemplates } from '@/hooks';
 import {
@@ -49,7 +51,6 @@ import {
   List,
   Sparkles,
   RefreshCw,
-  LogOut,
   ChevronLeft,
   ChevronRight,
   Trash2,
@@ -57,8 +58,6 @@ import {
   ExternalLink,
   AlertTriangle,
   FolderOpen,
-  Users,
-  User,
 } from 'lucide-react';
 
 const STATUS_OPTIONS = [
@@ -138,12 +137,15 @@ export default function DashboardPage() {
         const res = await apiFetch<ApiResponse<UserProfileResponse>>('/api/auth/me');
         if (mounted && res && res.status === 'success' && res.data) {
           setUser(res.data);
+          useAuthStore.getState().setUser(res.data);
           setAuthLoading(false);
         } else if (mounted) {
+          useAuthStore.getState().setUser(null);
           router.push('/login?redirect=/dashboard');
         }
       } catch {
         if (mounted) {
+          useAuthStore.getState().setUser(null);
           router.push('/login?redirect=/dashboard');
         }
       }
@@ -252,6 +254,8 @@ export default function DashboardPage() {
   const handleLogout = async () => {
     try {
       await apiFetch('/api/auth/logout', { method: 'POST' });
+      useAuthStore.getState().reset();
+      setUser(null);
       router.push('/login');
     } catch {
       toast.error('Gagal keluar dari sesi. Silakan coba kembali.');
@@ -270,12 +274,13 @@ export default function DashboardPage() {
       const res = await apiFetch<ApiResponse<{ is_share_enabled: boolean; share_token?: string }>>(
         `/api/recordings/${shareRecording.id}/share`,
         {
-          method: 'POST',
+          method: 'PATCH',
           body: JSON.stringify({ is_share_enabled: enable }),
         }
       );
-      if (res && res.data) {
-        setShareToken(res.data.share_token || null);
+      if (res?.data) {
+        const updatedToken = res.data.share_token || null;
+        setShareToken(updatedToken);
         toast.success(enable ? 'Tautan publik aktif' : 'Tautan publik dinonaktifkan');
       }
     } catch {
@@ -306,79 +311,16 @@ export default function DashboardPage() {
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/90 shadow-2xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           {/* Brand Logo */}
-          <Link href="/dashboard" className="flex items-center gap-2.5 group">
-            <div className="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center font-black text-sm tracking-tighter shadow-sm shadow-blue-500/20">
-              Y
-            </div>
-            <div className="flex items-center gap-1.5">
-              <span className="font-extrabold text-base tracking-tight text-slate-900 group-hover:text-blue-600 transition-colors">
-                Youten AI
-              </span>
-              <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200/50">
-                Workspace
-              </span>
-            </div>
+          <Link href="/" className="flex items-center gap-2.5 group">
+            <YoutenLogo size="sm" className="group-hover:scale-105 transition-transform" />
+            <span className="font-extrabold text-base tracking-tight text-slate-900 group-hover:text-blue-600 transition-colors">
+              Youten AI
+            </span>
           </Link>
 
           {/* Right Header Controls */}
           <div className="flex items-center gap-3">
-            <Link href="/search">
-              <Button
-                variant="outline"
-                size="sm"
-                className="hidden sm:flex items-center gap-1.5 text-xs text-slate-600 border-slate-200 hover:text-blue-600 hover:border-blue-300"
-              >
-                <Search className="w-3.5 h-3.5 text-slate-400" />
-                <span>Pencarian Semantik</span>
-              </Button>
-            </Link>
-
-            <Link href="/speakers">
-              <Button
-                variant="outline"
-                size="sm"
-                className="hidden sm:flex items-center gap-1.5 text-xs text-slate-600 border-slate-200 hover:text-blue-600 hover:border-blue-300"
-              >
-                <Users className="w-3.5 h-3.5 text-slate-400" />
-                <span>Pembicara</span>
-              </Button>
-            </Link>
-
-            <Link href="/settings">
-              <Button
-                variant="outline"
-                size="sm"
-                className="hidden sm:flex items-center gap-1.5 text-xs text-slate-600 border-slate-200 hover:text-blue-600 hover:border-blue-300"
-              >
-                <User className="w-3.5 h-3.5 text-slate-400" />
-                <span>Pengaturan</span>
-              </Button>
-            </Link>
-
-            <UserChip
-              name={user?.full_name || 'Pengguna'}
-              role={user?.email || 'Akun Terverifikasi'}
-              initials={
-                user?.full_name
-                  ? user.full_name
-                      .split(' ')
-                      .map((n) => n[0])
-                      .slice(0, 2)
-                      .join('')
-                      .toUpperCase()
-                  : 'U'
-              }
-            />
-
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleLogout}
-              className="text-slate-500 hover:text-rose-600 hover:bg-rose-50 text-xs gap-1.5"
-            >
-              <LogOut className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Keluar</span>
-            </Button>
+            <UserNavDropdown user={user} onLogout={handleLogout} showDashboard={false} />
           </div>
         </div>
       </header>

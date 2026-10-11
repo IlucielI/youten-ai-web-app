@@ -1,8 +1,12 @@
 'use client';
 
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { formatTime } from '@/lib/time';
 import { Button } from '@/components/atoms/button';
+import { Input } from '@/components/atoms/input';
+import { Label } from '@/components/atoms/label';
+import { useTemplates } from '@/hooks';
+import { TemplateKey, DefaultTemplateKey } from '@/server/constants/template.constant';
 import {
   Mic,
   Square,
@@ -17,15 +21,43 @@ import { cn } from '@/lib/utils';
 
 export type RecorderState = 'idle' | 'recording' | 'paused' | 'stopped';
 
+export interface RecordingProcessOptions {
+  title?: string;
+  templateCategory?: TemplateKey;
+}
+
 export interface BrowserRecorderProps {
-  onProcessRecording?: (audioBlob: Blob, durationSeconds: number) => Promise<void> | void;
+  onProcessRecording?: (
+    audioBlob: Blob,
+    durationSeconds: number,
+    options?: RecordingProcessOptions
+  ) => Promise<void> | void;
   isProcessing?: boolean;
   className?: string;
 }
 
 function extractErrorMessage(error: unknown, fallback: string): string {
-  if (error instanceof Error && error.message.trim()) {
-    return error.message;
+  if (typeof error === 'object' && error !== null) {
+    const errObj = error as { name?: string; message?: string };
+    const name = errObj.name || '';
+    const msg = (errObj.message || '').toLowerCase();
+    if (msg.includes('permissions policy') || msg.includes('disallowed by permissions policy')) {
+      return 'Izin mikrofon terhalang oleh cache dokumen browser. Silakan muat ulang (refresh) halaman untuk memuat header izin terbaru.';
+    }
+    if (
+      name === 'NotAllowedError' ||
+      name === 'PermissionDeniedError' ||
+      msg.includes('permission denied') ||
+      msg.includes('permission dismissed')
+    ) {
+      return 'Akses mikrofon diblokir atau ditolak oleh browser. Silakan klik ikon pengaturan/gembok di sebelah URL browser (localhost:3000), ubah izin Mikrofon menjadi "Izinkan" (Allow), lalu muat ulang halaman.';
+    }
+    if (name === 'NotFoundError' || name === 'DevicesNotFoundError' || msg.includes('not found')) {
+      return 'Perangkat mikrofon tidak ditemukan. Pastikan mikrofon telah terpasang dan aktif di perangkat Anda.';
+    }
+    if (errObj.message && errObj.message.trim()) {
+      return errObj.message;
+    }
   }
   return fallback;
 }
@@ -39,11 +71,38 @@ export function BrowserRecorder({
   const [duration, setDuration] = useState(0);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [recordedBlob, setRecordedBlob] = useState<Blob | null>(null);
+  const [title, setTitle] = useState('');
+  const [templateCategory, setTemplateCategory] = useState<TemplateKey>(DefaultTemplateKey);
+  const { templates } = useTemplates();
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
+
+  const audioPreviewUrl = useMemo(() => {
+    if (
+      !recordedBlob ||
+      typeof window === 'undefined' ||
+      typeof URL === 'undefined' ||
+      typeof URL.createObjectURL !== 'function'
+    ) {
+      return undefined;
+    }
+    try {
+      return URL.createObjectURL(recordedBlob);
+    } catch {
+      return undefined;
+    }
+  }, [recordedBlob]);
+
+  useEffect(() => {
+    return () => {
+      if (audioPreviewUrl && typeof URL !== 'undefined' && typeof URL.revokeObjectURL === 'function') {
+        URL.revokeObjectURL(audioPreviewUrl);
+      }
+    };
+  }, [audioPreviewUrl]);
 
   const clearTimer = useCallback(() => {
     if (timerIntervalRef.current) {
@@ -65,6 +124,46 @@ export function BrowserRecorder({
       cleanupStream();
     };
   }, [clearTimer, cleanupStream]);
+
+  // Reactive permission listener: automatically clear error when user allows mic in browser settings
+  useEffect(() => {
+    let permissionStatus: PermissionStatus | null = null;
+    let handleStatusChange: (() => void) | null = null;
+    let isSubscribed = true;
+
+    if (
+      typeof navigator !== 'undefined' &&
+      'permissions' in navigator &&
+      typeof navigator.permissions?.query === 'function'
+    ) {
+      navigator.permissions
+        .query({ name: 'microphone' as PermissionName })
+        .then((status) => {
+          if (!isSubscribed) return;
+          permissionStatus = status;
+
+          handleStatusChange = () => {
+            if (status.state === 'granted') {
+              setErrorMessage((prev) =>
+                prev && prev.includes('Akses mikrofon diblokir') ? null : prev
+              );
+            }
+          };
+
+          status.addEventListener('change', handleStatusChange);
+        })
+        .catch(() => {
+          // Some browsers or older versions might not support microphone query
+        });
+    }
+
+    return () => {
+      isSubscribed = false;
+      if (permissionStatus && handleStatusChange) {
+        permissionStatus.removeEventListener('change', handleStatusChange);
+      }
+    };
+  }, []);
 
   const handleStartRecording = async () => {
     setErrorMessage(null);
@@ -111,6 +210,7 @@ export function BrowserRecorder({
       mediaRecorder.onstop = () => {
         const finalBlob = new Blob(audioChunksRef.current, { type: mimeType });
         setRecordedBlob(finalBlob);
+        setTitle((prev) => prev || 'Rekaman Langsung');
         cleanupStream();
       };
 
@@ -171,13 +271,18 @@ export function BrowserRecorder({
     setRecordedBlob(null);
     audioChunksRef.current = [];
     setErrorMessage(null);
+    setTitle('');
+    setTemplateCategory(DefaultTemplateKey);
   };
 
   const handleProcess = async () => {
     if (!recordedBlob || isProcessing || !onProcessRecording) return;
     try {
       setErrorMessage(null);
-      await onProcessRecording(recordedBlob, duration);
+      await onProcessRecording(recordedBlob, duration, {
+        title: title.trim() || 'Rekaman Langsung',
+        templateCategory,
+      });
     } catch (err: unknown) {
       const msg = extractErrorMessage(err, 'Gagal memproses rekaman audio.');
       setErrorMessage(msg);
@@ -251,13 +356,71 @@ export function BrowserRecorder({
         </div>
       </div>
 
+      {/* Configuration & Audio Preview when stopped */}
+      {recorderState === 'stopped' && (
+        <div className="rounded-2xl border border-border/80 bg-card/60 p-4 sm:p-5 backdrop-blur-md shadow-sm space-y-4 text-left">
+          {audioPreviewUrl && (
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold text-foreground">
+                Pratinjau Hasil Rekaman:
+              </Label>
+              <audio
+                controls
+                src={audioPreviewUrl}
+                className="w-full h-9 rounded-md"
+                data-testid="audio-preview"
+              />
+            </div>
+          )}
+
+          {/* Title Configuration */}
+          <div className="space-y-1.5">
+            <Label htmlFor="recording-title" className="text-xs font-semibold text-foreground">
+              Judul Rekaman:
+            </Label>
+            <Input
+              id="recording-title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              disabled={isProcessing}
+              placeholder="Masukkan judul rekaman..."
+              className="text-xs"
+              data-testid="recording-title-input"
+            />
+          </div>
+
+          {/* Template Category Picker */}
+          <div className="space-y-1.5">
+            <Label htmlFor="template-select" className="text-xs font-semibold text-foreground">
+              Kerangka Ringkasan Awal:
+            </Label>
+            <select
+              id="template-select"
+              value={templateCategory}
+              onChange={(e) => setTemplateCategory(e.target.value as TemplateKey)}
+              disabled={isProcessing}
+              className="w-full rounded-md border border-input bg-card px-3 py-2 text-xs shadow-sm cursor-pointer focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-50 disabled:cursor-not-allowed text-foreground"
+              data-testid="template-select"
+            >
+              {templates.map((t) => (
+                <option key={t.key} value={t.key} className="bg-popover text-foreground">
+                  {t.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+      )}
+
       {/* Control Buttons */}
       <div className="flex flex-wrap items-center justify-center gap-3">
         {recorderState === 'idle' && (
           <Button
             type="button"
+            variant="destructive"
+            size="lg"
             onClick={handleStartRecording}
-            className="text-xs gap-2 px-6 py-2.5 h-auto rounded-full bg-rose-600 hover:bg-rose-700 text-white shadow-lg shadow-rose-600/20"
+            className="rounded-full shadow-lg shadow-destructive/20"
             data-testid="start-record-btn"
           >
             <Mic className="h-4 w-4" />
@@ -272,7 +435,7 @@ export function BrowserRecorder({
               variant="outline"
               size="sm"
               onClick={handlePauseResume}
-              className="text-xs gap-1.5"
+              className="rounded-full"
               data-testid="pause-record-btn"
             >
               {recorderState === 'paused' ? (
@@ -293,7 +456,7 @@ export function BrowserRecorder({
               variant="destructive"
               size="sm"
               onClick={handleStopRecording}
-              className="text-xs gap-1.5"
+              className="rounded-full shadow-md shadow-destructive/25"
               data-testid="stop-record-btn"
             >
               <Square className="h-3.5 w-3.5 fill-current" />
@@ -310,7 +473,6 @@ export function BrowserRecorder({
               size="sm"
               onClick={handleReset}
               disabled={isProcessing}
-              className="text-xs gap-1.5"
               data-testid="reset-record-btn"
             >
               <RotateCcw className="h-3.5 w-3.5" />
@@ -319,10 +481,10 @@ export function BrowserRecorder({
 
             <Button
               type="button"
+              variant="default"
               size="sm"
               onClick={handleProcess}
               disabled={isProcessing || !recordedBlob}
-              className="text-xs gap-2"
               data-testid="process-record-btn"
             >
               {isProcessing ? (
@@ -345,10 +507,47 @@ export function BrowserRecorder({
       {errorMessage && (
         <div
           data-testid="recorder-error-alert"
-          className="rounded-xl border border-rose-500/30 bg-rose-500/10 p-3 flex items-start gap-2.5 text-xs text-rose-300 text-left"
+          className="rounded-xl border border-destructive/30 bg-destructive/10 p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-destructive text-left shadow-sm"
         >
-          <AlertTriangle className="h-4 w-4 shrink-0 text-rose-400 mt-0.5" />
-          <span>{errorMessage}</span>
+          <div className="flex items-start gap-2.5">
+            <AlertTriangle className="h-4 w-4 shrink-0 text-destructive mt-0.5" />
+            <span className="leading-relaxed">{errorMessage}</span>
+          </div>
+          <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
+            <Button
+              type="button"
+              size="xs"
+              variant="outline"
+              onClick={() => {
+                if (typeof window !== 'undefined') {
+                  window.location.reload();
+                }
+              }}
+              data-testid="reload-page-btn"
+            >
+              Muat Ulang
+            </Button>
+            {recorderState === 'idle' && (
+              <Button
+                type="button"
+                size="xs"
+                variant="destructive"
+                onClick={handleStartRecording}
+                data-testid="retry-permission-btn"
+              >
+                Coba Lagi
+              </Button>
+            )}
+            <Button
+              type="button"
+              size="xs"
+              variant="ghost"
+              onClick={() => setErrorMessage(null)}
+              data-testid="dismiss-error-btn"
+            >
+              Tutup
+            </Button>
+          </div>
         </div>
       )}
     </div>

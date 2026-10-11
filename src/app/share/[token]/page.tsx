@@ -20,6 +20,7 @@ import {
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/atoms/tabs';
 import { Button } from '@/components/atoms/button';
 import { Badge } from '@/components/atoms/badge';
+import { YoutenLogo } from '@/components/atoms/youten-logo';
 import { Input } from '@/components/atoms/input';
 import { SummaryViewer, SummaryData } from '@/components/organisms/summary-viewer';
 import { TranscriptSegment } from '@/components/molecules/transcript-segment';
@@ -133,9 +134,7 @@ export default function SharedRecordingPage() {
         {/* Distraction-free Top Banner */}
         <header className="border-b border-border/60 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-primary text-primary-foreground flex items-center justify-center font-bold text-xs shadow-xs">
-              Y
-            </div>
+            <YoutenLogo size="sm" />
             <span className="font-bold text-sm tracking-tight text-foreground">Youten AI</span>
           </div>
         </header>
@@ -157,9 +156,7 @@ export default function SharedRecordingPage() {
         {/* Distraction-free Top Banner */}
         <header className="border-b border-border/60 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md px-4 sm:px-6 py-3 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 group">
-            <div className="w-7 h-7 rounded-lg bg-primary text-primary-foreground flex items-center justify-center font-bold text-xs shadow-xs group-hover:bg-primary-hover transition-colors">
-              Y
-            </div>
+            <YoutenLogo size="sm" className="group-hover:scale-105 transition-transform" />
             <span className="font-bold text-sm tracking-tight text-foreground group-hover:text-primary transition-colors">
               Youten AI
             </span>
@@ -201,9 +198,7 @@ export default function SharedRecordingPage() {
           {/* Left: Branding & Read-Only Badge */}
           <div className="flex items-center gap-3">
             <Link href="/" className="flex items-center gap-2 group">
-              <div className="w-7 h-7 rounded-lg bg-primary text-primary-foreground flex items-center justify-center font-bold text-xs shadow-xs group-hover:bg-primary-hover transition-colors">
-                Y
-              </div>
+              <YoutenLogo size="sm" className="group-hover:scale-105 transition-transform" />
               <span className="font-bold text-sm tracking-tight text-foreground group-hover:text-primary transition-colors">
                 Youten AI
               </span>

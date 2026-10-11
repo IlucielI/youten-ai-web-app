@@ -267,7 +267,7 @@ export default function RecordingProcessingPage() {
         {/* Subtle decorative background gradient spots */}
         <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[850px] sm:w-[1100px] h-[550px] bg-gradient-to-tr from-primary/15 via-indigo-500/10 to-teal-500/10 blur-3xl pointer-events-none -z-10 rounded-full" />
 
-        <div className="w-full max-w-5xl xl:max-w-6xl space-y-6 sm:space-y-8">
+        <div className="w-full max-w-4xl xl:max-w-5xl space-y-5 sm:space-y-6">
           {/* Header Action & Breadcrumb Navigation */}
           <div
             data-testid="processing-header"
@@ -276,9 +276,9 @@ export default function RecordingProcessingPage() {
             <Link
               href="/"
               data-testid="back-to-home-link"
-              className="inline-flex items-center gap-2 text-sm sm:text-base font-medium text-muted-foreground hover:text-foreground transition-colors group"
+              className="inline-flex items-center gap-2 text-xs sm:text-sm font-medium text-muted-foreground hover:text-foreground transition-colors group"
             >
-              <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 transition-transform group-hover:-translate-x-1" />
+              <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
               <span>Kembali ke Beranda</span>
             </Link>
 
@@ -286,7 +286,7 @@ export default function RecordingProcessingPage() {
               <Badge
                 variant="outline"
                 data-testid="recording-id-badge"
-                className="font-mono text-xs sm:text-sm px-3 py-1 border-border/80 bg-background/80 backdrop-blur-sm text-muted-foreground truncate max-w-[200px] sm:max-w-none"
+                className="font-mono text-xs px-2.5 py-0.5 border-border/80 bg-background/80 backdrop-blur-sm text-muted-foreground truncate max-w-[200px] sm:max-w-none"
               >
                 ID: {recordingId}
               </Badge>
@@ -294,20 +294,20 @@ export default function RecordingProcessingPage() {
           </div>
 
           {/* Recording Title Header Card */}
-          <div className="bg-card/85 backdrop-blur-sm border border-border/80 rounded-2xl sm:rounded-3xl p-5 sm:p-6 md:p-7 flex items-center justify-between gap-4 shadow-sm">
-            <div className="flex items-center gap-4 sm:gap-5 min-w-0">
-              <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-primary/10 text-primary flex items-center justify-center shrink-0 border border-primary/20 shadow-inner">
-                <FileAudio className="w-6 h-6 sm:w-7 sm:h-7" />
+          <div className="bg-card/85 backdrop-blur-sm border border-border/80 rounded-2xl p-4 sm:p-5 flex items-center justify-between gap-4 shadow-sm">
+            <div className="flex items-center gap-3.5 sm:gap-4 min-w-0">
+              <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0 border border-primary/20 shadow-inner">
+                <FileAudio className="w-5 h-5 sm:w-5.5 sm:h-5.5" />
               </div>
               <div className="min-w-0">
                 <h1
                   data-testid="recording-title-display"
-                  className="text-lg sm:text-xl md:text-2xl font-bold text-foreground truncate"
+                  className="text-base sm:text-lg font-bold text-foreground truncate"
                 >
                   {recordingTitle}
                 </h1>
-                <p className="text-xs sm:text-sm text-muted-foreground flex items-center gap-2 mt-1">
-                  <Sparkles className="w-4 h-4 text-primary shrink-0" />
+                <p className="text-xs text-muted-foreground flex items-center gap-1.5 mt-0.5">
+                  <Sparkles className="w-3.5 h-3.5 text-primary shrink-0" />
                   <span>AI Diarization &amp; Intelligent Synthesis</span>
                 </p>
               </div>
