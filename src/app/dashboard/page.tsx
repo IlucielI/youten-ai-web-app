@@ -57,7 +57,6 @@ import {
   ExternalLink,
   AlertTriangle,
   FolderOpen,
-  Users,
 } from 'lucide-react';
 
 const STATUS_OPTIONS = [
@@ -319,28 +318,6 @@ export default function DashboardPage() {
 
           {/* Right Header Controls */}
           <div className="flex items-center gap-3">
-            <Link href="/search">
-              <Button
-                variant="outline"
-                size="sm"
-                className="hidden sm:flex items-center gap-1.5 text-xs text-slate-600 border-slate-200 hover:text-blue-600 hover:border-blue-300"
-              >
-                <Search className="w-3.5 h-3.5 text-slate-400" />
-                <span>Pencarian Semantik</span>
-              </Button>
-            </Link>
-
-            <Link href="/speakers">
-              <Button
-                variant="outline"
-                size="sm"
-                className="hidden sm:flex items-center gap-1.5 text-xs text-slate-600 border-slate-200 hover:text-blue-600 hover:border-blue-300"
-              >
-                <Users className="w-3.5 h-3.5 text-slate-400" />
-                <span>Pembicara</span>
-              </Button>
-            </Link>
-
             <UserNavDropdown user={user} onLogout={handleLogout} showDashboard={false} />
           </div>
         </div>
