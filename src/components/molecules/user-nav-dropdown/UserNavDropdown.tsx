@@ -10,7 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/atoms/dropdown-menu';
-import { Settings, LogOut, ChevronDown } from 'lucide-react';
+import { Settings, LogOut, ChevronDown, LayoutDashboard } from 'lucide-react';
 
 export interface UserNavDropdownProps {
   user?: {
@@ -26,6 +26,7 @@ export interface UserNavDropdownProps {
   align?: 'start' | 'center' | 'end';
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
+  showDashboard?: boolean;
 }
 
 export const UserNavDropdown: React.FC<UserNavDropdownProps> = ({
@@ -38,6 +39,7 @@ export const UserNavDropdown: React.FC<UserNavDropdownProps> = ({
   align = 'end',
   open,
   onOpenChange,
+  showDashboard = true,
 }) => {
   const [internalOpen, setInternalOpen] = useState(false);
   const isControlled = open !== undefined;
@@ -110,6 +112,20 @@ export const UserNavDropdown: React.FC<UserNavDropdownProps> = ({
         </div>
 
         <DropdownMenuSeparator className="my-1 bg-slate-100" />
+
+        {/* Dashboard */}
+        {showDashboard && (
+          <DropdownMenuItem asChild className="cursor-pointer">
+            <Link
+              href="/dashboard"
+              className="flex items-center gap-2 px-2.5 py-2 text-xs font-medium text-slate-700 hover:text-blue-600 hover:bg-blue-50/80 rounded-md transition-colors"
+              data-testid="dashboard-nav-item"
+            >
+              <LayoutDashboard className="w-4 h-4 text-slate-400 group-hover:text-blue-500" />
+              <span>Dashboard</span>
+            </Link>
+          </DropdownMenuItem>
+        )}
 
         {/* Pengaturan */}
         <DropdownMenuItem asChild className="cursor-pointer">

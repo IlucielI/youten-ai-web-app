@@ -341,7 +341,7 @@ export default function DashboardPage() {
               </Button>
             </Link>
 
-            <UserNavDropdown user={user} onLogout={handleLogout} />
+            <UserNavDropdown user={user} onLogout={handleLogout} showDashboard={false} />
           </div>
         </div>
       </header>
