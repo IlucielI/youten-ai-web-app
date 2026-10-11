@@ -252,7 +252,7 @@ export default function LandingPage() {
       />
 
       {/* Hero Section */}
-      <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16 space-y-10">
+      <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16 space-y-8">
         <div className="text-center space-y-4 max-w-3xl mx-auto">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary border border-primary/20 animate-fade-in">
             <Sparkles className="h-3.5 w-3.5" />
@@ -273,7 +273,7 @@ export default function LandingPage() {
         {currentUser ? (
           <div
             data-testid="user-quota-banner"
-            className="max-w-2xl mx-auto rounded-xl border border-primary/20 bg-primary/5 p-4 flex items-center justify-between gap-4 text-xs sm:text-sm text-foreground shadow-sm"
+            className="max-w-5xl mx-auto rounded-xl border border-primary/20 bg-primary/5 p-4 flex items-center justify-between gap-4 text-xs sm:text-sm text-foreground shadow-sm"
           >
             <div className="flex items-center gap-2.5">
               <Sparkles className="h-4 w-4 text-primary shrink-0" />
@@ -293,7 +293,7 @@ export default function LandingPage() {
         ) : (
           <div
             data-testid="guest-quota-banner"
-            className="max-w-2xl mx-auto rounded-xl border border-primary/20 bg-primary/5 p-4 flex items-center justify-between gap-4 text-xs sm:text-sm text-foreground shadow-sm"
+            className="max-w-5xl mx-auto rounded-xl border border-primary/20 bg-primary/5 p-4 flex items-center justify-between gap-4 text-xs sm:text-sm text-foreground shadow-sm"
           >
             <div className="flex items-center gap-2.5">
               <Info className="h-4 w-4 text-primary shrink-0" />
@@ -314,7 +314,7 @@ export default function LandingPage() {
         {quotaExhausted && (
           <div
             data-testid="quota-alert"
-            className="max-w-2xl mx-auto rounded-xl border border-destructive/30 bg-destructive/10 p-4 flex items-center gap-3 text-destructive text-xs sm:text-sm"
+            className="max-w-5xl mx-auto rounded-xl border border-destructive/30 bg-destructive/10 p-4 flex items-center gap-3 text-destructive text-xs sm:text-sm"
           >
             <AlertTriangle className="h-4 w-4 shrink-0" />
             <div className="flex-1 leading-snug">
@@ -336,14 +336,14 @@ export default function LandingPage() {
         {errorMessage && !quotaExhausted && (
           <div
             data-testid="landing-error-message"
-            className="max-w-2xl mx-auto rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-destructive text-xs"
+            className="max-w-5xl mx-auto rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-destructive text-xs"
           >
             {errorMessage}
           </div>
         )}
 
         {/* Ingestion Hub Card Container */}
-        <div className="max-w-3xl mx-auto rounded-2xl border border-border/80 bg-card p-4 sm:p-6 shadow-xl shadow-primary/5">
+        <div className="max-w-5xl mx-auto rounded-2xl border border-border/80 bg-card p-5 sm:p-8 shadow-xl shadow-primary/5">
           <Tabs
             value={activeTab}
             onValueChange={(val) => setActiveTab(val as typeof activeTab)}
@@ -395,6 +395,7 @@ export default function LandingPage() {
             {/* Tab 1: Upload File */}
             <TabsContent value="upload" className="outline-none">
               <UploadDropzone
+                className="max-w-3xl"
                 onUploadFile={handleUploadFile}
                 onUploadComplete={handleUploadComplete}
               />
@@ -403,6 +404,7 @@ export default function LandingPage() {
             {/* Tab 2: URL Import */}
             <TabsContent value="url" className="outline-none">
               <UrlImportForm
+                className="max-w-3xl"
                 onSubmit={handleUrlImport}
                 isLoading={isUrlImporting}
               />
@@ -410,7 +412,10 @@ export default function LandingPage() {
 
             {/* Tab 3: Live Browser Recording */}
             <TabsContent value="record" className="outline-none">
-              <BrowserRecorder onProcessRecording={handleProcessLiveRecording} />
+              <BrowserRecorder
+                className="max-w-3xl"
+                onProcessRecording={handleProcessLiveRecording}
+              />
             </TabsContent>
 
             {/* Tab 4: Meeting Voice Bot */}
