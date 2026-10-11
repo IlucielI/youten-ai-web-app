@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
 import { useTemplates, FALLBACK_TEMPLATES, _resetTemplateCache } from './use-templates';
+import { useLocaleStore } from '@/stores/locale.store';
 import * as apiClient from '@/lib/api-client';
 
 describe('useTemplates hook', () => {
@@ -58,6 +59,19 @@ describe('useTemplates hook', () => {
       expect(result.current.isLoading).toBe(false);
     });
 
-    expect(result.current.templates).toEqual(FALLBACK_TEMPLATES);
+    expect(result.current.templates.length).toBe(FALLBACK_TEMPLATES.length);
+    expect(result.current.getTemplateLabel('GENERAL')).toBe('Ringkasan Umum (Cornell Notes)');
+  });
+
+  it('provides English labels when locale is en', () => {
+    useLocaleStore.setState({ locale: 'en' });
+
+    vi.spyOn(apiClient, 'apiFetchData').mockImplementation(() => new Promise(() => {}));
+    const { result } = renderHook(() => useTemplates());
+
+    expect(result.current.getTemplateLabel('GENERAL')).toBe('Executive Briefing & General Discussion');
+    expect(result.current.getTemplateLabel('MOM')).toBe('Minutes of Meeting (MOM)');
+
+    useLocaleStore.setState({ locale: 'id' });
   });
 });

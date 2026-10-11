@@ -41,13 +41,13 @@ export const enIngestion: typeof idIngestion = {
     headerSubtitle: 'Capture in-person conversations or browser audio directly.',
     readyToRecord: 'Ready to record',
     recordingFinished: 'Recording complete',
-    recordingAudio: 'Merekam Audio...', // Matches test expectation
-    recordingPaused: 'Perekaman Dijeda', // Matches test expectation
-    recordingSaved: 'Rekaman Tersimpan ({time})',
+    recordingAudio: 'Recording Audio...',
+    recordingPaused: 'Recording Paused',
+    recordingSaved: 'Recording Saved ({time})',
     previewLabel: 'Audio Preview:',
     titleLabel: 'Recording Title:',
     titlePlaceholder: 'Enter recording title...',
-    defaultTitle: 'Rekaman Langsung',
+    defaultTitle: 'Live Recording',
     templateLabel: 'Initial Summary Template:',
     startRecord: 'Start Recording',
     pause: 'Pause',
@@ -60,13 +60,13 @@ export const enIngestion: typeof idIngestion = {
     retry: 'Try Again',
     close: 'Close',
     notSupported: 'Audio recording is not supported by your browser.',
-    formatNotSupported: 'Format perekaman audio tidak didukung oleh browser Anda.',
+    formatNotSupported: 'Audio recording format is not supported by your browser.',
     defaultProcessError: 'Failed to process audio recording.',
-    micPermissionDeniedFallback: 'Izin akses mikrofon ditolak atau mikrofon tidak ditemukan.',
+    micPermissionDeniedFallback: 'Microphone access denied or microphone not found.',
     micBlocked:
-      'Akses mikrofon diblokir atau ditolak oleh browser. Silakan klik ikon pengaturan/gembok di sebelah URL browser (localhost:3000), ubah izin Mikrofon menjadi "Izinkan" (Allow), lalu muat ulang halaman.',
-    micNotFound: 'Perangkat mikrofon tidak ditemukan. Pastikan mikrofon telah terpasang dan aktif di perangkat Anda.',
+      'Microphone access is blocked or denied by browser. Please click the site settings/lock icon next to browser URL (localhost:3000), set Microphone permission to "Allow", and reload the page.',
+    micNotFound: 'Microphone device not found. Please ensure a microphone is connected and enabled on your device.',
     permissionsPolicyError:
-      'Izin mikrofon terhalang oleh cache dokumen browser. Silakan muat ulang (refresh) halaman untuk memuat header izin terbaru.',
+      'Microphone permission is blocked by browser document cache. Please reload the page to apply updated permissions headers.',
   },
 };
