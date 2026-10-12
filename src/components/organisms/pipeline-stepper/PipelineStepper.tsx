@@ -16,6 +16,7 @@ import { RecordingStatus } from '@/server/constants';
 import { usePipelineStore } from '@/stores/pipeline.store';
 import { PipelineErrorCard } from '@/components/molecules/pipeline-error-card';
 import { Button } from '@/components/atoms/button';
+import { useTranslation } from '@/locales';
 
 export interface PipelineStepperProps {
   status?: RecordingStatus;
@@ -38,46 +39,6 @@ interface StepDefinition {
   matchedStatuses: readonly RecordingStatus[];
 }
 
-const PIPELINE_STEPS: readonly StepDefinition[] = [
-  {
-    id: 'extraction',
-    title: 'Validasi & Ekstraksi',
-    description: 'Verifikasi berkas audio, format stream & normalisasi sampel',
-    icon: FileAudio,
-    expectedProgress: 30,
-    matchedStatuses: [
-      RecordingStatus.PENDING,
-      RecordingStatus.QUEUED,
-      RecordingStatus.VALIDATING,
-      RecordingStatus.EXTRACTING,
-    ],
-  },
-  {
-    id: 'transcription',
-    title: 'Transkripsi Multi-Pembicara',
-    description: 'Diarisasi ujaran, stempel waktu, dan pengenalan pembicara',
-    icon: Mic,
-    expectedProgress: 55,
-    matchedStatuses: [RecordingStatus.TRANSCRIBING],
-  },
-  {
-    id: 'intelligence',
-    title: 'AI Intelligence & Pengindeksan',
-    description: 'Sintesis ringkasan notula, action items, dan vektor semantik',
-    icon: Sparkles,
-    expectedProgress: 85,
-    matchedStatuses: [RecordingStatus.SUMMARIZING, RecordingStatus.INDEXING],
-  },
-  {
-    id: 'completed',
-    title: 'Siap Ditinjau',
-    description: 'Seluruh analitik rekaman dan transkripsi siap diakses',
-    icon: CheckCircle2,
-    expectedProgress: 100,
-    matchedStatuses: [RecordingStatus.COMPLETED],
-  },
-] as const;
-
 export const PipelineStepper: React.FC<PipelineStepperProps> = ({
   status: propStatus,
   progress: propProgress,
@@ -89,6 +50,51 @@ export const PipelineStepper: React.FC<PipelineStepperProps> = ({
   className,
   startedAt,
 }) => {
+  const { t } = useTranslation();
+
+  const pipelineSteps = useMemo<readonly StepDefinition[]>(
+    () => [
+      {
+        id: 'extraction',
+        title: t('pipeline.stepper.steps.extraction.title'),
+        description: t('pipeline.stepper.steps.extraction.description'),
+        icon: FileAudio,
+        expectedProgress: 30,
+        matchedStatuses: [
+          RecordingStatus.PENDING,
+          RecordingStatus.QUEUED,
+          RecordingStatus.VALIDATING,
+          RecordingStatus.EXTRACTING,
+        ],
+      },
+      {
+        id: 'transcription',
+        title: t('pipeline.stepper.steps.transcription.title'),
+        description: t('pipeline.stepper.steps.transcription.description'),
+        icon: Mic,
+        expectedProgress: 55,
+        matchedStatuses: [RecordingStatus.TRANSCRIBING],
+      },
+      {
+        id: 'intelligence',
+        title: t('pipeline.stepper.steps.intelligence.title'),
+        description: t('pipeline.stepper.steps.intelligence.description'),
+        icon: Sparkles,
+        expectedProgress: 85,
+        matchedStatuses: [RecordingStatus.SUMMARIZING, RecordingStatus.INDEXING],
+      },
+      {
+        id: 'completed',
+        title: t('pipeline.stepper.steps.completed.title'),
+        description: t('pipeline.stepper.steps.completed.description'),
+        icon: CheckCircle2,
+        expectedProgress: 100,
+        matchedStatuses: [RecordingStatus.COMPLETED],
+      },
+    ],
+    [t]
+  );
+
   // Connect to Zustand pipeline store
   const storeStatus = usePipelineStore((state) => state.status);
   const storeProgress = usePipelineStore((state) => state.progress);
@@ -139,11 +145,11 @@ export const PipelineStepper: React.FC<PipelineStepperProps> = ({
       if (progress >= 55) return 1;
       return 0;
     }
-    const idx = PIPELINE_STEPS.findIndex((step) =>
+    const idx = pipelineSteps.findIndex((step) =>
       step.matchedStatuses.includes(status)
     );
     return idx !== -1 ? idx : 0;
-  }, [status, isCompleted, isFailed, progress]);
+  }, [status, isCompleted, isFailed, progress, pipelineSteps]);
 
   // Format timer mm:ss
   const formattedTimer = useMemo(() => {
@@ -173,10 +179,10 @@ export const PipelineStepper: React.FC<PipelineStepperProps> = ({
             className="text-lg sm:text-xl font-bold tracking-tight text-foreground mt-1"
           >
             {isCompleted
-              ? 'Pemrosesan Selesai'
+              ? t('pipeline.stepper.headlineCompleted')
               : isFailed
-                ? 'Pemrosesan Terhenti'
-                : 'Menganalisis Percakapan...'}
+                ? t('pipeline.stepper.headlineFailed')
+                : t('pipeline.stepper.headlineProcessing')}
           </h3>
           <p
             data-testid="pipeline-current-message"
@@ -199,7 +205,7 @@ export const PipelineStepper: React.FC<PipelineStepperProps> = ({
               className="gap-1.5 cursor-pointer text-xs font-semibold shadow-sm px-3 py-1.5 h-8"
             >
               <RefreshCw className={cn('w-3.5 h-3.5', isRetrying && 'animate-spin')} />
-              <span>{isRetrying ? 'Memulai Ulang...' : 'Coba Lagi'}</span>
+              <span>{isRetrying ? t('pipeline.stepper.retryingButton') : t('pipeline.stepper.retryButton')}</span>
             </Button>
           )}
 
@@ -253,7 +259,7 @@ export const PipelineStepper: React.FC<PipelineStepperProps> = ({
         data-testid="stepper-stages-grid"
         className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4"
       >
-        {PIPELINE_STEPS.map((step, idx) => {
+        {pipelineSteps.map((step, idx) => {
           const StepIcon = step.icon;
           const isCurrent = idx === currentStepIndex && !isCompleted && !isFailed;
           const isPassed = idx < currentStepIndex || isCompleted;

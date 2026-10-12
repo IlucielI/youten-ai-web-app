@@ -180,14 +180,14 @@ export default function RecordingProcessingPage() {
           if (res.data?.status === RecordingStatus.FAILED) {
             usePipelineStore.getState().setFailure({
               code: res.data.error_code || 'ERR_PIPELINE_FAILED',
-              message: res.data.error_message || 'Pemrosesan rekaman terhenti.',
+              message: res.data.error_message || t('pipeline.errors.haltedMessage'),
             });
             return;
           }
         })
         .catch(() => {
           if (!isMounted) return;
-          setRecordingTitle('Rekaman Audio');
+          setRecordingTitle(t('pipeline.errors.defaultAudioTitle'));
         });
     };
 
@@ -213,7 +213,7 @@ export default function RecordingProcessingPage() {
         eventSourceRef.current = null;
       }
     };
-  }, [recordingId, connectSSE]);
+  }, [recordingId, connectSSE, t]);
 
   /**
    * Handle retry action on failure.
@@ -241,14 +241,14 @@ export default function RecordingProcessingPage() {
           status: RecordingStatus.TRANSCRIBING,
           stage: 'transcription',
           progress: 35,
-          message: 'Memulai ulang pemrosesan pipeline...',
+          message: t('pipeline.errors.restartingMessage'),
         });
 
         // Reconnect SSE
         connectSSE(recordingId);
       }
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Gagal memulai ulang pemrosesan.';
+      const msg = err instanceof Error ? err.message : t('pipeline.errors.retryFailedMessage');
       usePipelineStore.getState().setFailure({
         code: 'ERR_RETRY_FAILED',
         message: msg,
