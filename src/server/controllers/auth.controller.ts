@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { BaseController } from './base.controller';
+import { UnauthorizedError } from '../errors/app.error';
 import { IAuthService } from '../services/auth.service.interface';
 import { authService as defaultAuthService } from '../services/auth.service';
 import {
@@ -119,6 +120,51 @@ export class AuthController extends BaseController {
       return response;
     } catch (error) {
       const action = this.resolveActionName(error, 'AuthController.login');
+      return this.error(error, { requestId, action });
+    }
+  }
+
+  async refreshToken(req: Request): Promise<NextResponse> {
+    const requestId = this.getRequestId(req);
+    try {
+      let refreshToken = '';
+      try {
+        const body = (await req.json()) as { refresh_token?: string };
+        if (body && typeof body.refresh_token === 'string') {
+          refreshToken = body.refresh_token.trim();
+        }
+      } catch {
+        // Body may be empty if client calls POST /api/auth/refresh without payload
+      }
+
+      if (!refreshToken) {
+        const cookieHeader = req.headers.get('cookie') || '';
+        const match = cookieHeader.match(new RegExp(`${REFRESH_COOKIE_NAME}=([^;]+)`));
+        if (match) {
+          refreshToken = match[1].trim();
+        }
+      }
+
+      if (!refreshToken) {
+        throw new UnauthorizedError('Refresh token is required');
+      }
+
+      const result = await this.authService.refreshToken({ refresh_token: refreshToken });
+
+      const response = this.success(result, { requestId });
+      if (result.data) {
+        response.cookies.set(AUTH_COOKIE_NAME, result.data.access_token, {
+          ...AUTH_COOKIE_CONFIG,
+          maxAge: result.data.expires_in || ACCESS_TOKEN_MAX_AGE,
+        });
+        response.cookies.set(REFRESH_COOKIE_NAME, result.data.refresh_token, {
+          ...AUTH_COOKIE_CONFIG,
+          maxAge: result.data.refresh_expires_in || REFRESH_TOKEN_MAX_AGE,
+        });
+      }
+      return response;
+    } catch (error) {
+      const action = this.resolveActionName(error, 'AuthController.refreshToken');
       return this.error(error, { requestId, action });
     }
   }

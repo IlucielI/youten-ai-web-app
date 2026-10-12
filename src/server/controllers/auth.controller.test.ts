@@ -216,6 +216,50 @@ describe('AuthController', () => {
     });
   });
 
+  describe('refreshToken', () => {
+    it('rotates tokens via json body and sets updated auth cookies', async () => {
+      const req = new Request('http://localhost/api/auth/refresh', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refresh_token: 'existing-refresh-token' }),
+      });
+
+      const res = await controller.refreshToken(req);
+      expect(res.status).toBe(200);
+
+      const cookies = res.cookies.getAll();
+      const accessCookie = cookies.find((c) => c.name === AUTH_COOKIE_NAME);
+      const refreshCookie = cookies.find((c) => c.name === REFRESH_COOKIE_NAME);
+      expect(accessCookie?.value).toBe('jwt-access-token');
+      expect(refreshCookie?.value).toBe('jwt-refresh-token');
+    });
+
+    it('rotates tokens via cookie when body is empty', async () => {
+      const req = new Request('http://localhost/api/auth/refresh', {
+        method: 'POST',
+        headers: {
+          Cookie: `${REFRESH_COOKIE_NAME}=cookie-refresh-token;`,
+        },
+      });
+
+      const res = await controller.refreshToken(req);
+      expect(res.status).toBe(200);
+
+      const cookies = res.cookies.getAll();
+      const accessCookie = cookies.find((c) => c.name === AUTH_COOKIE_NAME);
+      expect(accessCookie?.value).toBe('jwt-access-token');
+    });
+
+    it('returns 401 when refresh token is absent in body and cookie', async () => {
+      const req = new Request('http://localhost/api/auth/refresh', {
+        method: 'POST',
+      });
+
+      const res = await controller.refreshToken(req);
+      expect(res.status).toBe(401);
+    });
+  });
+
   describe('logout', () => {
     it('clears auth cookies and returns 200', async () => {
       const req = new Request('http://localhost/api/auth/logout', {
