@@ -14,17 +14,44 @@ export class ApiClientError extends Error {
   }
 }
 
+let refreshPromise: Promise<boolean> | null = null;
+
+async function executeSilentRefresh(): Promise<boolean> {
+  if (!refreshPromise) {
+    refreshPromise = (async () => {
+      try {
+        const refreshRes = await fetch('/api/auth/refresh', {
+          method: 'POST',
+          headers: { Accept: 'application/json' },
+        });
+        return refreshRes.ok;
+      } catch {
+        return false;
+      } finally {
+        refreshPromise = null;
+      }
+    })();
+  }
+  return refreshPromise;
+}
+
+export interface ApiFetchOptions extends RequestInit {
+  _retry?: boolean;
+}
+
 /**
  * Standard typed client fetcher for browser/client components.
- * Automatically injects headers, parses JSON, and transforms HTTP errors into typed ApiClientError.
+ * Automatically injects headers, parses JSON, handles transparent 401 silent refresh,
+ * and transforms HTTP errors into typed ApiClientError.
  */
 export async function apiFetch<T>(
   endpoint: string,
-  options: RequestInit = {}
+  options: ApiFetchOptions = {}
 ): Promise<T> {
+  const { _retry, ...fetchOptions } = options;
   const headers: Record<string, string> = {
     Accept: 'application/json',
-    ...(options.headers as Record<string, string>),
+    ...(fetchOptions.headers as Record<string, string>),
   };
 
   // Automatically attach guest ownership token if available in localStorage for this recording
@@ -51,14 +78,30 @@ export async function apiFetch<T>(
     }
   }
 
-  if (options.body && typeof options.body === 'string' && !headers['Content-Type']) {
+  if (fetchOptions.body && typeof fetchOptions.body === 'string' && !headers['Content-Type']) {
     headers['Content-Type'] = 'application/json';
   }
 
   const response = await fetch(endpoint, {
-    ...options,
+    ...fetchOptions,
     headers,
   });
+
+  const isAuthBypassEndpoint =
+    endpoint.startsWith('/api/auth/login') ||
+    endpoint.startsWith('/api/auth/refresh') ||
+    endpoint.startsWith('/api/auth/register') ||
+    endpoint.startsWith('/api/auth/logout');
+
+  if (response.status === 401 && !_retry && !isAuthBypassEndpoint) {
+    const refreshed = await executeSilentRefresh();
+    if (refreshed) {
+      return apiFetch<T>(endpoint, {
+        ...options,
+        _retry: true,
+      });
+    }
+  }
 
   if (response.status === 204) {
     return undefined as unknown as T;
