@@ -396,14 +396,17 @@ export default function SharedRecordingPage() {
         </Tabs>
       </main>
 
-      {/* Global Application Footer */}
-      <Footer className="pb-28 sm:pb-24" />
-
       {/* 4. Sticky Bottom Audio Player */}
-      <AudioPlayer
-        src={recording.audio_url || recording.playback_url || undefined}
-        title={recording.title}
-      />
+      <div className="sticky bottom-4 z-40 px-4 my-2">
+        <AudioPlayer
+          src={recording.audio_url || recording.playback_url || undefined}
+          title={recording.title}
+          sticky={false}
+        />
+      </div>
+
+      {/* Global Application Footer */}
+      <Footer />
     </div>
   );
 }
