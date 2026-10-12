@@ -56,6 +56,12 @@ describe('BFF Domain Repositories (Mock & Transport Layer)', () => {
       expect(resp.data?.scopes).toContain('recordings:create');
     });
 
+    it('should return cached gateway anonymous token', async () => {
+      const token = await authRepo.getGatewayAnonToken();
+      expect(token).toBeDefined();
+      expect(typeof token).toBe('string');
+    });
+
     it('should register a new user and return auth response', async () => {
       const resp = await authRepo.register({
         email: 'newuser@example.com',

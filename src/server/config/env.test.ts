@@ -10,7 +10,7 @@ describe('Environment Config (env.ts)', () => {
     expect(parsed.APP_NAME).toBe('code-base-nextjs');
     expect(parsed.APP_VERSION).toBe('0.1.0');
     expect(parsed.CLIENT_APP_ID).toBe('client-app');
-    expect(parsed.CLIENT_APP_SECRET).toBe('client-secret');
+    expect(parsed.CLIENT_APP_SECRET).toBe('secret');
     expect(parsed.MOCK_CORE_API).toBe(false);
   });
 

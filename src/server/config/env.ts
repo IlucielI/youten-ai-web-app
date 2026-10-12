@@ -13,7 +13,7 @@ export const EnvSchema = z.object({
   PORT: z.coerce.number().int().positive().default(3000),
   CORE_API_URL: z.string().default(''),
   CLIENT_APP_ID: z.string().default('client-app'),
-  CLIENT_APP_SECRET: z.string().default('client-secret'),
+  CLIENT_APP_SECRET: z.string().default('secret'),
   MOCK_CORE_API: z
     .preprocess((val) => val === 'true' || val === true || val === '1', z.boolean())
     .default(false),

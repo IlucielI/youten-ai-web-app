@@ -257,5 +257,51 @@ describe('HttpClient DataSource', () => {
       })
     );
   });
+
+  it('should invoke and attach authHeaderResolver when no session authorization is present', async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ success: true }),
+    });
+
+    const client = new HttpClient({
+      baseUrl: 'https://api.internal.com',
+      authHeaderResolver: async () => 'Bearer gateway-anon-token-123',
+    });
+    await client.get('/v1/templates');
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      'https://api.internal.com/v1/templates',
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          Authorization: 'Bearer gateway-anon-token-123',
+        }),
+      })
+    );
+  });
+
+  it('should prefer explicit token over authHeaderResolver', async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ success: true }),
+    });
+
+    const client = new HttpClient({
+      baseUrl: 'https://api.internal.com',
+      authHeaderResolver: async () => 'Bearer fallback-token',
+    });
+    await client.get('/v1/templates', { token: 'explicit-user-token' });
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      'https://api.internal.com/v1/templates',
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          Authorization: 'Bearer explicit-user-token',
+        }),
+      })
+    );
+  });
 });
 

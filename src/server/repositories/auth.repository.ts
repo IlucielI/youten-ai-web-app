@@ -1,5 +1,5 @@
 import { IAuthRepository } from './auth.repository.interface';
-import { IHttpClient, httpClient as defaultHttpClient } from '../datasources/http';
+import { IHttpClient, HttpClient, httpClient as defaultHttpClient } from '../datasources/http';
 import { MockDataService, mockDataService as defaultMockDataService } from '../datasources/mock';
 import { env } from '../config';
 import {
@@ -23,17 +23,27 @@ import { ResponseStatus, ResponseCode } from '../constants';
 
 export class AuthRepository implements IAuthRepository {
   private readonly http: IHttpClient;
+  private readonly anonHttp: IHttpClient;
   private readonly mock: MockDataService;
   private readonly useMock: boolean;
+  private cachedAnonToken: string | null = null;
+  private anonTokenExpiresAt: number = 0;
 
   constructor(
     http: IHttpClient = defaultHttpClient,
     mock: MockDataService = defaultMockDataService,
-    useMock: boolean = env.MOCK_CORE_API || env.USE_MOCK_DATA
+    useMock: boolean = env.MOCK_CORE_API || env.USE_MOCK_DATA,
+    anonHttp?: IHttpClient
   ) {
     this.http = http;
     this.mock = mock;
     this.useMock = useMock;
+    this.anonHttp =
+      anonHttp ||
+      new HttpClient({
+        baseUrl: env.CORE_API_URL,
+        defaultTimeoutMs: 60000,
+      });
   }
 
   async anonToken(): Promise<ApiResponse<AnonTokenResponse>> {
@@ -42,11 +52,30 @@ export class AuthRepository implements IAuthRepository {
       return this.successResponse(data, 'Anonymous session created successfully');
     }
     const credentials = Buffer.from(`${env.CLIENT_APP_ID}:${env.CLIENT_APP_SECRET}`).toString('base64');
-    return this.http.post<ApiResponse<AnonTokenResponse>>('/v1/auth/anon', undefined, {
+    return this.anonHttp.post<ApiResponse<AnonTokenResponse>>('/v1/auth/anon', undefined, {
       headers: {
         Authorization: `Basic ${credentials}`,
       },
     });
+  }
+
+  async getGatewayAnonToken(): Promise<string> {
+    if (this.useMock) {
+      return 'mock-jwt-anon-token-xyz';
+    }
+
+    if (this.cachedAnonToken && Date.now() < this.anonTokenExpiresAt - 60000) {
+      return this.cachedAnonToken;
+    }
+
+    const res = await this.anonToken();
+    if (res.status === ResponseStatus.SUCCESS && res.data?.anon_token) {
+      this.cachedAnonToken = res.data.anon_token;
+      this.anonTokenExpiresAt = Date.now() + (res.data.expires_in || 604800) * 1000;
+      return this.cachedAnonToken;
+    }
+
+    throw new Error('Failed to retrieve anonymous gateway token from Core API');
   }
 
   async register(payload: RegisterRequest): Promise<ApiResponse<AuthResponse>> {
@@ -54,7 +83,11 @@ export class AuthRepository implements IAuthRepository {
       const data = this.mock.register(payload);
       return this.successResponse(data, 'User registered successfully');
     }
-    const regRes = await this.http.post<ApiResponse<UserResponse>>('/v1/auth/register', payload);
+    const regRes = await this.http.post<ApiResponse<UserResponse>>(
+      '/v1/auth/register',
+      payload,
+      payload.anon_token ? { token: payload.anon_token } : undefined
+    );
     if (!regRes || regRes.status !== 'success' || !regRes.data) {
       return regRes as unknown as ApiResponse<AuthResponse>;
     }
@@ -80,7 +113,11 @@ export class AuthRepository implements IAuthRepository {
       const data = this.mock.login(payload);
       return this.successResponse(data, 'User logged in successfully');
     }
-    return this.http.post<ApiResponse<AuthResponse>>('/v1/auth/login', payload);
+    return this.http.post<ApiResponse<AuthResponse>>(
+      '/v1/auth/login',
+      payload,
+      payload.anon_token ? { token: payload.anon_token } : undefined
+    );
   }
 
   async refreshToken(payload: RefreshTokenRequest): Promise<ApiResponse<AuthResponse>> {
@@ -185,3 +222,14 @@ export class AuthRepository implements IAuthRepository {
  * Colocated singleton instance for AuthRepository.
  */
 export const authRepository: IAuthRepository = new AuthRepository();
+
+if (defaultHttpClient instanceof HttpClient) {
+  defaultHttpClient.setAuthHeaderResolver(async () => {
+    try {
+      const token = await authRepository.getGatewayAnonToken();
+      return `Bearer ${token}`;
+    } catch {
+      return null;
+    }
+  });
+}
