@@ -8,6 +8,10 @@ import { idErrors } from './errors';
 import { idNotifications } from './notifications';
 import { idIngestion } from './ingestion';
 import { idDashboard } from './dashboard';
+import { idRecording } from './recording';
+import { idSettings } from './settings';
+import { idSpeakers } from './speakers';
+import { idShare } from './share';
 
 export const idDictionary = {
   common: idCommon,
@@ -20,6 +24,10 @@ export const idDictionary = {
   notifications: idNotifications,
   ingestion: idIngestion,
   dashboard: idDashboard,
+  recording: idRecording,
+  settings: idSettings,
+  speakers: idSpeakers,
+  share: idShare,
 };
 
 export type AppDictionary = typeof idDictionary;

@@ -27,7 +27,7 @@ import { useTranslation } from '@/locales';
 
 function LoginForm() {
   const router = useRouter();
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const searchParams = useSearchParams();
   const claimId = searchParams.get('claim');
   const isVerifiedParam = searchParams.get('verified') === 'true';
@@ -101,7 +101,12 @@ function LoginForm() {
           router.push(redirectTo || '/');
         }
       } else {
-        setErrorMessage(response?.message || 'Gagal masuk. Periksa kembali email dan kata sandi Anda.');
+        setErrorMessage(
+          response?.message ||
+            (locale === 'en'
+              ? 'Failed to sign in. Please check your email and password.'
+              : 'Gagal masuk. Periksa kembali email dan kata sandi Anda.')
+        );
       }
     } catch (err: unknown) {
       const isUnverifiedErr =
@@ -110,10 +115,19 @@ function LoginForm() {
 
       if (isUnverifiedErr) {
         setIsUnverified(true);
-        setErrorMessage('Akun Anda belum diverifikasi. Silakan masukkan kode verifikasi 6-digit dari email Anda atau klik tombol di bawah.');
+        setErrorMessage(
+          locale === 'en'
+            ? 'Your account has not been verified yet. Please enter the 6-digit verification code from your email or click the button below.'
+            : 'Akun Anda belum diverifikasi. Silakan masukkan kode verifikasi 6-digit dari email Anda atau klik tombol di bawah.'
+        );
       } else {
         setIsUnverified(false);
-        const errorMsg = err instanceof Error ? err.message : 'Email atau kata sandi tidak sesuai.';
+        const errorMsg =
+          err instanceof Error
+            ? err.message
+            : locale === 'en'
+            ? 'Invalid email or password.'
+            : 'Email atau kata sandi tidak sesuai.';
         setErrorMessage(errorMsg);
       }
     } finally {

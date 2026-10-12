@@ -1,8 +1,7 @@
-'use client';
-
 import React from 'react';
 import { Sparkles, MessageSquare } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useTranslation } from '@/locales';
 
 export const DEFAULT_CHAT_PROMPTS = [
   'Apa poin keputusan utama dalam rapat ini?',
@@ -19,22 +18,33 @@ export interface ChatChipsProps {
 }
 
 export function ChatChips({
-  prompts = DEFAULT_CHAT_PROMPTS,
+  prompts,
   onSelectPrompt,
   className,
   disabled = false,
 }: ChatChipsProps) {
-  if (!prompts || prompts.length === 0) return null;
+  const { t } = useTranslation();
+
+  const localizedDefaultPrompts = [
+    t('recording.chat.defaultPrompts.keyDecisions'),
+    t('recording.chat.defaultPrompts.actionItems'),
+    t('recording.chat.defaultPrompts.deadlines'),
+    t('recording.chat.defaultPrompts.blockers'),
+  ];
+
+  const effectivePrompts = prompts ?? localizedDefaultPrompts;
+
+  if (!effectivePrompts || effectivePrompts.length === 0) return null;
 
   return (
     <div data-testid="chat-chips" className={cn('space-y-2', className)}>
       <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
         <Sparkles className="h-3.5 w-3.5 text-primary" />
-        <span>Pertanyaan Cepat:</span>
+        <span>{t('recording.chat.quickQuestions')}</span>
       </div>
 
       <div className="flex flex-wrap gap-2">
-        {prompts.map((prompt, idx) => (
+        {effectivePrompts.map((prompt, idx) => (
           <button
             key={idx}
             type="button"

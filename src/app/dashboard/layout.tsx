@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Dashboard',
-  description: 'Kelola rekaman suara, ringkasan rapat, dan transkripsi Anda di Youten AI.',
+  description: 'Manage your voice recordings, meeting summaries, and transcripts in Youten AI.',
   robots: {
     index: false,
     follow: false,

@@ -15,6 +15,7 @@ import { usePlayerStore } from '@/stores/player.store';
 import { Button } from '@/components/atoms/button';
 import { KaraokeText } from '@/components/molecules/karaoke-text';
 import type { TranscriptSegmentDTO } from '@/server/dtos/recording.dto';
+import { useTranslation } from '@/locales';
 
 export interface TranscriptSegmentProps {
   segment: TranscriptSegmentDTO;
@@ -141,6 +142,7 @@ export const TranscriptSegment: React.FC<TranscriptSegmentProps> = ({
   onSaveText,
   className,
 }) => {
+  const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editText, setEditText] = useState(segment.text);
@@ -158,7 +160,7 @@ export const TranscriptSegment: React.FC<TranscriptSegmentProps> = ({
       : storeActiveSegmentId === segment.id ||
         (currentTime >= segment.start_time && currentTime <= segment.end_time);
 
-  const displayName = speakerName || segment.speaker_name || segment.speaker_label || 'Pembicara';
+  const displayName = speakerName || segment.speaker_name || segment.speaker_label || t('recording.analytics.participants');
   const colors = getSpeakerColors(segment.speaker_label);
 
   const handleTimestampClick = () => {
@@ -243,7 +245,7 @@ export const TranscriptSegment: React.FC<TranscriptSegmentProps> = ({
                 type="button"
                 onClick={() => onRenameSpeaker(segment.speaker_label)}
                 data-testid="rename-speaker-trigger"
-                title={`Ubah nama ${segment.speaker_label}`}
+                title={t('recording.speakerRename.title')}
                 className="opacity-0 group-hover:opacity-100 transition-opacity p-1 text-muted-foreground hover:text-foreground cursor-pointer rounded"
               >
                 <Pencil className="w-3 h-3" />
@@ -256,8 +258,8 @@ export const TranscriptSegment: React.FC<TranscriptSegmentProps> = ({
             type="button"
             data-testid="timestamp-badge"
             onClick={handleTimestampClick}
-            title={`Putar mulai ${formatTime(segment.start_time)}`}
-            aria-label={`Dengarkan segmen mulai ${formatTime(segment.start_time)}`}
+            title={t('recording.transcript.playFrom', { time: formatTime(segment.start_time) })}
+            aria-label={t('recording.transcript.listenFrom', { time: formatTime(segment.start_time) })}
             className="inline-flex items-center gap-1.5 text-[11px] font-mono font-semibold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 border border-slate-200/90 dark:border-slate-700/90 hover:text-primary hover:bg-primary/10 hover:border-primary/30 transition-all cursor-pointer px-2.5 py-0.5 rounded-full shadow-2xs"
           >
             <Play className="w-2.5 h-2.5 fill-current shrink-0 text-primary" />
@@ -278,7 +280,7 @@ export const TranscriptSegment: React.FC<TranscriptSegmentProps> = ({
                 setEditText(segment.text);
               }}
               data-testid="edit-segment-button"
-              title="Edit teks transkrip"
+              title={t('recording.transcript.editButton')}
               className="h-7 w-7 text-muted-foreground hover:text-foreground"
             >
               <Pencil className="w-3.5 h-3.5" />
@@ -292,7 +294,7 @@ export const TranscriptSegment: React.FC<TranscriptSegmentProps> = ({
             size="icon"
             onClick={handleCopyQuote}
             data-testid="copy-quote-button"
-            title={copied ? 'Kutipan disalin!' : 'Salin Kutipan'}
+            title={copied ? t('recording.transcript.quoteCopied') : t('recording.transcript.copyQuote')}
             className="h-7 w-7 text-muted-foreground hover:text-foreground"
           >
             {copied ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
@@ -306,7 +308,7 @@ export const TranscriptSegment: React.FC<TranscriptSegmentProps> = ({
               size="icon"
               onClick={() => onAddComment(segment)}
               data-testid="add-comment-button"
-              title="Beri Komentar pada Ucapan Ini"
+              title={t('recording.transcript.addComment')}
               className="h-7 w-7 text-muted-foreground hover:text-foreground"
             >
               <MessageSquare className="w-3.5 h-3.5" />
@@ -321,7 +323,7 @@ export const TranscriptSegment: React.FC<TranscriptSegmentProps> = ({
               size="icon"
               onClick={() => onAskAI(segment)}
               data-testid="ask-ai-button"
-              title="Tanya AI Tentang Ucapan Ini"
+              title={t('recording.transcript.askAiAboutThis')}
               className="h-7 w-7 text-muted-foreground hover:text-foreground"
             >
               <Sparkles className="w-3.5 h-3.5" />
@@ -340,7 +342,7 @@ export const TranscriptSegment: React.FC<TranscriptSegmentProps> = ({
               rows={3}
               data-testid="edit-segment-textarea"
               className="w-full text-sm rounded-lg border border-primary/40 bg-background/90 p-2.5 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all resize-y"
-              placeholder="Tulis koreksi teks transkrip..."
+              placeholder={t('recording.transcript.editTextPlaceholder')}
               autoFocus
             />
             <div className="flex items-center gap-2 justify-end">
@@ -352,7 +354,7 @@ export const TranscriptSegment: React.FC<TranscriptSegmentProps> = ({
                 disabled={isSaving}
                 className="h-7 text-xs px-2.5"
               >
-                Batal
+                {t('recording.transcript.cancelEdit')}
               </Button>
               <Button
                 type="button"
@@ -362,7 +364,7 @@ export const TranscriptSegment: React.FC<TranscriptSegmentProps> = ({
                 data-testid="save-segment-edit-button"
                 className="h-7 text-xs px-3"
               >
-                {isSaving ? 'Menyimpan...' : 'Simpan'}
+                {isSaving ? t('recording.transcript.savingEdit') : t('recording.transcript.saveEdit')}
               </Button>
             </div>
           </div>

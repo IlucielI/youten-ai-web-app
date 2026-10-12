@@ -1,9 +1,14 @@
 import React from 'react';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { TextSelectionCommentPopover } from './TextSelectionCommentPopover';
+import { useLocaleStore } from '@/stores/locale.store';
 
 describe('TextSelectionCommentPopover Molecule Component', () => {
+  beforeEach(() => {
+    useLocaleStore.setState({ locale: 'id' });
+  });
+
   const defaultProps = {
     selectedText: 'Keputusan arsitektur menggunakan hexagonal pattern.',
     timestampSec: 45,
@@ -163,5 +168,11 @@ describe('TextSelectionCommentPopover Molecule Component', () => {
     // Should be back to initial trigger button, not expanded form
     expect(screen.getByTestId('open-comment-form-btn')).toBeInTheDocument();
     expect(screen.queryByTestId('comment-text-input')).not.toBeInTheDocument();
+  });
+
+  it('renders English labels when locale is en', () => {
+    useLocaleStore.setState({ locale: 'en' });
+    render(<TextSelectionCommentPopover {...defaultProps} />);
+    expect(screen.getByText('Comment on Quote')).toBeInTheDocument();
   });
 });

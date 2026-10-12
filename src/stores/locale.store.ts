@@ -15,7 +15,7 @@ export interface LocaleActions {
 export type LocaleStore = LocaleState & LocaleActions;
 
 const initialLocaleState: LocaleState = {
-  locale: 'id',
+  locale: 'en',
 };
 
 function syncLocaleToClient(locale: Locale): void {
@@ -41,7 +41,7 @@ export const useLocaleStore = create<LocaleStore>()(
         },
         toggleLocale: () =>
           set((state) => {
-            const nextLocale: Locale = state.locale === 'id' ? 'en' : 'id';
+            const nextLocale: Locale = state.locale === 'en' ? 'id' : 'en';
             syncLocaleToClient(nextLocale);
             return { locale: nextLocale };
           }, false, 'locale/toggleLocale'),

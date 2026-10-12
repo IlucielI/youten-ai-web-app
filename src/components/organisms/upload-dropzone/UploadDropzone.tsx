@@ -162,7 +162,7 @@ export function UploadDropzone({
         setUploadProgress(100);
       }
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Gagal mengunggah file rekaman.';
+      const msg = err instanceof Error ? err.message : t('notifications.error.uploadFailed');
       setErrorMessage(msg);
       return;
     } finally {

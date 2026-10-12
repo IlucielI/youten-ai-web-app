@@ -5,6 +5,7 @@ import { Search, X, ChevronUp, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/atoms/input';
 import { Button } from '@/components/atoms/button';
+import { useTranslation } from '@/locales';
 
 export interface TranscriptSearchProps {
   value: string;
@@ -27,8 +28,10 @@ export const TranscriptSearch: React.FC<TranscriptSearchProps> = ({
   onPrevMatch,
   onClear,
   className,
-  placeholder = 'Cari kata atau frasa dalam transkripsi...',
+  placeholder,
 }) => {
+  const { t } = useTranslation();
+  const effectivePlaceholder = placeholder || t('recording.transcript.searchPlaceholder');
   const hasQuery = value.trim().length > 0;
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -68,7 +71,7 @@ export const TranscriptSearch: React.FC<TranscriptSearchProps> = ({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         onKeyDown={handleKeyDown}
-        placeholder={placeholder}
+        placeholder={effectivePlaceholder}
         className="border-0 shadow-none focus-visible:ring-0 px-2.5 h-9 text-sm"
       />
 
@@ -81,7 +84,7 @@ export const TranscriptSearch: React.FC<TranscriptSearchProps> = ({
           >
             {matchCount > 0
               ? `${currentMatchIndex + 1}/${matchCount}`
-              : '0 hasil'}
+              : t('recording.transcript.noResults')}
           </span>
 
           {/* Prev / Next Match Controls */}
@@ -92,7 +95,7 @@ export const TranscriptSearch: React.FC<TranscriptSearchProps> = ({
                 variant="ghost"
                 size="icon"
                 onClick={onPrevMatch}
-                title="Hasil sebelumnya (Shift+Enter)"
+                title={t('recording.transcript.searchPrevTitle')}
                 data-testid="prev-match-button"
                 className="h-6 w-6 text-muted-foreground hover:text-foreground"
               >
@@ -103,7 +106,7 @@ export const TranscriptSearch: React.FC<TranscriptSearchProps> = ({
                 variant="ghost"
                 size="icon"
                 onClick={onNextMatch}
-                title="Hasil berikutnya (Enter)"
+                title={t('recording.transcript.searchNextTitle')}
                 data-testid="next-match-button"
                 className="h-6 w-6 text-muted-foreground hover:text-foreground"
               >
@@ -118,7 +121,7 @@ export const TranscriptSearch: React.FC<TranscriptSearchProps> = ({
             variant="ghost"
             size="icon"
             onClick={handleClear}
-            title="Hapus pencarian (Esc)"
+            title={t('recording.transcript.searchClearTitle')}
             data-testid="clear-search-button"
             className="h-6 w-6 text-muted-foreground hover:text-foreground"
           >

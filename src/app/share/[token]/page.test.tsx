@@ -6,6 +6,7 @@ import * as apiClient from '@/lib/api-client';
 import { usePlayerStore } from '@/stores/player.store';
 import type { SharedRecordingResponse } from '@/server/dtos/recording.dto';
 import { ResponseStatus, ResponseCode } from '@/server/constants';
+import { useLocaleStore } from '@/stores/locale.store';
 
 // Stable next/navigation mocks
 const mockParams = { token: 'token-shared-xyz' };
@@ -83,6 +84,7 @@ const mockSharedData: SharedRecordingResponse = {
 describe('SharedRecordingPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    useLocaleStore.setState({ locale: 'id' });
     usePlayerStore.getState().resetPlayer();
 
     vi.spyOn(apiClient, 'apiFetch').mockResolvedValue({
@@ -107,6 +109,19 @@ describe('SharedRecordingPage', () => {
     // Check promotional CTA
     expect(screen.getByTestId('try-free-cta-btn')).toBeInTheDocument();
     expect(screen.getByText(/Tautan Berbagi Publik \(Hanya Lihat\)/i)).toBeInTheDocument();
+  });
+
+  it('renders title, metadata badges, and powered by banner in English when locale is en', async () => {
+    useLocaleStore.setState({ locale: 'en' });
+    render(<SharedRecordingPage />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('shared-recording-title')).toHaveTextContent('All-Hands Meeting Q4 2026');
+    });
+
+    expect(screen.getByText(/Public Share Link \(Read-Only\)/i)).toBeInTheDocument();
+    expect(screen.getByText(/Created with Youten AI/i)).toBeInTheDocument();
+    expect(screen.getByText(/Try for Free/i)).toBeInTheDocument();
   });
 
   it('renders summary tab by default and allows switching between tabs', async () => {

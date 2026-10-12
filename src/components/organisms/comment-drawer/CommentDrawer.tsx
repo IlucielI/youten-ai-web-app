@@ -19,6 +19,7 @@ import { Textarea } from '@/components/atoms/textarea';
 import { Avatar, AvatarFallback } from '@/components/atoms/avatar';
 import { formatTime } from '@/lib/time';
 import type { CommentResponse, CreateCommentRequest } from '@/server/dtos/comment.dto';
+import { useTranslation } from '@/locales';
 
 export interface CommentDrawerProps {
   isOpen: boolean;
@@ -43,23 +44,23 @@ function getInitials(name: string): string {
   return `${first}${second}`.toUpperCase() || 'U';
 }
 
-function formatRelativeTime(dateString: string): string {
+function formatRelativeTime(dateString: string, locale: string = 'en'): string {
   try {
     const date = new Date(dateString);
-    if (isNaN(date.getTime())) return 'baru saja';
+    if (isNaN(date.getTime())) return locale === 'en' ? 'just now' : 'baru saja';
     const diffMs = Date.now() - date.getTime();
-    if (diffMs <= 0) return 'baru saja';
+    if (diffMs <= 0) return locale === 'en' ? 'just now' : 'baru saja';
     const diffSec = Math.floor(diffMs / 1000);
-    if (diffSec < 60) return 'baru saja';
+    if (diffSec < 60) return locale === 'en' ? 'just now' : 'baru saja';
     const diffMin = Math.floor(diffSec / 60);
-    if (diffMin < 60) return `${diffMin}m lalu`;
+    if (diffMin < 60) return locale === 'en' ? `${diffMin}m ago` : `${diffMin}m lalu`;
     const diffHours = Math.floor(diffMin / 60);
-    if (diffHours < 24) return `${diffHours}j lalu`;
+    if (diffHours < 24) return locale === 'en' ? `${diffHours}h ago` : `${diffHours}j lalu`;
     const diffDays = Math.floor(diffHours / 24);
-    if (diffDays < 30) return `${diffDays}h lalu`;
-    return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
+    if (diffDays < 30) return locale === 'en' ? `${diffDays}d ago` : `${diffDays}h lalu`;
+    return date.toLocaleDateString(locale === 'en' ? 'en-US' : 'id-ID', { day: 'numeric', month: 'short' });
   } catch {
-    return 'baru saja';
+    return locale === 'en' ? 'just now' : 'baru saja';
   }
 }
 
@@ -76,6 +77,7 @@ export function CommentDrawer({
   onDeleteComment,
   className,
 }: CommentDrawerProps) {
+  const { t, locale } = useTranslation();
   const [sortBy, setSortBy] = useState<'timeline' | 'recent'>('timeline');
   const [customAuthorName, setCustomAuthorName] = useState<string | null>(null);
   const authorName = customAuthorName ?? defaultAuthorName;
@@ -133,7 +135,7 @@ export function CommentDrawer({
       const msg =
         err instanceof Error && err.message.trim()
           ? err.message
-          : 'Gagal menambahkan komentar.';
+          : t('recording.comments.errorAdd');
       setDrawerError(msg);
     } finally {
       setIsSubmittingNew(false);
@@ -161,7 +163,7 @@ export function CommentDrawer({
       const msg =
         err instanceof Error && err.message.trim()
           ? err.message
-          : 'Gagal membalas komentar.';
+          : t('recording.comments.errorReply');
       setDrawerError(msg);
     } finally {
       setIsSubmittingReply(false);
@@ -179,7 +181,7 @@ export function CommentDrawer({
       const msg =
         err instanceof Error && err.message.trim()
           ? err.message
-          : 'Gagal menghapus komentar.';
+          : t('recording.comments.errorDelete');
       setDrawerError(msg);
     } finally {
       setDeletingId(null);
@@ -217,7 +219,7 @@ export function CommentDrawer({
                 {comment.author_name}
               </span>
               <span className="text-[10px] text-muted-foreground">
-                {formatRelativeTime(comment.created_at)}
+                {formatRelativeTime(comment.created_at, locale)}
               </span>
             </div>
           </div>
@@ -227,7 +229,7 @@ export function CommentDrawer({
             <button
               type="button"
               onClick={() => onSeek?.(comment.timestamp_sec)}
-              title="Putar dari detik ini"
+              title={t('recording.comments.seekTooltip')}
               data-testid={`seek-comment-${comment.id}`}
               className="flex items-center gap-1 rounded-md bg-secondary/80 hover:bg-primary/10 hover:text-primary px-1.5 py-0.5 text-[10px] font-mono font-medium text-muted-foreground transition-colors"
             >
@@ -241,7 +243,7 @@ export function CommentDrawer({
                 type="button"
                 onClick={() => handleDelete(comment.id)}
                 disabled={isDeleting}
-                title="Hapus komentar"
+                title={t('recording.comments.deleteTooltip')}
                 data-testid={`delete-comment-${comment.id}`}
                 className="opacity-0 group-hover:opacity-100 p-1 text-muted-foreground hover:text-destructive transition-all disabled:opacity-50"
               >
@@ -284,7 +286,7 @@ export function CommentDrawer({
               className="flex items-center gap-1 text-[11px] font-medium text-muted-foreground hover:text-primary transition-colors"
             >
               <CornerDownRight className="h-3 w-3" />
-              <span>{replyingToId === comment.id ? 'Tutup Balasan' : 'Balas'}</span>
+              <span>{replyingToId === comment.id ? t('recording.comments.closeReply') : t('recording.comments.reply')}</span>
             </button>
           </div>
         )}
@@ -296,7 +298,7 @@ export function CommentDrawer({
             data-testid={`reply-form-${comment.id}`}
           >
             <Textarea
-              placeholder={`Balas ${comment.author_name}...`}
+              placeholder={t('recording.comments.replyPlaceholder', { name: comment.author_name })}
               value={replyText}
               onChange={(e) => setReplyText(e.target.value)}
               disabled={isSubmittingReply}
@@ -312,7 +314,7 @@ export function CommentDrawer({
                 disabled={isSubmittingReply}
                 className="h-6 px-2 text-xs text-muted-foreground"
               >
-                Batal
+                {t('recording.comments.cancel')}
               </Button>
               <Button
                 type="button"
@@ -327,7 +329,7 @@ export function CommentDrawer({
                 ) : (
                   <Send className="h-2.5 w-2.5" />
                 )}
-                <span>Kirim Balasan</span>
+                <span>{t('recording.comments.sendReply')}</span>
               </Button>
             </div>
           </div>
@@ -356,7 +358,7 @@ export function CommentDrawer({
         <div className="flex items-center gap-2">
           <MessageSquare className="h-4 w-4 text-primary" />
           <h2 className="text-sm font-semibold text-foreground">
-            Komentar & Catatan
+            {t('recording.comments.title')}
           </h2>
           <span
             data-testid="comment-count-badge"
@@ -372,11 +374,11 @@ export function CommentDrawer({
             type="button"
             onClick={() => setSortBy(sortBy === 'timeline' ? 'recent' : 'timeline')}
             data-testid="sort-toggle-btn"
-            title={sortBy === 'timeline' ? 'Urutkan Waktu Rekaman' : 'Urutkan Terbaru'}
+            title={sortBy === 'timeline' ? t('recording.comments.timelineSort') : t('recording.comments.recentSort')}
             className="flex items-center gap-1 rounded-md px-2 py-1 text-[11px] text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
           >
             <ArrowUpDown className="h-3 w-3" />
-            <span>{sortBy === 'timeline' ? 'Timeline' : 'Terbaru'}</span>
+            <span>{sortBy === 'timeline' ? t('recording.comments.timelineSort') : t('recording.comments.recentSort')}</span>
           </button>
 
           {/* Close button */}
@@ -384,7 +386,7 @@ export function CommentDrawer({
             type="button"
             onClick={onClose}
             data-testid="close-drawer-btn"
-            aria-label="Tutup Panel Komentar"
+            aria-label={t('recording.comments.closeTitle')}
             className="rounded-md p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
           >
             <X className="h-4 w-4" />
@@ -415,18 +417,18 @@ export function CommentDrawer({
           <form onSubmit={handleCreateNewComment} className="space-y-2.5">
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-medium text-foreground">
-                Tambah Catatan Baru
+                {t('recording.comments.addNote')}
               </span>
               <span
                 data-testid="current-timestamp-indicator"
                 className="font-mono text-[10px] text-primary bg-primary/10 px-1.5 py-0.5 rounded"
               >
-                Pada [{formatTime(currentTimestampSec)}]
+                {t('recording.comments.atTimestamp', { time: formatTime(currentTimestampSec) })}
               </span>
             </div>
 
             <Input
-              placeholder="Nama Anda"
+              placeholder={t('recording.comments.yourNamePlaceholder')}
               value={authorName}
               onChange={(e) => setCustomAuthorName(e.target.value)}
               disabled={isSubmittingNew}
@@ -435,7 +437,7 @@ export function CommentDrawer({
             />
 
             <Textarea
-              placeholder="Ketik catatan atau pertanyaan Anda di sini..."
+              placeholder={t('recording.comments.commentPlaceholder')}
               value={newCommentText}
               onChange={(e) => setNewCommentText(e.target.value)}
               disabled={isSubmittingNew}
@@ -456,7 +458,7 @@ export function CommentDrawer({
                 ) : (
                   <Send className="h-3 w-3" />
                 )}
-                <span>Kirim</span>
+                <span>{isSubmittingNew ? t('recording.comments.sendingButton') : t('recording.comments.sendButton')}</span>
               </Button>
             </div>
           </form>
@@ -474,9 +476,9 @@ export function CommentDrawer({
             className="flex flex-col items-center justify-center py-16 text-center text-muted-foreground space-y-2"
           >
             <MessageSquare className="h-8 w-8 text-muted-foreground/40" />
-            <p className="text-xs font-medium">Belum ada komentar</p>
+            <p className="text-xs font-medium">{t('recording.comments.emptyTitle')}</p>
             <p className="text-[11px] max-w-xs text-muted-foreground/80">
-              Sorot teks pada transkrip atau tambahkan catatan menggunakan form di atas.
+              {t('recording.comments.emptyDesc')}
             </p>
           </div>
         ) : (

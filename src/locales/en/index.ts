@@ -9,6 +9,10 @@ import { enErrors } from './errors';
 import { enNotifications } from './notifications';
 import { enIngestion } from './ingestion';
 import { enDashboard } from './dashboard';
+import { enRecording } from './recording';
+import { enSettings } from './settings';
+import { enSpeakers } from './speakers';
+import { enShare } from './share';
 
 export const enDictionary: AppDictionary = {
   common: enCommon,
@@ -21,4 +25,8 @@ export const enDictionary: AppDictionary = {
   notifications: enNotifications,
   ingestion: enIngestion,
   dashboard: enDashboard,
+  recording: enRecording,
+  settings: enSettings,
+  speakers: enSpeakers,
+  share: enShare,
 };

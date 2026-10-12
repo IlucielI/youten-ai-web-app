@@ -20,6 +20,7 @@ import {
   Loader2,
   ChevronDown,
 } from 'lucide-react';
+import { useTranslation } from '@/locales';
 
 export interface ExportMenuProps {
   recordingId?: string;
@@ -33,45 +34,6 @@ export interface ExportMenuProps {
   onUpgradePrompt?: () => void;
 }
 
-interface ExportItemConfig {
-  format: ExportFormat;
-  label: string;
-  description: string;
-  icon: React.ComponentType<{ className?: string }>;
-  extension: string;
-}
-
-const EXPORT_OPTIONS: ExportItemConfig[] = [
-  {
-    format: ExportFormat.PDF,
-    label: 'Dokumen PDF',
-    description: 'Laporan ringkasan & transkrip siap cetak',
-    icon: FileText,
-    extension: '.pdf',
-  },
-  {
-    format: ExportFormat.MARKDOWN,
-    label: 'Markdown',
-    description: 'Format .md untuk Notion, Obsidian, GitHub',
-    icon: FileCode,
-    extension: '.md',
-  },
-  {
-    format: ExportFormat.TXT,
-    label: 'Teks Polos',
-    description: 'Transkrip teks mentah tanpa format',
-    icon: FileText,
-    extension: '.txt',
-  },
-  {
-    format: ExportFormat.JSON,
-    label: 'Struktur JSON',
-    description: 'Data mentah lengkap dengan timestamp & analitik',
-    icon: FileJson,
-    extension: '.json',
-  },
-];
-
 export function ExportMenu({
   recordingId,
   currentVersion,
@@ -83,7 +45,39 @@ export function ExportMenu({
   isPro,
   onUpgradePrompt,
 }: ExportMenuProps) {
+  const { t } = useTranslation();
   const [exportingFormat, setExportingFormat] = useState<ExportFormat | null>(null);
+
+  const exportOptions = [
+    {
+      format: ExportFormat.PDF,
+      label: t('recording.exportMenu.formats.pdf.label'),
+      description: t('recording.exportMenu.formats.pdf.description'),
+      icon: FileText,
+      extension: '.pdf',
+    },
+    {
+      format: ExportFormat.MARKDOWN,
+      label: t('recording.exportMenu.formats.markdown.label'),
+      description: t('recording.exportMenu.formats.markdown.description'),
+      icon: FileCode,
+      extension: '.md',
+    },
+    {
+      format: ExportFormat.TXT,
+      label: t('recording.exportMenu.formats.txt.label'),
+      description: t('recording.exportMenu.formats.txt.description'),
+      icon: FileText,
+      extension: '.txt',
+    },
+    {
+      format: ExportFormat.JSON,
+      label: t('recording.exportMenu.formats.json.label'),
+      description: t('recording.exportMenu.formats.json.description'),
+      icon: FileJson,
+      extension: '.json',
+    },
+  ];
 
   const handleSelectFormat = async (format: ExportFormat) => {
     if (exportingFormat || disabled) return;
@@ -133,18 +127,24 @@ export function ExportMenu({
             ) : (
               <Download className="h-3.5 w-3.5 text-muted-foreground" />
             )}
-            <span>{isBusy ? 'Mengekspor...' : 'Ekspor'}</span>
+            <span>
+              {isBusy
+                ? t('recording.exportMenu.exportingLabel')
+                : t('recording.exportMenu.buttonLabel')}
+            </span>
             <ChevronDown className="h-3 w-3 text-muted-foreground opacity-60" />
           </Button>
         </DropdownMenuTrigger>
 
         <DropdownMenuContent align="end" className="w-64 p-1.5 space-y-0.5 bg-popover text-popover-foreground shadow-2xl border border-border z-50">
           <DropdownMenuLabel className="text-[11px] font-semibold text-muted-foreground px-2 py-1">
-            {currentVersion ? `PILIH FORMAT EKSPOR (VERSI ${currentVersion})` : 'PILIH FORMAT EKSPOR'}
+            {currentVersion
+              ? t('recording.exportMenu.selectFormatVersionHeader', { version: currentVersion })
+              : t('recording.exportMenu.selectFormatHeader')}
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
 
-          {EXPORT_OPTIONS.map((item) => {
+          {exportOptions.map((item) => {
             const IconComponent = item.icon;
             const isCurrentExporting = exportingFormat === item.format;
 

@@ -23,6 +23,7 @@ import {
   Globe,
   Lock,
 } from 'lucide-react';
+import { useTranslation } from '@/locales';
 
 export interface ShareDialogProps {
   isOpen: boolean;
@@ -41,6 +42,7 @@ export function ShareDialog({
   onToggleShare,
   className,
 }: ShareDialogProps) {
+  const { t } = useTranslation();
   const [isToggling, setIsToggling] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -63,7 +65,7 @@ export function ShareDialog({
       const msg =
         err instanceof Error && err.message.trim()
           ? err.message
-          : 'Gagal memperbarui pengaturan tautan publik.';
+          : t('recording.shareDialog.toggleError');
       setErrorMessage(msg);
     } finally {
       setIsToggling(false);
@@ -79,10 +81,10 @@ export function ShareDialog({
         setIsCopied(true);
         setTimeout(() => setIsCopied(false), 2000);
       } else {
-        setErrorMessage('Fitur papan klip tidak didukung di peramban ini.');
+        setErrorMessage(t('recording.shareDialog.clipboardUnsupported'));
       }
     } catch {
-      setErrorMessage('Gagal menyalin tautan ke papan klip.');
+      setErrorMessage(t('recording.shareDialog.copyError'));
     }
   };
 
@@ -98,11 +100,11 @@ export function ShareDialog({
               <Share2 className="h-4 w-4" />
             </div>
             <DialogTitle className="text-base font-semibold">
-              Bagikan Rekaman
+              {t('recording.shareDialog.title')}
             </DialogTitle>
           </div>
           <DialogDescription className="text-xs text-muted-foreground">
-            Kelola akses publik untuk melihat transkrip, ringkasan, dan pemutaran audio.
+            {t('recording.shareDialog.description')}
           </DialogDescription>
         </DialogHeader>
 
@@ -119,12 +121,12 @@ export function ShareDialog({
                 ) : (
                   <Lock className="h-3.5 w-3.5 text-muted-foreground" />
                 )}
-                Tautan Publik (Read-Only)
+                {t('recording.shareDialog.publicLinkLabel')}
               </Label>
               <p className="text-[11px] text-muted-foreground">
                 {isShared
-                  ? 'Siapa saja dengan tautan ini dapat melihat rekaman'
-                  : 'Tautan saat ini tidak aktif dan terproteksi'}
+                  ? t('recording.shareDialog.publicLinkActiveDesc')
+                  : t('recording.shareDialog.publicLinkInactiveDesc')}
               </p>
             </div>
 
@@ -157,7 +159,7 @@ export function ShareDialog({
             <div className="space-y-3">
               <div className="space-y-1.5">
                 <Label className="text-[11px] font-medium text-muted-foreground">
-                  Tautan Akses
+                  {t('recording.shareDialog.accessLinkLabel')}
                 </Label>
                 <div className="flex items-center gap-2">
                   <Input
@@ -177,12 +179,12 @@ export function ShareDialog({
                     {isCopied ? (
                       <>
                         <Check className="h-3.5 w-3.5 text-primary-foreground" />
-                        <span>Tersalin!</span>
+                        <span>{t('recording.shareDialog.copiedButton')}</span>
                       </>
                     ) : (
                       <>
                         <Copy className="h-3.5 w-3.5" />
-                        <span>Salin</span>
+                        <span>{t('recording.shareDialog.copyButton')}</span>
                       </>
                     )}
                   </Button>
@@ -196,9 +198,8 @@ export function ShareDialog({
               >
                 <ShieldAlert className="h-4 w-4 shrink-0 mt-0.5" />
                 <div className="text-[11px] leading-relaxed">
-                  <span className="font-semibold">Izin Terbatas:</span> Pengunjung tautan
-                  ini hanya dapat membaca transkrip, ringkasan, dan mendengarkan audio.
-                  Aksi seperti mengganti nama pembicara, hapus komentar, atau tanya AI dinonaktifkan.
+                  <span className="font-semibold">{t('recording.shareDialog.readOnlyTitle')}</span>{' '}
+                  {t('recording.shareDialog.readOnlyDesc')}
                 </div>
               </div>
             </div>
@@ -214,7 +215,7 @@ export function ShareDialog({
             data-testid="close-share-dialog-btn"
             className="text-xs h-8"
           >
-            Tutup
+            {t('common.actions.close')}
           </Button>
         </DialogFooter>
       </DialogContent>

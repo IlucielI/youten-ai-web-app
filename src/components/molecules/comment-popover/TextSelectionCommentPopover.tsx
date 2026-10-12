@@ -7,6 +7,7 @@ import { Button } from '@/components/atoms/button';
 import { Input } from '@/components/atoms/input';
 import { Textarea } from '@/components/atoms/textarea';
 import { formatTime } from '@/lib/time';
+import { useTranslation } from '@/locales';
 
 export interface CommentSubmissionPayload {
   selected_text: string;
@@ -39,6 +40,7 @@ export function TextSelectionCommentPopover({
   defaultAuthorName = '',
   className,
 }: TextSelectionCommentPopoverProps) {
+  const { t } = useTranslation();
   const [isExpanded, setIsExpanded] = useState(false);
   const [customAuthorName, setCustomAuthorName] = useState<string | null>(null);
   const authorName = customAuthorName ?? defaultAuthorName;
@@ -111,7 +113,7 @@ export function TextSelectionCommentPopover({
 
     const trimmedText = commentText.trim();
     if (!trimmedText) {
-      setErrorMessage('Komentar tidak boleh kosong.');
+      setErrorMessage(t('recording.comments.popover.emptyError'));
       return;
     }
 
@@ -136,7 +138,7 @@ export function TextSelectionCommentPopover({
       const msg =
         err instanceof Error && err.message.trim()
           ? err.message
-          : 'Gagal mengirim komentar.';
+          : t('recording.comments.popover.sendError');
       setErrorMessage(msg);
     } finally {
       setIsSubmitting(false);
@@ -168,7 +170,7 @@ export function TextSelectionCommentPopover({
           className="flex items-center gap-1.5 rounded-full bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground shadow-lg hover:bg-primary/90 transition-all hover:scale-105 active:scale-95"
         >
           <MessageSquarePlus className="h-3.5 w-3.5" />
-          <span>Komentari Kutipan</span>
+          <span>{t('recording.comments.popover.commentQuote')}</span>
           <span className="font-mono text-[10px] opacity-80">
             [{formatTime(timestampSec)}]
           </span>
@@ -183,7 +185,7 @@ export function TextSelectionCommentPopover({
           <div className="flex items-center justify-between border-b border-border/40 pb-2">
             <div className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
               <MessageSquarePlus className="h-4 w-4 text-primary" />
-              <span>Tambah Komentar</span>
+              <span>{t('recording.comments.popover.addComment')}</span>
               <span className="font-mono text-[10px] text-muted-foreground">
                 [{formatTime(timestampSec)}]
               </span>
@@ -213,7 +215,7 @@ export function TextSelectionCommentPopover({
           <div className="space-y-2">
             <div>
               <Input
-                placeholder="Nama Anda (opsional jika sudah login)"
+                placeholder={t('recording.comments.popover.namePlaceholder')}
                 value={authorName}
                 onChange={(e) => setCustomAuthorName(e.target.value)}
                 disabled={isSubmitting}
@@ -224,7 +226,7 @@ export function TextSelectionCommentPopover({
             <div>
               <Textarea
                 ref={textareaRef}
-                placeholder="Tulis tanggapan atau catatan Anda di sini..."
+                placeholder={t('recording.comments.popover.commentPlaceholder')}
                 value={commentText}
                 onChange={(e) => {
                   setCommentText(e.target.value);
@@ -256,7 +258,7 @@ export function TextSelectionCommentPopover({
           {/* Actions */}
           <div className="flex items-center justify-between pt-1">
             <span className="text-[10px] text-muted-foreground">
-              Ctrl+Enter untuk kirim
+              {t('recording.comments.popover.shortcutHint')}
             </span>
             <div className="flex items-center gap-1.5">
               <Button
@@ -267,7 +269,7 @@ export function TextSelectionCommentPopover({
                 disabled={isSubmitting}
                 className="h-7 px-2.5 text-xs text-muted-foreground hover:text-foreground"
               >
-                Batal
+                {t('recording.comments.popover.cancel')}
               </Button>
               <Button
                 type="submit"
@@ -279,12 +281,12 @@ export function TextSelectionCommentPopover({
                 {isSubmitting ? (
                   <>
                     <Loader2 className="h-3 w-3 animate-spin" />
-                    <span>Mengirim...</span>
+                    <span>{t('recording.comments.popover.sending')}</span>
                   </>
                 ) : (
                   <>
                     <Send className="h-3 w-3" />
-                    <span>Kirim</span>
+                    <span>{t('recording.comments.popover.send')}</span>
                   </>
                 )}
               </Button>

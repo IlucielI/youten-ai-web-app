@@ -30,6 +30,7 @@ import {
 import { Skeleton } from '@/components/atoms/skeleton';
 import { Sparkles, Compass } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useTranslation } from '@/locales';
 
 export interface SummaryData {
   id?: string;
@@ -49,6 +50,8 @@ export interface SummaryViewerProps {
 }
 
 export function SummaryViewer({ summary, isLoading = false, className }: SummaryViewerProps) {
+  const { t } = useTranslation();
+
   // Polymorphic Schema Matching & Rendering (Called before any early returns to respect Rules of Hooks)
   const renderedContent = useMemo(() => {
     if (isLoading || !summary) return null;
@@ -311,9 +314,9 @@ export function SummaryViewer({ summary, isLoading = false, className }: Summary
         )}
       >
         <Sparkles className="h-10 w-10 text-muted-foreground/60 mb-3" />
-        <h3 className="text-base font-semibold text-foreground">Belum Ada Ringkasan</h3>
+        <h3 className="text-base font-semibold text-foreground">{t('recording.templates.emptyTitle')}</h3>
         <p className="text-xs text-muted-foreground mt-1 max-w-sm">
-          Ringkasan otomatis untuk rekaman ini belum selesai diproses atau belum di-generate.
+          {t('recording.templates.emptyDesc')}
         </p>
       </div>
     );
@@ -325,7 +328,7 @@ export function SummaryViewer({ summary, isLoading = false, className }: Summary
       {summary.custom_angle && (
         <div className="flex items-center gap-2 rounded-lg border border-primary/20 bg-primary/5 px-3 py-2 text-xs text-primary">
           <Compass className="h-3.5 w-3.5 shrink-0" />
-          <span className="font-medium">Sudut Pandang Khusus:</span>
+          <span className="font-medium">{t('recording.templates.customAngleLabel')}</span>
           <span className="text-foreground/90 italic truncate">&ldquo;{summary.custom_angle}&rdquo;</span>
         </div>
       )}

@@ -7,6 +7,7 @@ export const enNavbar: typeof idNavbar = {
   ctaText: 'Sign In',
   links: {
     dashboard: 'Dashboard',
+    speakers: 'Speaker Directory',
     features: 'Features',
     pricing: 'Pricing',
     faq: 'FAQ',
@@ -15,6 +16,8 @@ export const enNavbar: typeof idNavbar = {
     dashboard: 'Dashboard',
     settings: 'Settings',
     logout: 'Logout',
+    userFallback: 'User',
+    verifiedAccount: 'Verified Account',
   },
   mobileMenu: {
     toggle: 'Toggle navigation menu',

@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTemplates, FALLBACK_TEMPLATES, DynamicTemplateOption } from '@/hooks';
+import { useTranslation } from '@/locales';
 
 export type TemplateOption = DynamicTemplateOption;
 export const TEMPLATE_OPTIONS: DynamicTemplateOption[] = FALLBACK_TEMPLATES;
@@ -51,6 +52,7 @@ function RegenerateForm({
   defaultTemplate,
   isLoading,
 }: RegenerateFormProps) {
+  const { t } = useTranslation();
   const [selectedTemplate, setSelectedTemplate] = useState<TemplateKey>(defaultTemplate);
   const [customAngle, setCustomAngle] = useState('');
   const { templates } = useTemplates();
@@ -75,17 +77,22 @@ function RegenerateForm({
         <div className="rounded-lg border border-rose-500/30 bg-rose-500/10 p-3.5 flex items-start gap-3 text-xs text-rose-300">
           <AlertTriangle className="h-4 w-4 shrink-0 text-rose-400 mt-0.5" />
           <div>
-            <span className="font-semibold text-rose-200">Batas Maksimal Tercapai!</span>
+            <span className="font-semibold text-rose-200">
+              {t('recording.regenerateModal.capReachedTitle')}
+            </span>
             <p className="mt-0.5">
-              Rekaman ini sudah mencapai batas kuota {maxVersions} versi ringkasan. Anda tidak dapat membuat versi baru lagi.
+              {t('recording.regenerateModal.capReachedDesc', { max: maxVersions })}
             </p>
           </div>
         </div>
       ) : (
         <div className="flex items-center justify-between text-xs text-muted-foreground bg-secondary/30 rounded-lg p-2.5 border border-border/40">
-          <span>Kapasitas Versi Ringkasan:</span>
+          <span>{t('recording.regenerateModal.capacityLabel')}</span>
           <span className="font-medium text-foreground">
-            {currentVersionsCount} dari {maxVersions} versi terpakai
+            {t('recording.regenerateModal.capacityCount', {
+              current: currentVersionsCount,
+              max: maxVersions,
+            })}
           </span>
         </div>
       )}
@@ -93,7 +100,7 @@ function RegenerateForm({
       {/* Template Selector */}
       <div className="space-y-2.5">
         <Label className="text-xs font-semibold text-foreground">
-          Pilih Kerangka Templat Ringkasan:
+          {t('recording.regenerateModal.selectTemplateLabel')}
         </Label>
         <div className="grid grid-cols-1 gap-2 max-h-56 overflow-y-auto pr-1">
           {templates.map((tmpl) => {
@@ -146,7 +153,7 @@ function RegenerateForm({
       <div className="space-y-1.5">
         <div className="flex items-center justify-between">
           <Label htmlFor="custom-angle" className="text-xs font-semibold text-foreground">
-            Sudut Pandang / Instruksi Khusus (Opsional):
+            {t('recording.regenerateModal.customAngleLabel')}
           </Label>
           <span
             className={cn(
@@ -154,7 +161,7 @@ function RegenerateForm({
               isTooLong ? 'text-rose-400 font-bold' : 'text-muted-foreground'
             )}
           >
-            {customAngle.length} / 2000 karakter
+            {t('recording.regenerateModal.charactersCount', { count: customAngle.length })}
           </span>
         </div>
         <Textarea
@@ -162,7 +169,7 @@ function RegenerateForm({
           value={customAngle}
           onChange={(e) => setCustomAngle(e.target.value)}
           disabled={isCapReached || isLoading}
-          placeholder="Contoh: Fokuskan ringkasan pada komitmen anggaran dan mitigasi risiko migrasi cloud..."
+          placeholder={t('recording.regenerateModal.customAnglePlaceholder')}
           rows={3}
           maxLength={2100}
           className="text-xs resize-none"
@@ -170,7 +177,7 @@ function RegenerateForm({
         />
         {isTooLong && (
           <p className="text-[11px] text-rose-400 font-medium">
-            Instruksi khusus tidak boleh melebihi 2000 karakter.
+            {t('recording.regenerateModal.tooLongError')}
           </p>
         )}
       </div>
@@ -184,7 +191,7 @@ function RegenerateForm({
           disabled={isLoading}
           className="text-xs"
         >
-          Batal
+          {t('recording.regenerateModal.cancelButton')}
         </Button>
         <Button
           type="submit"
@@ -196,12 +203,12 @@ function RegenerateForm({
           {isLoading ? (
             <>
               <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              <span>Memproses...</span>
+              <span>{t('recording.regenerateModal.submittingButton')}</span>
             </>
           ) : (
             <>
               <Sparkles className="h-3.5 w-3.5" />
-              <span>Generate Ringkasan Baru</span>
+              <span>{t('recording.regenerateModal.submitButton')}</span>
             </>
           )}
         </Button>
@@ -218,16 +225,18 @@ export function RegenerateModal({
   defaultTemplate = DefaultTemplateKey,
   isLoading = false,
 }: RegenerateModalProps) {
+  const { t } = useTranslation();
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md border-border/80 bg-background/95 backdrop-blur-md">
         <DialogHeader>
           <DialogTitle className="text-base font-bold flex items-center gap-2">
             <Sparkles className="h-4 w-4 text-primary" />
-            Generate Versi Ringkasan Baru
+            {t('recording.regenerateModal.title')}
           </DialogTitle>
           <DialogDescription className="text-xs text-muted-foreground">
-            Pilih kerangka templat dan tentukan sudut pandang khusus untuk menganalisis rekaman ini kembali.
+            {t('recording.regenerateModal.description')}
           </DialogDescription>
         </DialogHeader>
 

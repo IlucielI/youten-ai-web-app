@@ -1,9 +1,14 @@
 import React from 'react';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { UserNavDropdown } from './UserNavDropdown';
+import { useLocaleStore } from '@/stores/locale.store';
 
 describe('UserNavDropdown', () => {
+  beforeEach(() => {
+    useLocaleStore.setState({ locale: 'en' });
+  });
+
   it('renders user name, email, and initials in the trigger', () => {
     render(
       <UserNavDropdown
@@ -19,7 +24,16 @@ describe('UserNavDropdown', () => {
     expect(screen.getByText('BW')).toBeInTheDocument();
   });
 
-  it('falls back to default labels when no user is provided', () => {
+  it('falls back to default English labels when no user is provided', () => {
+    render(<UserNavDropdown />);
+
+    expect(screen.getByText('User')).toBeInTheDocument();
+    expect(screen.getByText('Verified Account')).toBeInTheDocument();
+    expect(screen.getByText('U')).toBeInTheDocument();
+  });
+
+  it('falls back to default Indonesian labels when locale is id', () => {
+    useLocaleStore.setState({ locale: 'id' });
     render(<UserNavDropdown />);
 
     expect(screen.getByText('Pengguna')).toBeInTheDocument();
@@ -27,7 +41,25 @@ describe('UserNavDropdown', () => {
     expect(screen.getByText('P')).toBeInTheDocument();
   });
 
-  it('renders settings and logout options when opened', () => {
+  it('renders settings and logout options in English by default when opened', () => {
+    render(
+      <UserNavDropdown
+        open={true}
+        user={{
+          full_name: 'Bayu',
+          email: 'bayu@youten.ai',
+        }}
+      />
+    );
+
+    expect(screen.getByTestId('settings-nav-item')).toBeInTheDocument();
+    expect(screen.getByTestId('logout-btn')).toBeInTheDocument();
+    expect(screen.getByText('Settings')).toBeInTheDocument();
+    expect(screen.getByText('Logout')).toBeInTheDocument();
+  });
+
+  it('renders settings and logout options in Indonesian when locale is id', () => {
+    useLocaleStore.setState({ locale: 'id' });
     render(
       <UserNavDropdown
         open={true}

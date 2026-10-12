@@ -83,7 +83,7 @@ interface RecordingsApiResponse {
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const { templates, getTemplateLabel } = useTemplates();
 
   const statusOptions = [
@@ -569,11 +569,14 @@ export default function DashboardPage() {
                     getTemplateLabel(recording.selected_template) ||
                     templateLabels[recording.selected_template] ||
                     recording.selected_template;
-                  const formattedDate = new Date(recording.created_at).toLocaleDateString('id-ID', {
-                    day: 'numeric',
-                    month: 'short',
-                    year: 'numeric',
-                  });
+                  const formattedDate = new Date(recording.created_at).toLocaleDateString(
+                    locale === 'en' ? 'en-US' : 'id-ID',
+                    {
+                      day: 'numeric',
+                      month: 'short',
+                      year: 'numeric',
+                    }
+                  );
 
                   return (
                     <TableRow key={recording.id} className="hover:bg-slate-50/80 transition-colors">

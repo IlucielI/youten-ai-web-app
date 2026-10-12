@@ -23,3 +23,10 @@ if (typeof window !== 'undefined') {
     window.HTMLMediaElement.prototype.load = vi.fn();
   }
 }
+
+import { beforeEach } from 'vitest';
+import { useLocaleStore } from '@/stores/locale.store';
+
+beforeEach(() => {
+  useLocaleStore.setState({ locale: 'id' });
+});

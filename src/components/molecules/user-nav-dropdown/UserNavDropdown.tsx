@@ -11,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/atoms/dropdown-menu';
 import { Settings, LogOut, ChevronDown, LayoutDashboard } from 'lucide-react';
+import { useTranslation } from '@/locales';
 
 export interface UserNavDropdownProps {
   user?: {
@@ -41,6 +42,7 @@ export const UserNavDropdown: React.FC<UserNavDropdownProps> = ({
   onOpenChange,
   showDashboard = true,
 }) => {
+  const { t } = useTranslation();
   const [internalOpen, setInternalOpen] = useState(false);
   const isControlled = open !== undefined;
   const isMenuOpen = isControlled ? open : internalOpen;
@@ -52,8 +54,8 @@ export const UserNavDropdown: React.FC<UserNavDropdownProps> = ({
     onOpenChange?.(nextOpen);
   };
 
-  const displayName = name || user?.full_name || 'Pengguna';
-  const displayEmail = email || user?.email || 'Akun Terverifikasi';
+  const displayName = name || user?.full_name || t('navbar.userMenu.userFallback');
+  const displayEmail = email || user?.email || t('navbar.userMenu.verifiedAccount');
   const displayInitials =
     initials ||
     (displayName
@@ -79,7 +81,7 @@ export const UserNavDropdown: React.FC<UserNavDropdownProps> = ({
             className
           )}
           data-testid="user-nav-dropdown-trigger"
-          aria-label="Menu Pengguna"
+          aria-label={t('navbar.userMenu.settings')}
         >
           <div className="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center text-xs font-bold ring-2 ring-slate-200 shrink-0">
             {displayInitials}
@@ -122,12 +124,12 @@ export const UserNavDropdown: React.FC<UserNavDropdownProps> = ({
               data-testid="dashboard-nav-item"
             >
               <LayoutDashboard className="w-4 h-4 text-slate-400 group-hover:text-blue-500" />
-              <span>Dashboard</span>
+              <span>{t('navbar.userMenu.dashboard')}</span>
             </Link>
           </DropdownMenuItem>
         )}
 
-        {/* Pengaturan */}
+        {/* Pengaturan / Settings */}
         <DropdownMenuItem asChild className="cursor-pointer">
           <Link
             href="/settings"
@@ -135,13 +137,13 @@ export const UserNavDropdown: React.FC<UserNavDropdownProps> = ({
             data-testid="settings-nav-item"
           >
             <Settings className="w-4 h-4 text-slate-400 group-hover:text-blue-500" />
-            <span>Pengaturan</span>
+            <span>{t('navbar.userMenu.settings')}</span>
           </Link>
         </DropdownMenuItem>
 
         <DropdownMenuSeparator className="my-1 bg-slate-100" />
 
-        {/* Keluar */}
+        {/* Keluar / Logout */}
         <DropdownMenuItem
           variant="destructive"
           onClick={onLogout}
@@ -149,7 +151,7 @@ export const UserNavDropdown: React.FC<UserNavDropdownProps> = ({
           className="flex items-center gap-2 px-2.5 py-2 text-xs font-medium text-rose-600 hover:bg-rose-50 hover:text-rose-700 focus:bg-rose-50 focus:text-rose-700 rounded-md transition-colors cursor-pointer"
         >
           <LogOut className="w-4 h-4 text-rose-500" />
-          <span>Keluar</span>
+          <span>{t('navbar.userMenu.logout')}</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

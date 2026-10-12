@@ -58,10 +58,12 @@ import type { TranscriptSegmentDTO } from '@/server/dtos/recording.dto';
 import type { CommentResponse, CreateCommentRequest } from '@/server/dtos/comment.dto';
 import type { RecordingAnalyticsDTO } from '@/server/dtos/analytics.dto';
 import type { MeetingSourceCitationDTO } from '@/server/dtos/workspace.dto';
+import { useTranslation } from '@/locales';
 
 export default function RecordingDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const { t, locale } = useTranslation();
   const recordingId = Array.isArray(params?.id) ? params.id[0] : (params?.id as string) || '';
 
   const [recording, setRecording] = useState<RecordingDetailDto | null>(null);
@@ -165,7 +167,7 @@ export default function RecordingDetailPage() {
       .then((res) => {
         if (!isMounted) return;
         if (!res.data) {
-          throw new Error('Data rekaman tidak ditemukan.');
+          throw new Error(locale === 'en' ? 'Recording data not found.' : 'Data rekaman tidak ditemukan.');
         }
 
         const data = res.data;
@@ -289,14 +291,19 @@ export default function RecordingDetailPage() {
       .catch((err: unknown) => {
         if (!isMounted) return;
         setIsLoading(false);
-        const msg = err instanceof Error ? err.message : 'Gagal memuat detail rekaman.';
+        const msg =
+          err instanceof Error
+            ? err.message
+            : locale === 'en'
+            ? 'Failed to load recording details.'
+            : 'Gagal memuat detail rekaman.';
         setErrorMessage(msg);
       });
 
     return () => {
       isMounted = false;
     };
-  }, [recordingId, setAudioUrl, setRecordingIdChat]);
+  }, [recordingId, setAudioUrl, setRecordingIdChat, locale]);
 
   /**
    * Handle speaker rename save.
@@ -785,7 +792,7 @@ export default function RecordingDetailPage() {
         <Navbar />
         <div className="flex-1 flex flex-col items-center justify-center gap-3">
           <Loader2 className="w-8 h-8 animate-spin text-primary" />
-          <p className="text-sm text-muted-foreground">Memuat rekaman notula...</p>
+          <p className="text-sm text-muted-foreground">{t('recording.loading')}</p>
         </div>
       </div>
     );
@@ -802,12 +809,12 @@ export default function RecordingDetailPage() {
           <div className="w-12 h-12 rounded-2xl bg-destructive/10 text-destructive flex items-center justify-center mb-4">
             <AlertTriangle className="w-6 h-6" />
           </div>
-          <h2 className="text-xl font-bold text-foreground">Rekaman Tidak Ditemukan</h2>
+          <h2 className="text-xl font-bold text-foreground">{t('recording.notFoundTitle')}</h2>
           <p className="text-sm text-muted-foreground mt-2">
-            {errorMessage || 'Berkas rekaman yang Anda tuju tidak tersedia atau telah dihapus.'}
+            {errorMessage || t('recording.notFoundDesc')}
           </p>
           <Button asChild className="mt-6">
-            <Link href="/">Kembali ke Beranda</Link>
+            <Link href="/">{t('pipeline.header.backToHome')}</Link>
           </Button>
         </div>
         <Footer />
@@ -835,7 +842,7 @@ export default function RecordingDetailPage() {
                 className="inline-flex items-center gap-1 hover:text-foreground transition-colors font-medium"
               >
                 <ArrowLeft className="w-3.5 h-3.5" />
-                <span>Beranda</span>
+                <span>{t('recording.header.backToHome')}</span>
               </Link>
               <span>•</span>
               <span className="font-mono text-[11px] truncate max-w-[140px]">
@@ -863,7 +870,7 @@ export default function RecordingDetailPage() {
               <div className="flex items-center gap-1 text-xs text-muted-foreground">
                 <Calendar className="w-3.5 h-3.5" />
                 <span>
-                  {new Date(recording.created_at).toLocaleDateString('id-ID', {
+                  {new Date(recording.created_at).toLocaleDateString(locale === 'en' ? 'en-US' : 'id-ID', {
                     day: 'numeric',
                     month: 'short',
                     year: 'numeric',
@@ -884,7 +891,7 @@ export default function RecordingDetailPage() {
               className="gap-1.5 text-xs font-medium"
             >
               <Share2 className="w-3.5 h-3.5" />
-              <span>Bagikan</span>
+              <span>{t('recording.header.share')}</span>
             </Button>
 
             {/* Export Menu */}
@@ -906,7 +913,7 @@ export default function RecordingDetailPage() {
               className="gap-1.5 text-xs font-medium"
             >
               <Bot className="w-3.5 h-3.5" />
-              <span>Tanya AI</span>
+              <span>{t('recording.header.askAi')}</span>
               <Sparkles className="w-3 h-3 text-primary-foreground/80" />
             </Button>
           </div>
@@ -923,7 +930,8 @@ export default function RecordingDetailPage() {
             <div className="flex items-center gap-2">
               <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
               <span>
-                <strong>Rekaman Sementara:</strong> Rekaman ini disimpan lokal di browser. Buat akun atau masuk untuk menyimpan rekaman secara permanen.
+                <strong>{t('recording.guestBanner.title')}</strong>{' '}
+                {t('recording.guestBanner.description')}
               </span>
             </div>
             {isLoggedIn ? (
@@ -935,7 +943,7 @@ export default function RecordingDetailPage() {
                 data-testid="claim-account-btn"
                 className="text-xs h-7 px-3 shrink-0 border-amber-500/30 hover:bg-amber-500/15"
               >
-                {isClaiming ? 'Mengklaim...' : 'Klaim ke Akun'}
+                {isClaiming ? t('recording.guestBanner.claimingButton') : t('recording.guestBanner.claimButton')}
               </Button>
             ) : (
               <Button
@@ -945,7 +953,7 @@ export default function RecordingDetailPage() {
                 data-testid="claim-account-btn"
                 className="text-xs h-7 px-3 shrink-0 border-amber-500/30 hover:bg-amber-500/15"
               >
-                <Link href={`/login?claim=${recording.id}`}>Klaim ke Akun</Link>
+                <Link href={`/login?claim=${recording.id}`}>{t('recording.guestBanner.claimButton')}</Link>
               </Button>
             )}
           </div>
@@ -971,7 +979,7 @@ export default function RecordingDetailPage() {
                   className="gap-1.5 text-xs font-semibold"
                 >
                   <FileText className="w-3.5 h-3.5" />
-                  <span>Ringkasan</span>
+                  <span>{t('recording.tabs.summary')}</span>
                 </TabsTrigger>
 
                 <TabsTrigger
@@ -981,7 +989,7 @@ export default function RecordingDetailPage() {
                   className="gap-1.5 text-xs font-semibold"
                 >
                   <UserCheck className="w-3.5 h-3.5" />
-                  <span>Transkrip</span>
+                  <span>{t('recording.tabs.transcript')}</span>
                 </TabsTrigger>
 
                 <TabsTrigger
@@ -991,7 +999,7 @@ export default function RecordingDetailPage() {
                   className="gap-1.5 text-xs font-semibold"
                 >
                   <ListOrdered className="w-3.5 h-3.5" />
-                  <span>Bab &amp; Sorotan</span>
+                  <span>{t('recording.tabs.chapters')}</span>
                 </TabsTrigger>
 
                 <TabsTrigger
@@ -1001,7 +1009,7 @@ export default function RecordingDetailPage() {
                   className="gap-1.5 text-xs font-semibold"
                 >
                   <BarChart3 className="w-3.5 h-3.5" />
-                  <span>Analitik</span>
+                  <span>{t('recording.tabs.analytics')}</span>
                 </TabsTrigger>
               </TabsList>
 
@@ -1031,7 +1039,7 @@ export default function RecordingDetailPage() {
                 <div className="relative max-w-md">
                   <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                   <Input
-                    placeholder="Cari teks dalam transkrip..."
+                    placeholder={t('recording.transcript.searchPlaceholder')}
                     value={transcriptSearch}
                     onChange={(e) => setTranscriptSearch(e.target.value)}
                     data-testid="transcript-search-input"
@@ -1043,7 +1051,7 @@ export default function RecordingDetailPage() {
                 <div data-testid="transcript-segments-list" className="space-y-4">
                   {filteredSegments.length === 0 ? (
                     <div className="text-center py-12 border border-dashed rounded-xl bg-card/40 text-muted-foreground text-xs">
-                      Tidak ada percakapan yang cocok dengan pencarian.
+                      {t('recording.transcript.emptySearch')}
                     </div>
                   ) : (
                     filteredSegments.map((segment) => {
@@ -1066,7 +1074,7 @@ export default function RecordingDetailPage() {
                           }}
                           onAskAI={(seg) => {
                             setIsChatOpen(true);
-                            const prompt = `Jelaskan pernyataan berikut: "${seg.text}"`;
+                            const prompt = t('recording.transcript.askAiPrompt', { text: seg.text });
                             addUserMessage(prompt);
                             void handleSendMessage(prompt);
                           }}
@@ -1083,7 +1091,7 @@ export default function RecordingDetailPage() {
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
                     <ListOrdered className="w-4 h-4 text-primary" />
-                    <h3 className="text-base font-bold text-foreground">Garis Waktu Bab (Chapters)</h3>
+                    <h3 className="text-base font-bold text-foreground">{t('recording.chapters.sectionTitle')}</h3>
                   </div>
                   <ChapterList
                     chapters={recording.chapters || []}
@@ -1095,7 +1103,7 @@ export default function RecordingDetailPage() {
                 <div className="space-y-3 pt-4 border-t border-border/60">
                   <div className="flex items-center gap-2">
                     <Bookmark className="w-4 h-4 text-amber-500" />
-                    <h3 className="text-base font-bold text-foreground">Sorotan Kunci Percakapan</h3>
+                    <h3 className="text-base font-bold text-foreground">{t('recording.highlights.sectionTitle')}</h3>
                   </div>
                   <HighlightsGrid
                     highlights={recording.highlights || []}

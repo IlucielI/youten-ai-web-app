@@ -5,6 +5,7 @@ import * as apiClient from '@/lib/api-client';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { UserStatus } from '@/server/constants/recording.constant';
+import { useLocaleStore } from '@/stores/locale.store';
 
 vi.mock('next/navigation', () => ({
   useRouter: vi.fn(),
@@ -33,6 +34,7 @@ describe('SettingsPage', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    useLocaleStore.setState({ locale: 'id' });
     (useRouter as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
       push: mockPush,
     });
@@ -57,7 +59,7 @@ describe('SettingsPage', () => {
     });
   });
 
-  it('renders profile and quota data when user is authenticated', async () => {
+  it('renders profile and quota data when user is authenticated (id locale)', async () => {
     vi.spyOn(apiClient, 'apiFetch').mockResolvedValue({
       status: 'SUCCESS',
       code: 'SUCCESS',
@@ -82,6 +84,27 @@ describe('SettingsPage', () => {
     expect(screen.getByText('3')).toBeInTheDocument(); // remaining
     expect(screen.getByText('/ 5')).toBeInTheDocument(); // total
     expect(screen.getByText('Terpakai: 2 rapat')).toBeInTheDocument();
+  });
+
+  it('renders profile and quota data in English by default when locale is en', async () => {
+    useLocaleStore.setState({ locale: 'en' });
+    vi.spyOn(apiClient, 'apiFetch').mockResolvedValue({
+      status: 'SUCCESS',
+      code: 'SUCCESS',
+      message: 'OK',
+      data: mockUser,
+      timestamp: new Date().toISOString(),
+    });
+
+    render(<SettingsPage />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('settings-page')).toBeInTheDocument();
+    });
+
+    expect(screen.getByRole('heading', { level: 1, name: 'Account Settings' })).toBeInTheDocument();
+    expect(screen.getByText('Remaining Quota Today')).toBeInTheDocument();
+    expect(screen.getByText('Used: 2 meetings')).toBeInTheDocument();
   });
 
   it('allows user to edit and save full_name', async () => {

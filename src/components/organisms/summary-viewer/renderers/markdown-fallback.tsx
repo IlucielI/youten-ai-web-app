@@ -6,6 +6,7 @@ import remarkGfm from 'remark-gfm';
 import { Card, CardContent } from '@/components/atoms/card';
 import { FileText, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useTranslation } from '@/locales';
 
 export interface MarkdownFallbackProps {
   content: string;
@@ -216,6 +217,7 @@ export function MarkdownFallback({
   templateCategory,
   className,
 }: MarkdownFallbackProps) {
+  const { t } = useTranslation();
   const cleanedContent = useMemo(() => cleanMarkdownContent(content), [content]);
 
   return (
@@ -226,11 +228,11 @@ export function MarkdownFallback({
       <div className="rounded-xl border border-border/60 bg-card/60 p-4 backdrop-blur-sm shadow-sm flex items-center justify-between">
         <div className="flex items-center gap-2 text-xs font-semibold text-primary">
           <FileText className="h-4 w-4" />
-          <span>Ringkasan {templateCategory ? `(${templateCategory})` : ''}</span>
+          <span>{t('recording.templates.markdown.badge', { category: templateCategory ? `(${templateCategory})` : '' }).trim()}</span>
         </div>
         <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
           <Sparkles className="h-3.5 w-3.5 text-amber-400" />
-          <span>Format AI Terstruktur</span>
+          <span>{t('recording.templates.markdown.structuredAiFormat')}</span>
         </div>
       </div>
 
