@@ -1,11 +1,15 @@
 import React from 'react';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { RecordingCard, getStatusPillConfig } from './RecordingCard';
 import { RecordingListItemDTO } from '@/server/dtos/recording.dto';
 import { RecordingStatus } from '@/server/constants/recording.constant';
+import { useLocaleStore } from '@/stores/locale.store';
 
 describe('RecordingCard Component', () => {
+  beforeEach(() => {
+    useLocaleStore.setState({ locale: 'id' });
+  });
   const mockRecording: RecordingListItemDTO = {
     id: 'rec-1234',
     title: 'Sprint Planning Meeting',
@@ -66,8 +70,17 @@ describe('RecordingCard Component', () => {
         open={true}
       />
     );
-    const deleteBtn = screen.getByText('Hapus Rekaman');
+    const deleteBtn = screen.getByText(/hapus rekaman/i);
     fireEvent.click(deleteBtn);
     expect(onDelete).toHaveBeenCalledWith(mockRecording);
+  });
+
+  it('renders English metadata and actions when locale is en', () => {
+    useLocaleStore.setState({ locale: 'en' });
+    render(<RecordingCard recording={mockRecording} open={true} onShare={vi.fn()} onDelete={vi.fn()} />);
+
+    expect(screen.getByText('Completed')).toBeInTheDocument();
+    expect(screen.getByText('Share')).toBeInTheDocument();
+    expect(screen.getByText('Delete recording')).toBeInTheDocument();
   });
 });

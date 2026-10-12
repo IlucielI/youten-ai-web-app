@@ -4,10 +4,12 @@ import { render, screen, fireEvent, act } from '@testing-library/react';
 import { PipelineStepper } from './PipelineStepper';
 import { RecordingStatus, PipelineErrorCode } from '@/server/constants';
 import { usePipelineStore } from '@/stores/pipeline.store';
+import { useLocaleStore } from '@/stores/locale.store';
 
 describe('PipelineStepper Component', () => {
   beforeEach(() => {
     usePipelineStore.getState().resetPipeline();
+    useLocaleStore.setState({ locale: 'id' });
   });
 
   it('renders all 4 stages correctly during initial extraction', () => {
@@ -96,5 +98,23 @@ describe('PipelineStepper Component', () => {
 
     const timerBadge = screen.getByTestId('live-timer-badge');
     expect(timerBadge.textContent).toBe('01:05');
+  });
+
+  it('renders stages and headline in English when locale is en', () => {
+    useLocaleStore.setState({ locale: 'en' });
+
+    render(
+      <PipelineStepper
+        status={RecordingStatus.EXTRACTING}
+        progress={30}
+        message="Extracting audio track..."
+      />
+    );
+
+    expect(screen.getByTestId('pipeline-headline').textContent).toBe('Analyzing Conversation...');
+    expect(screen.getByText('Validation & Extraction')).toBeInTheDocument();
+    expect(screen.getByText('Multi-Speaker Transcription')).toBeInTheDocument();
+    expect(screen.getByText('AI Intelligence & Indexing')).toBeInTheDocument();
+    expect(screen.getByText('Ready for Review')).toBeInTheDocument();
   });
 });

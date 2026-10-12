@@ -1,10 +1,15 @@
 import React from 'react';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import { PipelineErrorCard } from './PipelineErrorCard';
 import { PipelineErrorCode } from '@/server/constants';
+import { useLocaleStore } from '@/stores/locale.store';
 
 describe('PipelineErrorCard Component', () => {
+  beforeEach(() => {
+    useLocaleStore.getState().setLocale('id');
+  });
+
   it('renders default error information when no errorCode is passed', () => {
     render(<PipelineErrorCard errorMessage="Gagal memproses pipeline" />);
 
@@ -62,5 +67,19 @@ describe('PipelineErrorCard Component', () => {
 
     const conflictAlert = await screen.findByTestId('retry-conflict-alert');
     expect(conflictAlert.textContent).toContain('Pipeline sedang diproses kembali');
+  });
+
+  it('renders error title and retry button in English when locale is en', () => {
+    useLocaleStore.getState().setLocale('en');
+
+    render(
+      <PipelineErrorCard
+        errorCode={PipelineErrorCode.ERR_TRANSCRIPTION_FAILED}
+        onRetry={vi.fn()}
+      />
+    );
+
+    expect(screen.getByTestId('error-card-title').textContent).toBe('Speech-to-Text Transcription Issue');
+    expect(screen.getByTestId('retry-stage-button').textContent).toContain('Retry from Last Stage');
   });
 });

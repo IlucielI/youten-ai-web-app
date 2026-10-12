@@ -24,6 +24,7 @@ import {
   FileAudio,
   HardDrive,
 } from 'lucide-react';
+import { useTranslation } from '@/locales';
 
 export interface RecordingCardProps {
   recording: RecordingListItemDTO;
@@ -37,6 +38,20 @@ export interface RecordingCardProps {
 export const templateLabels: Record<string, string> = {
   GENERAL: 'Executive Brief',
   MOM: 'Notulen Rapat (MoM)',
+  '1_ON_1': '1-on-1 Review',
+  DAILY_STANDUP: 'Daily Standup',
+  TECH_REVIEW: 'Tech Architecture',
+  SALES_DISCOVERY: 'Sales Discovery',
+  INTERVIEW: 'Interview Scorecard',
+  PODCAST: 'Podcast & Talkshow',
+  LECTURE: 'Lecture & Webinar',
+  MUSIC_LYRICS: 'Music Lyrics',
+  RESEARCH_DEEPDIVE: 'Research Deep Dive',
+};
+
+export const enTemplateLabels: Record<string, string> = {
+  GENERAL: 'Executive Brief',
+  MOM: 'Minutes of Meeting (MoM)',
   '1_ON_1': '1-on-1 Review',
   DAILY_STANDUP: 'Daily Standup',
   TECH_REVIEW: 'Tech Architecture',
@@ -74,15 +89,35 @@ export const RecordingCard: React.FC<RecordingCardProps> = ({
   onOpenChange,
   className = '',
 }) => {
-  const pillConfig = getStatusPillConfig(recording.status);
-  const templateName = templateLabels[recording.selected_template] || recording.selected_template;
+  const { t, locale } = useTranslation();
+  const rawPillConfig = getStatusPillConfig(recording.status);
+  const pillConfig = {
+    label:
+      locale === 'en'
+        ? recording.status === RecordingStatus.COMPLETED
+          ? t('dashboard.statusLabels.completed')
+          : recording.status === RecordingStatus.FAILED
+          ? t('dashboard.statusLabels.failed')
+          : recording.status === RecordingStatus.QUEUED
+          ? t('dashboard.statusLabels.queued')
+          : t('dashboard.statusLabels.processing')
+        : rawPillConfig.label,
+    status: rawPillConfig.status,
+  };
+  const templateName =
+    locale === 'en'
+      ? enTemplateLabels[recording.selected_template] || templateLabels[recording.selected_template] || recording.selected_template
+      : templateLabels[recording.selected_template] || recording.selected_template;
   const fileSizeMb = (recording.file_size_bytes / (1024 * 1024)).toFixed(1);
 
-  const formattedDate = new Date(recording.created_at).toLocaleDateString('id-ID', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-  });
+  const formattedDate = new Date(recording.created_at).toLocaleDateString(
+    locale === 'en' ? 'en-US' : 'id-ID',
+    {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    }
+  );
 
   return (
     <div
@@ -112,7 +147,7 @@ export const RecordingCard: React.FC<RecordingCardProps> = ({
                 className="flex items-center gap-2 cursor-pointer"
               >
                 <ExternalLink className="w-4 h-4 text-slate-500" />
-                <span>Buka Detail</span>
+                <span>{t('dashboard.table.viewDetail')}</span>
               </Link>
             </DropdownMenuItem>
             {onShare && (
@@ -121,7 +156,7 @@ export const RecordingCard: React.FC<RecordingCardProps> = ({
                 className="flex items-center gap-2 cursor-pointer"
               >
                 <Share2 className="w-4 h-4 text-slate-500" />
-                <span>Bagikan</span>
+                <span>{t('dashboard.table.share')}</span>
               </DropdownMenuItem>
             )}
             <DropdownMenuSeparator />
@@ -131,7 +166,7 @@ export const RecordingCard: React.FC<RecordingCardProps> = ({
                 className="flex items-center gap-2 text-rose-600 focus:text-rose-700 cursor-pointer"
               >
                 <Trash2 className="w-4 h-4 text-rose-500" />
-                <span>Hapus Rekaman</span>
+                <span>{t('dashboard.table.delete')}</span>
               </DropdownMenuItem>
             )}
           </DropdownMenuContent>

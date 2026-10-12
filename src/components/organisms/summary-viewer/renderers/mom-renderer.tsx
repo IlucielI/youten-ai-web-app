@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/atoms/car
 import { Badge } from '@/components/atoms/badge';
 import { CheckCircle2, Calendar, Users, Target, Activity, ShieldAlert } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useTranslation } from '@/locales';
 
 export interface MomRendererProps {
   data: MomStructuredData;
@@ -17,6 +18,8 @@ const priorityBadgeStyles: Record<string, string> = {
 };
 
 export function MomRenderer({ data, className }: MomRendererProps) {
+  const { t } = useTranslation();
+
   return (
     <div
       data-testid="mom-summary-renderer"
@@ -27,14 +30,14 @@ export function MomRenderer({ data, className }: MomRendererProps) {
         <div className="flex flex-col gap-2">
           <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary">
             <Target className="h-4 w-4" />
-            <span>Notula Rapat Eksekutif (MOM)</span>
+            <span>{t('recording.templates.mom.badge')}</span>
           </div>
           <h2 className="text-xl font-bold text-foreground md:text-2xl">
             {data.meeting_title}
           </h2>
           {data.meeting_goal && (
             <p className="text-sm text-muted-foreground mt-1">
-              <span className="font-medium text-foreground">Tujuan Rapat:</span> {data.meeting_goal}
+              <span className="font-medium text-foreground">{t('recording.templates.mom.meetingGoal')}</span> {data.meeting_goal}
             </p>
           )}
         </div>
@@ -45,7 +48,7 @@ export function MomRenderer({ data, className }: MomRendererProps) {
         <CardHeader className="pb-3">
           <CardTitle className="text-base font-semibold flex items-center gap-2">
             <Activity className="h-4 w-4 text-primary" />
-            Ringkasan Eksekutif
+            {t('recording.templates.mom.executiveSummary')}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -62,25 +65,25 @@ export function MomRenderer({ data, className }: MomRendererProps) {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-semibold flex items-center gap-2">
               <Users className="h-4 w-4 text-sky-400" />
-              Dinamika & Konsensus Rapat
+              {t('recording.templates.mom.dynamics')}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 text-sm">
             <div className="flex items-center justify-between text-xs">
-              <span className="text-muted-foreground">Tingkat Konsensus:</span>
+              <span className="text-muted-foreground">{t('recording.templates.mom.consensusScore')}</span>
               <Badge variant="outline" className="font-medium bg-secondary/50">
                 {data.meeting_dynamics.consensus_score}
               </Badge>
             </div>
             <div className="flex items-center justify-between text-xs">
-              <span className="text-muted-foreground">Trayektori Sentimen:</span>
+              <span className="text-muted-foreground">{t('recording.templates.mom.sentimentTrajectory')}</span>
               <Badge variant="outline" className="font-medium bg-secondary/50">
                 {data.meeting_dynamics.sentiment_trajectory}
               </Badge>
             </div>
             {data.meeting_dynamics.speaker_talk_time && data.meeting_dynamics.speaker_talk_time.length > 0 && (
               <div className="pt-2 border-t border-border/40 space-y-2">
-                <span className="text-xs font-medium text-muted-foreground">Distribusi Bicara:</span>
+                <span className="text-xs font-medium text-muted-foreground">{t('recording.templates.mom.talkDistribution')}</span>
                 <div className="space-y-1.5">
                   {data.meeting_dynamics.speaker_talk_time.map((speaker, idx) => (
                     <div key={idx} className="flex items-center justify-between text-xs">
@@ -102,20 +105,20 @@ export function MomRenderer({ data, className }: MomRendererProps) {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-semibold flex items-center gap-2">
               <Target className="h-4 w-4 text-indigo-400" />
-              Perspektif Pemangku Kepentingan
+              {t('recording.templates.mom.stakeholders')}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2.5 text-xs">
             <div>
-              <span className="font-semibold text-foreground/90">Eksekutif: </span>
+              <span className="font-semibold text-foreground/90">{t('recording.templates.mom.executive')} </span>
               <span className="text-muted-foreground">{data.stakeholder_perspectives.executive_brief}</span>
             </div>
             <div>
-              <span className="font-semibold text-foreground/90">Engineering: </span>
+              <span className="font-semibold text-foreground/90">{t('recording.templates.mom.engineering')} </span>
               <span className="text-muted-foreground">{data.stakeholder_perspectives.engineering_focus}</span>
             </div>
             <div>
-              <span className="font-semibold text-foreground/90">Produk: </span>
+              <span className="font-semibold text-foreground/90">{t('recording.templates.mom.product')} </span>
               <span className="text-muted-foreground">{data.stakeholder_perspectives.product_delivery}</span>
             </div>
           </CardContent>
@@ -127,7 +130,7 @@ export function MomRenderer({ data, className }: MomRendererProps) {
         <div className="space-y-3">
           <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
             <CheckCircle2 className="h-4 w-4 text-emerald-400" />
-            Keputusan Utama ({data.key_decisions.length})
+            {t('recording.templates.mom.keyDecisions', { count: data.key_decisions.length })}
           </h3>
           <div className="space-y-3">
             {data.key_decisions.map((dec, idx) => (
@@ -138,21 +141,21 @@ export function MomRenderer({ data, className }: MomRendererProps) {
                       {idx + 1}. {dec.decision}
                     </span>
                     <Badge variant="outline" className="text-[10px] shrink-0 border-emerald-500/30 text-emerald-400 bg-emerald-500/10">
-                      Disetujui: {dec.approved_by}
+                      {t('recording.templates.mom.approvedBy', { name: dec.approved_by })}
                     </Badge>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-muted-foreground pt-1">
                     <div>
-                      <span className="font-medium text-foreground/80">Pemicu Akar Masalah:</span>{' '}
+                      <span className="font-medium text-foreground/80">{t('recording.templates.mom.rootCause')}</span>{' '}
                       {dec.root_cause_trigger}
                     </div>
                     <div>
-                      <span className="font-medium text-foreground/80">Dampak Kuantitatif:</span>{' '}
+                      <span className="font-medium text-foreground/80">{t('recording.templates.mom.quantitativeImpact')}</span>{' '}
                       {dec.quantitative_impact}
                     </div>
                     {dec.contested_points && (
                       <div className="md:col-span-2">
-                        <span className="font-medium text-foreground/80">Poin Perdebatan:</span>{' '}
+                        <span className="font-medium text-foreground/80">{t('recording.templates.mom.contestedPoints')}</span>{' '}
                         {dec.contested_points}
                       </div>
                     )}
@@ -169,17 +172,17 @@ export function MomRenderer({ data, className }: MomRendererProps) {
         <div className="space-y-3">
           <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
             <Target className="h-4 w-4 text-primary" />
-            Tindak Lanjut & Tugas ({data.action_items.length})
+            {t('recording.templates.mom.actionItems', { count: data.action_items.length })}
           </h3>
           <div className="overflow-x-auto rounded-lg border border-border/60 bg-card/40">
             <table className="w-full text-left text-xs">
               <thead className="bg-secondary/40 text-muted-foreground border-b border-border/60">
                 <tr>
-                  <th className="py-2.5 px-3 font-semibold">Prioritas</th>
-                  <th className="py-2.5 px-3 font-semibold">Tugas</th>
-                  <th className="py-2.5 px-3 font-semibold">PIC</th>
-                  <th className="py-2.5 px-3 font-semibold">Tenggat Waktu</th>
-                  <th className="py-2.5 px-3 font-semibold">Definisi Selesai</th>
+                  <th className="py-2.5 px-3 font-semibold">{t('recording.templates.mom.tablePriority')}</th>
+                  <th className="py-2.5 px-3 font-semibold">{t('recording.templates.mom.tableTask')}</th>
+                  <th className="py-2.5 px-3 font-semibold">{t('recording.templates.mom.tablePic')}</th>
+                  <th className="py-2.5 px-3 font-semibold">{t('recording.templates.mom.tableDueDate')}</th>
+                  <th className="py-2.5 px-3 font-semibold">{t('recording.templates.mom.tableDefinitionOfDone')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/40">
@@ -197,7 +200,7 @@ export function MomRenderer({ data, className }: MomRendererProps) {
                       <div>{item.task}</div>
                       {item.cost_of_inaction && (
                         <div className="text-[10px] text-muted-foreground mt-0.5">
-                          Konsekuensi: {item.cost_of_inaction}
+                          {t('recording.templates.mom.consequence')} {item.cost_of_inaction}
                         </div>
                       )}
                     </td>
@@ -219,7 +222,7 @@ export function MomRenderer({ data, className }: MomRendererProps) {
             <CardHeader className="pb-2">
               <CardTitle className="text-xs font-semibold flex items-center gap-1.5 text-amber-400">
                 <ShieldAlert className="h-3.5 w-3.5" />
-                Isu Terbuka / Pending ({data.open_issues.length})
+                {t('recording.templates.mom.openIssues', { count: data.open_issues.length })}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -237,7 +240,7 @@ export function MomRenderer({ data, className }: MomRendererProps) {
             <CardHeader className="pb-2">
               <CardTitle className="text-xs font-semibold flex items-center gap-1.5 text-sky-400">
                 <Calendar className="h-3.5 w-3.5" />
-                Jadwal Rapat Lanjutan
+                {t('recording.templates.mom.nextMeeting')}
               </CardTitle>
             </CardHeader>
             <CardContent>

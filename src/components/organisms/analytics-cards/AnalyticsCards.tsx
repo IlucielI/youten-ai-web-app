@@ -6,6 +6,7 @@ import { formatTime } from '@/lib/time';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback } from '@/components/atoms/avatar';
 import { Clock, MessageSquare, Gauge, Users, BarChart3 } from 'lucide-react';
+import { useTranslation } from '@/locales';
 
 export interface AnalyticsCardsProps {
   analytics?: RecordingAnalyticsDTO | null;
@@ -40,6 +41,8 @@ function getInitials(name?: string): string {
 }
 
 export function AnalyticsCards({ analytics, speakerLabels, className }: AnalyticsCardsProps) {
+  const { t, locale } = useTranslation();
+
   // Deduplicate and aggregate speakers if multiple entries share the same display name or if speakerLabels maps them
   const aggregatedSpeakers = React.useMemo(() => {
     const rawSpeakers = analytics?.speakers ?? [];
@@ -76,9 +79,11 @@ export function AnalyticsCards({ analytics, speakerLabels, className }: Analytic
         <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary mb-3">
           <BarChart3 className="h-5 w-5" />
         </div>
-        <h4 className="text-sm font-semibold text-foreground">Data Analitik Belum Tersedia</h4>
+        <h4 className="text-sm font-semibold text-foreground">
+          {t('recording.analytics.emptyTitle')}
+        </h4>
         <p className="text-xs text-muted-foreground mt-1 max-w-xs">
-          Metrik durasi, kecepatan bicara (WPM), dan distribusi partisipasi pembicara akan muncul setelah pemrosesan selesai.
+          {t('recording.analytics.emptyDescription')}
         </p>
       </div>
     );
@@ -108,13 +113,13 @@ export function AnalyticsCards({ analytics, speakerLabels, className }: Analytic
         >
           <div className="flex items-center gap-2 text-muted-foreground mb-1">
             <Clock className="h-4 w-4 text-primary" />
-            <span className="text-xs font-medium">Total Durasi</span>
+            <span className="text-xs font-medium">{t('recording.analytics.totalDuration')}</span>
           </div>
           <div className="text-xl font-bold text-foreground">
             {formatTime(total_duration_seconds)}
           </div>
           <span className="text-[11px] text-muted-foreground">
-            {Math.round(total_duration_seconds)} detik rekaman
+            {t('recording.analytics.durationSeconds', { seconds: Math.round(total_duration_seconds) })}
           </span>
         </div>
 
@@ -125,12 +130,14 @@ export function AnalyticsCards({ analytics, speakerLabels, className }: Analytic
         >
           <div className="flex items-center gap-2 text-muted-foreground mb-1">
             <MessageSquare className="h-4 w-4 text-emerald-500" />
-            <span className="text-xs font-medium">Total Kata</span>
+            <span className="text-xs font-medium">{t('recording.analytics.totalWords')}</span>
           </div>
           <div className="text-xl font-bold text-foreground">
-            {(total_words ?? 0).toLocaleString('id-ID')}
+            {(total_words ?? 0).toLocaleString(locale === 'en' ? 'en-US' : 'id-ID')}
           </div>
-          <span className="text-[11px] text-muted-foreground">kata terucap</span>
+          <span className="text-[11px] text-muted-foreground">
+            {t('recording.analytics.wordsSpoken')}
+          </span>
         </div>
 
         {/* Speaking Pace (WPM) */}
@@ -140,11 +147,15 @@ export function AnalyticsCards({ analytics, speakerLabels, className }: Analytic
         >
           <div className="flex items-center gap-2 text-muted-foreground mb-1">
             <Gauge className="h-4 w-4 text-amber-500" />
-            <span className="text-xs font-medium">Kecepatan Bicara</span>
+            <span className="text-xs font-medium">{t('recording.analytics.speakingPace')}</span>
           </div>
           <div className="text-xl font-bold text-foreground">{paceWpm} WPM</div>
           <span className="text-[11px] text-muted-foreground">
-            {paceWpm > 160 ? 'Cepat' : paceWpm < 120 ? 'Santai' : 'Normal / Sedang'}
+            {paceWpm > 160
+              ? t('recording.analytics.paceFast')
+              : paceWpm < 120
+                ? t('recording.analytics.paceRelaxed')
+                : t('recording.analytics.paceNormal')}
           </span>
         </div>
 
@@ -155,12 +166,14 @@ export function AnalyticsCards({ analytics, speakerLabels, className }: Analytic
         >
           <div className="flex items-center gap-2 text-muted-foreground mb-1">
             <Users className="h-4 w-4 text-violet-500" />
-            <span className="text-xs font-medium">Partisipan</span>
+            <span className="text-xs font-medium">{t('recording.analytics.participants')}</span>
           </div>
           <div className="text-xl font-bold text-foreground">
-            {sortedSpeakers.length} Pembicara
+            {t('recording.analytics.speakersCount', { count: sortedSpeakers.length })}
           </div>
-          <span className="text-[11px] text-muted-foreground">terdeteksi diarization</span>
+          <span className="text-[11px] text-muted-foreground">
+            {t('recording.analytics.diarizationDetected')}
+          </span>
         </div>
       </div>
 
@@ -173,10 +186,10 @@ export function AnalyticsCards({ analytics, speakerLabels, className }: Analytic
           <div className="flex items-center justify-between">
             <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
               <BarChart3 className="h-4 w-4 text-primary" />
-              Distribusi Waktu Bicara
+              {t('recording.analytics.talkTimeDistribution')}
             </h4>
             <span className="text-xs text-muted-foreground">
-              {sortedSpeakers.length} pembicara
+              {t('recording.analytics.speakersSubtitle', { count: sortedSpeakers.length })}
             </span>
           </div>
 
@@ -204,7 +217,10 @@ export function AnalyticsCards({ analytics, speakerLabels, className }: Analytic
                     </div>
 
                     <div className="flex items-center gap-3 text-muted-foreground">
-                      <span>{(speaker.word_count ?? 0).toLocaleString('id-ID')} kata</span>
+                      <span>
+                        {(speaker.word_count ?? 0).toLocaleString(locale === 'en' ? 'en-US' : 'id-ID')}{' '}
+                        {locale === 'en' ? 'words' : 'kata'}
+                      </span>
                       <span>{formatTime(speaker.total_seconds ?? 0)}</span>
                       <span className={cn('font-semibold min-w-9 text-right', palette.text)}>
                         {share}%

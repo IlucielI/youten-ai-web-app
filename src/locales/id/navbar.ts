@@ -5,6 +5,7 @@ export const idNavbar = {
   ctaText: 'Masuk',
   links: {
     dashboard: 'Dashboard',
+    speakers: 'Direktori Pembicara',
     features: 'Fitur',
     pricing: 'Harga',
     faq: 'FAQ',
@@ -13,6 +14,8 @@ export const idNavbar = {
     dashboard: 'Dashboard',
     settings: 'Pengaturan',
     logout: 'Keluar',
+    userFallback: 'Pengguna',
+    verifiedAccount: 'Akun Terverifikasi',
   },
   mobileMenu: {
     toggle: 'Buka menu navigasi',

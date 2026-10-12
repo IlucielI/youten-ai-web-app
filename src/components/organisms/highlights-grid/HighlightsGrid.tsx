@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/atoms/button';
 import { Badge } from '@/components/atoms/badge';
 import { Play, Sparkles, User, ExternalLink, Bookmark } from 'lucide-react';
+import { useTranslation } from '@/locales';
 
 export interface HighlightsGridProps {
   highlights: HighlightDTO[];
@@ -21,6 +22,8 @@ export function HighlightsGrid({
   onSeek,
   className,
 }: HighlightsGridProps) {
+  const { t } = useTranslation();
+
   if (!highlights || highlights.length === 0) {
     return (
       <div
@@ -33,9 +36,11 @@ export function HighlightsGrid({
         <div className="h-10 w-10 rounded-full bg-amber-500/10 flex items-center justify-center text-amber-500 mb-3">
           <Bookmark className="h-5 w-5" />
         </div>
-        <h4 className="text-sm font-semibold text-foreground">Belum Ada Sorotan</h4>
+        <h4 className="text-sm font-semibold text-foreground">
+          {t('recording.highlights.emptyTitle')}
+        </h4>
         <p className="text-xs text-muted-foreground mt-1 max-w-xs">
-          Sorotan penting dan momen kunci percakapan akan otomatis dikurasi oleh AI atau dapat ditandai saat mendengarkan.
+          {t('recording.highlights.emptyDescription')}
         </p>
       </div>
     );
@@ -51,9 +56,9 @@ export function HighlightsGrid({
     >
       <div className="flex items-center justify-between text-xs text-muted-foreground px-1 mb-1">
         <span className="font-medium text-foreground">
-          Sorotan Utama ({sortedHighlights.length})
+          {t('recording.highlights.listTitle', { count: sortedHighlights.length })}
         </span>
-        <span>Momen kunci percakapan</span>
+        <span>{t('recording.highlights.listSubtitle')}</span>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -88,12 +93,12 @@ export function HighlightsGrid({
                     {isAiSource ? (
                       <>
                         <Sparkles className="h-3 w-3" />
-                        AI Insight
+                        {t('recording.highlights.aiInsight')}
                       </>
                     ) : (
                       <>
                         <User className="h-3 w-3" />
-                        Manual Bookmark
+                        {t('recording.highlights.manualBookmark')}
                       </>
                     )}
                   </Badge>
@@ -104,7 +109,7 @@ export function HighlightsGrid({
                 </div>
 
                 <h4 className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-1">
-                  {highlight.title || 'Sorotan Percakapan'}
+                  {highlight.title || t('recording.highlights.defaultTitle')}
                 </h4>
 
                 {highlight.note && (
@@ -124,7 +129,7 @@ export function HighlightsGrid({
                     className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition-colors"
                   >
                     <ExternalLink className="h-3 w-3" />
-                    Unduh Klip
+                    {t('recording.highlights.downloadClip')}
                   </a>
                 ) : (
                   <span />
@@ -140,7 +145,7 @@ export function HighlightsGrid({
                     className="h-7 px-2.5 text-xs gap-1.5 transition-transform active:scale-95"
                   >
                     <Play className="h-3 w-3 fill-current" />
-                    <span>Dengarkan</span>
+                    <span>{t('recording.highlights.listenButton')}</span>
                   </Button>
                 )}
               </div>

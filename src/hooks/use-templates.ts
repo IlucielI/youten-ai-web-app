@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   FileText,
   Activity,
@@ -16,6 +16,7 @@ import {
 import { apiFetchData } from '@/lib/api-client';
 import { TemplateListResponse } from '@/server/dtos';
 import { TemplateKey } from '@/server/constants';
+import { useTranslation } from '@/locales';
 
 export interface DynamicTemplateOption {
   key: string;
@@ -143,6 +144,7 @@ export function _resetTemplateCache(): void {
 }
 
 export function useTemplates() {
+  const { locale } = useTranslation();
   const [templates, setTemplates] = useState<DynamicTemplateOption[]>(
     cachedTemplates || FALLBACK_TEMPLATES
   );
@@ -237,18 +239,34 @@ export function useTemplates() {
     }
   }, []);
 
+  const localizedTemplates = useMemo(() => {
+    return templates.map((tmpl) => {
+      const fallback = FALLBACK_TEMPLATES.find((f) => f.key === tmpl.key);
+      const isEnglish = locale === 'en';
+      return {
+        ...tmpl,
+        label: isEnglish
+          ? (fallback?.name || tmpl.name || tmpl.label)
+          : (fallback?.label || tmpl.label || tmpl.name),
+        description: isEnglish
+          ? (tmpl.name || fallback?.name || tmpl.description)
+          : (fallback?.description || tmpl.description),
+      };
+    });
+  }, [templates, locale]);
+
   const getTemplateLabel = useCallback(
     (key: string): string => {
-      const match = templates.find((t) => t.key === key);
+      const match = localizedTemplates.find((t) => t.key === key);
       if (match) return match.label || match.name;
       const fallback = FALLBACK_TEMPLATES.find((f) => f.key === key);
-      return fallback?.label || key;
+      return locale === 'en' ? (fallback?.name || key) : (fallback?.label || key);
     },
-    [templates]
+    [localizedTemplates, locale]
   );
 
   return {
-    templates,
+    templates: localizedTemplates,
     isLoading,
     error,
     refresh,

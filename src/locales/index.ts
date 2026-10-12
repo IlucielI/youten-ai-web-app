@@ -4,8 +4,8 @@ import { enDictionary } from './en';
 import { useLocaleStore } from '@/stores/locale.store';
 
 export type Locale = 'id' | 'en';
-export const DEFAULT_LOCALE: Locale = 'id';
-export const SUPPORTED_LOCALES: Locale[] = ['id', 'en'];
+export const DEFAULT_LOCALE: Locale = 'en';
+export const SUPPORTED_LOCALES: Locale[] = ['en', 'id'];
 
 export const dictionaries: Record<Locale, AppDictionary> = {
   id: idDictionary,

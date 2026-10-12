@@ -2,6 +2,7 @@ import { DomainLimits } from '@/server/constants/recording.constant';
 import { Button } from '@/components/atoms/button';
 import { Check, Sparkles, History, Loader2, Star } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useTranslation } from '@/locales';
 
 export interface SummaryVersionItem {
   id: string;
@@ -30,6 +31,7 @@ export function SummaryVersionTabs({
   isActivating = false,
   className,
 }: SummaryVersionTabsProps) {
+  const { t } = useTranslation();
   const currentVersion = versions.find((v) => v.id === selectedVersionId) || versions[0];
   const maxVersions = DomainLimits.MAX_SUMMARY_VERSIONS;
   const isCapReached = versions.length >= maxVersions;
@@ -50,7 +52,7 @@ export function SummaryVersionTabs({
       <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
         <div className="flex items-center gap-1 text-xs text-muted-foreground mr-1.5 shrink-0">
           <History className="h-3.5 w-3.5" />
-          <span className="font-semibold">Versi:</span>
+          <span className="font-semibold">{t('recording.versions.versionLabel')}</span>
         </div>
 
         {versions.map((ver) => {
@@ -84,7 +86,7 @@ export function SummaryVersionTabs({
       <div className="flex items-center justify-between sm:justify-end gap-2.5 shrink-0 pt-2 border-t border-border/40 sm:pt-0 sm:border-t-0">
         {/* Version Cap Counter */}
         <span data-testid="version-cap-counter" className="text-[11px] text-muted-foreground">
-          <span className="font-semibold text-foreground">{versions.length}</span>/{maxVersions} versi
+          <span className="font-semibold text-foreground">{versions.length}</span>/{maxVersions} {t('recording.versions.versionCount')}
         </span>
 
         {/* Set Active Button (when selected version is not active) */}
@@ -101,12 +103,12 @@ export function SummaryVersionTabs({
             {isActivating ? (
               <>
                 <Loader2 className="h-3 w-3 animate-spin" />
-                <span>Mengaktifkan...</span>
+                <span>{t('recording.versions.activating')}</span>
               </>
             ) : (
               <>
                 <Check className="h-3 w-3" />
-                <span>Jadikan Aktif</span>
+                <span>{t('recording.versions.makeActive')}</span>
               </>
             )}
           </Button>
@@ -122,10 +124,10 @@ export function SummaryVersionTabs({
             disabled={isCapReached}
             className="h-7 text-xs gap-1"
             data-testid="open-regenerate-modal-btn"
-            title={isCapReached ? `Batas maksimal ${maxVersions} versi telah tercapai` : 'Buat versi ringkasan baru'}
+            title={isCapReached ? t('recording.versions.capReachedTitle', { max: maxVersions }) : t('recording.versions.newVersionTitle')}
           >
             <Sparkles className="h-3 w-3" />
-            <span>Generate Baru</span>
+            <span>{t('recording.versions.generateNew')}</span>
           </Button>
         )}
       </div>

@@ -33,6 +33,7 @@ import { usePlayerStore } from '@/stores/player.store';
 import { apiFetch } from '@/lib/api-client';
 import { ApiResponse } from '@/server/dtos/response.dto';
 import type { SharedRecordingResponse } from '@/server/dtos/recording.dto';
+import { useTranslation } from '@/locales';
 
 /**
  * Public Read-Only Share Viewer Page.
@@ -42,6 +43,7 @@ import type { SharedRecordingResponse } from '@/server/dtos/recording.dto';
 export default function SharedRecordingPage() {
   const params = useParams();
   const token = typeof params?.token === 'string' ? params.token : '';
+  const { t, locale } = useTranslation();
 
   const [recording, setRecording] = useState<SharedRecordingResponse | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -68,54 +70,54 @@ export default function SharedRecordingPage() {
     apiFetch<ApiResponse<SharedRecordingResponse>>(`/api/recordings/shared/${token}`)
       .then((res) => {
         if (!isMounted) return;
-        if (!res.data) {
-          throw new Error('Tautan berbagi tidak ditemukan atau telah dinonaktifkan.');
+        if (res && res.data) {
+          setRecording(res.data);
+          // Set audio stream url in global player store
+          const streamUrl = res.data.audio_url || res.data.playback_url;
+          if (streamUrl) {
+            setAudioUrl(streamUrl);
+          }
+        } else {
+          setErrorMessage(t('share.unavailableDesc'));
         }
-
-        const data = res.data;
-        setRecording(data);
-
-        // Initialize audio player URL
-        if (data.audio_url || data.playback_url) {
-          setAudioUrl(data.audio_url || data.playback_url || null);
-        }
-
-        setIsLoading(false);
       })
       .catch((err: unknown) => {
         if (!isMounted) return;
-        setIsLoading(false);
         const msg =
           err instanceof Error
             ? err.message
-            : 'Gagal memuat rekaman berbagi. Tautan mungkin telah kedaluwarsa atau dinonaktifkan.';
+            : t('share.unavailableDesc');
         setErrorMessage(msg);
+      })
+      .finally(() => {
+        if (isMounted) {
+          setIsLoading(false);
+        }
       });
 
     return () => {
       isMounted = false;
     };
-  }, [token, setAudioUrl]);
+  }, [token, setAudioUrl, t]);
 
-  // Formatted active summary data
+  // Transform active summary for SummaryViewer component
   const summaryData: SummaryData | null = useMemo(() => {
     if (!recording?.active_summary) return null;
     return {
       id: recording.active_summary.id,
-      version: recording.active_summary.version,
-      template_category: recording.active_summary.template_category || recording.selected_template,
+      recording_id: recording.id,
+      template_category: recording.active_summary.template_category,
       custom_angle: recording.active_summary.custom_angle,
-      structured_data: recording.active_summary.structured_data || null,
+      structured_data: recording.active_summary.structured_data,
       markdown_content: recording.active_summary.markdown_content,
-      is_active: true,
-      created_at: recording.active_summary.created_at || recording.created_at,
+      is_active: recording.active_summary.is_active,
+      created_at: recording.active_summary.created_at,
     };
   }, [recording]);
 
-  // Filtered transcript segments based on search
-  const segments = recording?.segments;
+  // Memoized filter for transcript segments
   const filteredSegments = useMemo(() => {
-    if (!segments) return [];
+    const segments = recording?.segments || [];
     if (!transcriptSearch.trim()) return segments;
 
     const query = transcriptSearch.toLowerCase();
@@ -124,7 +126,7 @@ export default function SharedRecordingPage() {
         s.text.toLowerCase().includes(query) ||
         (s.speaker_name || s.speaker_label || '').toLowerCase().includes(query)
     );
-  }, [segments, transcriptSearch]);
+  }, [recording?.segments, transcriptSearch]);
 
   if (isLoading) {
     return (
@@ -142,7 +144,7 @@ export default function SharedRecordingPage() {
 
         <div className="flex-1 flex flex-col items-center justify-center gap-3">
           <Loader2 className="w-8 h-8 animate-spin text-primary" />
-          <p className="text-sm text-muted-foreground font-medium">Memuat rekaman bersama...</p>
+          <p className="text-sm text-muted-foreground font-medium">{t('share.loading')}</p>
         </div>
       </div>
     );
@@ -164,7 +166,7 @@ export default function SharedRecordingPage() {
           </Link>
           <Button asChild size="sm" variant="default" className="text-xs">
             <Link href="/">
-              Coba Gratis Sekarang
+              {t('share.tryFree')}
               <ArrowRight className="w-3.5 h-3.5 ml-1" />
             </Link>
           </Button>
@@ -174,13 +176,13 @@ export default function SharedRecordingPage() {
           <div className="w-14 h-14 rounded-full bg-destructive/10 text-destructive flex items-center justify-center mb-4">
             <AlertCircle className="w-7 h-7" />
           </div>
-          <h2 className="text-xl font-bold tracking-tight mb-2">Tautan Tidak Tersedia</h2>
+          <h2 className="text-xl font-bold tracking-tight mb-2">{t('share.unavailableTitle')}</h2>
           <p className="text-sm text-muted-foreground mb-6">
-            {errorMessage || 'Rekaman ini tidak ditemukan atau tautan berbagi publik telah dinonaktifkan oleh pemiliknya.'}
+            {errorMessage || t('share.unavailableDesc')}
           </p>
           <Button asChild variant="outline">
             <Link href="/" data-testid="back-to-home-btn">
-              Kembali ke Beranda
+              {t('share.backToHome')}
             </Link>
           </Button>
         </div>
@@ -207,18 +209,18 @@ export default function SharedRecordingPage() {
 
             <span className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-secondary text-secondary-foreground border border-border/80">
               <ShieldCheck className="w-3 h-3 text-primary" />
-              Tautan Berbagi Publik (Hanya Lihat)
+              {t('share.publicBadge')}
             </span>
           </div>
 
           {/* Right: Promotional CTA */}
           <div className="flex items-center gap-2.5">
             <span className="hidden md:inline-block text-xs text-muted-foreground">
-              Dibuat dengan Youten AI
+              {t('share.poweredBy')}
             </span>
             <Button asChild size="sm" className="text-xs font-semibold shadow-xs">
               <Link href="/" data-testid="try-free-cta-btn">
-                Coba Gratis Sekarang
+                {t('share.tryFree')}
                 <ExternalLink className="w-3.5 h-3.5 ml-1.5" />
               </Link>
             </Button>
@@ -249,7 +251,7 @@ export default function SharedRecordingPage() {
 
                 <span className="inline-flex items-center gap-1 text-muted-foreground">
                   <Calendar className="w-3 h-3" />
-                  {new Date(recording.created_at).toLocaleDateString('id-ID', {
+                  {new Date(recording.created_at).toLocaleDateString(locale === 'id' ? 'id-ID' : 'en-US', {
                     day: 'numeric',
                     month: 'short',
                     year: 'numeric',
@@ -258,7 +260,7 @@ export default function SharedRecordingPage() {
 
                 <Badge variant="outline" className="text-[11px] font-medium capitalize">
                   <Sparkles className="w-3 h-3 mr-1 text-primary" />
-                  Format: {recording.selected_template}
+                  {t('share.formatLabel', { template: recording.selected_template })}
                 </Badge>
               </div>
             </div>
@@ -283,7 +285,7 @@ export default function SharedRecordingPage() {
                 className="flex items-center gap-2 text-xs font-semibold px-4 py-2"
               >
                 <FileText className="w-3.5 h-3.5" />
-                Ringkasan Notula
+                {t('recording.tabs.summary')}
               </TabsTrigger>
 
               <TabsTrigger
@@ -293,7 +295,7 @@ export default function SharedRecordingPage() {
                 className="flex items-center gap-2 text-xs font-semibold px-4 py-2"
               >
                 <ListOrdered className="w-3.5 h-3.5" />
-                Transkrip ({recording.segments?.length || 0})
+                {t('recording.tabs.transcript')} ({recording.segments?.length || 0})
               </TabsTrigger>
 
               <TabsTrigger
@@ -303,7 +305,7 @@ export default function SharedRecordingPage() {
                 className="flex items-center gap-2 text-xs font-semibold px-4 py-2"
               >
                 <Bookmark className="w-3.5 h-3.5" />
-                Bab &amp; Sorotan ({recording.chapters?.length || 0})
+                {t('recording.tabs.chapters')} ({recording.chapters?.length || 0})
               </TabsTrigger>
             </TabsList>
           </div>
@@ -316,7 +318,7 @@ export default function SharedRecordingPage() {
               </div>
             ) : (
               <div className="text-center py-12 border border-dashed rounded-xl bg-card/40 text-muted-foreground text-sm">
-                Belum ada ringkasan notula yang tersedia untuk rekaman ini.
+                {t('share.emptySummary')}
               </div>
             )}
           </TabsContent>
@@ -328,7 +330,7 @@ export default function SharedRecordingPage() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
                 type="text"
-                placeholder="Cari kata atau pembicara..."
+                placeholder={t('recording.transcript.searchPlaceholder')}
                 value={transcriptSearch}
                 onChange={(e) => setTranscriptSearch(e.target.value)}
                 data-testid="shared-transcript-search"
@@ -340,7 +342,7 @@ export default function SharedRecordingPage() {
             <div data-testid="shared-transcript-list" className="space-y-3.5">
               {filteredSegments.length === 0 ? (
                 <div className="text-center py-12 border border-dashed rounded-xl bg-card/40 text-muted-foreground text-xs">
-                  Tidak ada dialog percakapan yang cocok dengan pencarian.
+                  {t('recording.transcript.emptySearch')}
                 </div>
               ) : (
                 filteredSegments.map((segment) => {
@@ -369,7 +371,7 @@ export default function SharedRecordingPage() {
             <div className="rounded-2xl border border-border/70 bg-card p-6 shadow-xs">
               <h3 className="text-base font-bold mb-4 flex items-center gap-2">
                 <Bookmark className="w-4 h-4 text-primary" />
-                Daftar Bab & Topik
+                {t('recording.chapters.sectionTitle')}
               </h3>
               <ChapterList
                 chapters={recording.chapters || []}
@@ -383,7 +385,7 @@ export default function SharedRecordingPage() {
               <div className="rounded-2xl border border-border/70 bg-card p-6 shadow-xs">
                 <h3 className="text-base font-bold mb-4 flex items-center gap-2">
                   <Sparkles className="w-4 h-4 text-amber-500" />
-                  Sorotan Utama & Kutipan Kunci
+                  {t('recording.highlights.sectionTitle')}
                 </h3>
                 <HighlightsGrid
                   highlights={recording.highlights}
@@ -396,14 +398,17 @@ export default function SharedRecordingPage() {
         </Tabs>
       </main>
 
-      {/* Global Application Footer */}
-      <Footer className="pb-28 sm:pb-24" />
-
       {/* 4. Sticky Bottom Audio Player */}
-      <AudioPlayer
-        src={recording.audio_url || recording.playback_url || undefined}
-        title={recording.title}
-      />
+      <div className="sticky bottom-4 z-40 px-4 my-2">
+        <AudioPlayer
+          src={recording.audio_url || recording.playback_url || undefined}
+          title={recording.title}
+          sticky={false}
+        />
+      </div>
+
+      {/* Global Application Footer */}
+      <Footer />
     </div>
   );
 }

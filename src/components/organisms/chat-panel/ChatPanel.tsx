@@ -21,6 +21,7 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useTranslation } from '@/locales';
 
 export interface ChatPanelProps {
   recordingId?: string;
@@ -173,6 +174,7 @@ export function ChatPanel({
   onSeekAudio,
   className,
 }: ChatPanelProps) {
+  const { t } = useTranslation();
   const [inputValue, setInputValue] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -233,10 +235,10 @@ export function ChatPanel({
           </div>
           <div>
             <h3 className="text-sm font-bold text-foreground flex items-center gap-1.5">
-              <span>Asisten AI Rekaman</span>
+              <span>{t('recording.chat.title')}</span>
               <Sparkles className="h-3 w-3 text-amber-400" />
             </h3>
-            <p className="text-[11px] text-muted-foreground">Tanya jawab kontekstual (RAG)</p>
+            <p className="text-[11px] text-muted-foreground">RAG Contextual AI</p>
           </div>
         </div>
 
@@ -248,7 +250,7 @@ export function ChatPanel({
               size="icon-xs"
               onClick={clearChat}
               disabled={isStreaming}
-              title="Bersihkan Percakapan"
+              title={t('recording.chat.clearTitle')}
               className="text-muted-foreground hover:text-rose-400"
               data-testid="clear-chat-btn"
             >
@@ -262,7 +264,7 @@ export function ChatPanel({
               variant="ghost"
               size="icon-xs"
               onClick={onClose}
-              title="Tutup Panel Chat"
+              title={t('recording.chat.closeTitle')}
               className="text-muted-foreground hover:text-foreground"
               data-testid="close-chat-btn"
             >
@@ -287,10 +289,10 @@ export function ChatPanel({
             </div>
             <div className="space-y-1">
               <h4 className="text-sm font-semibold text-foreground">
-                Tanyakan Apa Saja Tentang Rapat Ini
+                {t('recording.chat.emptyTitle')}
               </h4>
               <p className="text-xs text-muted-foreground max-w-xs leading-relaxed">
-                Asisten AI menggunakan transkrip dan ringkasan rekaman untuk memberikan jawaban yang akurat beserta kutipan waktu.
+                {t('recording.chat.emptyDescription')}
               </p>
             </div>
 
@@ -333,7 +335,9 @@ export function ChatPanel({
                     {/* Attached Citations if any */}
                     {!isUser && msg.citations && msg.citations.length > 0 && (
                       <div className="flex flex-wrap gap-1 pt-1.5 border-t border-border/30">
-                        <span className="text-[10px] text-muted-foreground mr-1">Sumber:</span>
+                        <span className="text-[10px] text-muted-foreground mr-1">
+                          {t('recording.chat.sourceLabel')}
+                        </span>
                         {msg.citations.map((cite, cIdx) => (
                           <CitationBadge
                             key={cIdx}
@@ -379,14 +383,16 @@ export function ChatPanel({
                         <span className="h-1.5 w-1.5 rounded-full bg-primary animate-bounce" />
                       </div>
                       <span className="text-[11px] text-muted-foreground font-medium animate-pulse select-none">
-                        Sedang berpikir...
+                        {t('recording.chat.thinking')}
                       </span>
                     </div>
                   )}
 
                   {streamingCitations.length > 0 && (
                     <div className="flex flex-wrap gap-1 pt-1.5 border-t border-border/30">
-                      <span className="text-[10px] text-muted-foreground mr-1">Sumber:</span>
+                      <span className="text-[10px] text-muted-foreground mr-1">
+                        {t('recording.chat.sourceLabel')}
+                      </span>
                       {streamingCitations.map((cite, cIdx) => (
                         <CitationBadge
                           key={cIdx}
@@ -424,7 +430,7 @@ export function ChatPanel({
             onChange={(e) => setInputValue(e.target.value)}
             onKeyDown={handleKeyDown}
             disabled={isStreaming}
-            placeholder="Tanyakan sesuatu tentang rapat... (Enter untuk kirim)"
+            placeholder={t('recording.chat.inputPlaceholder')}
             rows={1}
             className="min-h-[38px] max-h-24 resize-none border-0 bg-transparent text-xs p-2 shadow-none focus-visible:ring-0 placeholder:text-muted-foreground/70"
             data-testid="chat-input-textarea"
@@ -437,7 +443,7 @@ export function ChatPanel({
             disabled={!inputValue.trim() || isStreaming}
             className="shrink-0 h-8 w-8 rounded-lg"
             data-testid="send-chat-btn"
-            title="Kirim Pesan"
+            title={t('recording.chat.sendTitle')}
           >
             {isStreaming ? (
               <Loader2 className="h-3.5 w-3.5 animate-spin" />

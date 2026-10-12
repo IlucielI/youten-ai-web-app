@@ -13,6 +13,7 @@ import {
 import { Button } from '@/components/atoms/button';
 import { Input } from '@/components/atoms/input';
 import { Label } from '@/components/atoms/label';
+import { useTranslation } from '@/locales';
 
 export interface SpeakerRenameDialogProps {
   isOpen: boolean;
@@ -35,6 +36,7 @@ const SpeakerRenameForm: React.FC<SpeakerRenameFormProps> = ({
   onClose,
   onSave,
 }) => {
+  const { t } = useTranslation();
   const [label, setLabel] = useState(initialLabel);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -44,12 +46,12 @@ const SpeakerRenameForm: React.FC<SpeakerRenameFormProps> = ({
     const trimmed = label.trim();
 
     if (!trimmed) {
-      setError('Nama pembicara tidak boleh kosong.');
+      setError(t('recording.speakerRename.emptyError'));
       return;
     }
 
     if (trimmed.length > 100) {
-      setError('Nama pembicara maksimal 100 karakter.');
+      setError(t('recording.speakerRename.maxCharsError'));
       return;
     }
 
@@ -63,7 +65,7 @@ const SpeakerRenameForm: React.FC<SpeakerRenameFormProps> = ({
       setError(
         err instanceof Error
           ? err.message
-          : 'Gagal memperbarui label pembicara. Silakan coba lagi.'
+          : t('recording.speakerRename.genericError')
       );
     } finally {
       setIsSubmitting(false);
@@ -75,17 +77,16 @@ const SpeakerRenameForm: React.FC<SpeakerRenameFormProps> = ({
       <DialogHeader>
         <div className="flex items-center gap-2 text-primary mb-1">
           <UserCheck className="w-5 h-5" />
-          <DialogTitle>Ubah Nama Pembicara</DialogTitle>
+          <DialogTitle>{t('recording.speakerRename.title')}</DialogTitle>
         </div>
         <DialogDescription>
-          Perubahan nama untuk <strong className="text-foreground">{speakerId}</strong> akan
-          diterapkan ke seluruh transkripsi rekaman ini.
+          {t('recording.speakerRename.description', { speakerId })}
         </DialogDescription>
       </DialogHeader>
 
       <div className="space-y-2 py-2">
         <Label htmlFor="speaker-name-input" className="text-xs font-semibold">
-          Nama / Identitas Baru
+          {t('recording.speakerRename.labelInput')}
         </Label>
         <Input
           id="speaker-name-input"
@@ -96,7 +97,7 @@ const SpeakerRenameForm: React.FC<SpeakerRenameFormProps> = ({
             setLabel(e.target.value);
             if (error) setError(null);
           }}
-          placeholder="Contoh: Bayu Anugerah, Direktur..."
+          placeholder={t('recording.speakerRename.placeholder')}
           autoFocus
           disabled={isSubmitting}
         />
@@ -118,7 +119,7 @@ const SpeakerRenameForm: React.FC<SpeakerRenameFormProps> = ({
           disabled={isSubmitting}
           data-testid="cancel-rename-button"
         >
-          Batal
+          {t('recording.speakerRename.cancelButton')}
         </Button>
         <Button
           type="submit"
@@ -128,7 +129,11 @@ const SpeakerRenameForm: React.FC<SpeakerRenameFormProps> = ({
           className="gap-2"
         >
           {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
-          <span>{isSubmitting ? 'Menyimpan...' : 'Simpan Perubahan'}</span>
+          <span>
+            {isSubmitting
+              ? t('recording.speakerRename.savingButton')
+              : t('recording.speakerRename.saveButton')}
+          </span>
         </Button>
       </DialogFooter>
     </form>

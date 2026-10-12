@@ -4,56 +4,59 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/atoms/car
 import { Badge } from '@/components/atoms/badge';
 import { Award, User, Briefcase, CheckCircle2, XCircle, HelpCircle, Star, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useTranslation } from '@/locales';
 
 export interface InterviewRendererProps {
   data: InterviewStructuredData;
   className?: string;
 }
 
-const recommendationStyles: Record<string, { label: string; style: string }> = {
-  'STRONG HIRE': {
-    label: 'Sangat Direkomendasikan (Strong Hire)',
-    style: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30 font-bold',
-  },
-  HIRE: {
-    label: 'Direkomendasikan (Hire)',
-    style: 'bg-green-500/15 text-green-400 border-green-500/30 font-semibold',
-  },
-  'LEAN HIRE': {
-    label: 'Cenderung Rekrut (Lean Hire)',
-    style: 'bg-teal-500/15 text-teal-400 border-teal-500/30',
-  },
-  'LEAN REJECT': {
-    label: 'Cenderung Tolak (Lean Reject)',
-    style: 'bg-amber-500/15 text-amber-400 border-amber-500/30',
-  },
-  'STRONG REJECT': {
-    label: 'Tolak (Strong Reject)',
-    style: 'bg-rose-500/15 text-rose-400 border-rose-500/30 font-bold',
-  },
-};
-
-const ratingBadgeStyles: Record<string, { label: string; style: string }> = {
-  Exceeds: {
-    label: 'Melampaui Ekspektasi',
-    style: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
-  },
-  Meets: {
-    label: 'Sesuai Standar',
-    style: 'bg-sky-500/15 text-sky-400 border-sky-500/30',
-  },
-  'Needs Work': {
-    label: 'Perlu Peningkatan',
-    style: 'bg-amber-500/15 text-amber-400 border-amber-500/30',
-  },
-  Unsatisfactory: {
-    label: 'Tidak Memuaskan',
-    style: 'bg-rose-500/15 text-rose-400 border-rose-500/30',
-  },
-};
-
 export function InterviewRenderer({ data, className }: InterviewRendererProps) {
-  const rec = recommendationStyles[data.recommendation] || {
+  const { t } = useTranslation();
+
+  const recommendationConfig: Record<string, { label: string; style: string }> = {
+    'STRONG HIRE': {
+      label: t('recording.templates.interview.recommendations.strongHire'),
+      style: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30 font-bold',
+    },
+    HIRE: {
+      label: t('recording.templates.interview.recommendations.hire'),
+      style: 'bg-green-500/15 text-green-400 border-green-500/30 font-semibold',
+    },
+    'LEAN HIRE': {
+      label: t('recording.templates.interview.recommendations.leanHire'),
+      style: 'bg-teal-500/15 text-teal-400 border-teal-500/30',
+    },
+    'LEAN REJECT': {
+      label: t('recording.templates.interview.recommendations.leanReject'),
+      style: 'bg-amber-500/15 text-amber-400 border-amber-500/30',
+    },
+    'STRONG REJECT': {
+      label: t('recording.templates.interview.recommendations.strongReject'),
+      style: 'bg-rose-500/15 text-rose-400 border-rose-500/30 font-bold',
+    },
+  };
+
+  const ratingConfig: Record<string, { label: string; style: string }> = {
+    Exceeds: {
+      label: t('recording.templates.interview.ratings.exceeds'),
+      style: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
+    },
+    Meets: {
+      label: t('recording.templates.interview.ratings.meets'),
+      style: 'bg-sky-500/15 text-sky-400 border-sky-500/30',
+    },
+    'Needs Work': {
+      label: t('recording.templates.interview.ratings.needsWork'),
+      style: 'bg-amber-500/15 text-amber-400 border-amber-500/30',
+    },
+    Unsatisfactory: {
+      label: t('recording.templates.interview.ratings.unsatisfactory'),
+      style: 'bg-rose-500/15 text-rose-400 border-rose-500/30',
+    },
+  };
+
+  const rec = recommendationConfig[data.recommendation] || {
     label: data.recommendation,
     style: 'bg-secondary text-foreground',
   };
@@ -69,14 +72,14 @@ export function InterviewRenderer({ data, className }: InterviewRendererProps) {
           <div className="space-y-1">
             <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary">
               <User className="h-4 w-4" />
-              <span>Scorecard Wawancara Kandidat</span>
+              <span>{t('recording.templates.interview.scorecardBadge')}</span>
             </div>
             <h2 className="text-xl font-bold text-foreground md:text-2xl">
               {data.candidate_name}
             </h2>
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
               <Briefcase className="h-3.5 w-3.5" />
-              <span>Posisi Dituju: {data.target_role}</span>
+              <span>{t('recording.templates.interview.targetRole')} {data.target_role}</span>
             </div>
           </div>
           <Badge variant="outline" className={cn('text-xs px-3 py-1.5 self-start sm:self-auto', rec.style)}>
@@ -86,7 +89,9 @@ export function InterviewRenderer({ data, className }: InterviewRendererProps) {
 
         {/* Justification */}
         <div className="pt-2 border-t border-border/40">
-          <span className="text-xs font-semibold text-foreground/90">Justifikasi Keputusan:</span>
+          <span className="text-xs font-semibold text-foreground/90">
+            {t('recording.templates.interview.decisionJustification')}
+          </span>
           <p className="text-sm text-foreground/90 mt-1 leading-relaxed whitespace-pre-line">
             {data.justification}
           </p>
@@ -98,11 +103,11 @@ export function InterviewRenderer({ data, className }: InterviewRendererProps) {
         <div className="space-y-3">
           <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
             <Award className="h-4 w-4 text-primary" />
-            Evaluasi Kompetensi ({data.competency_scores.length})
+            {t('recording.templates.interview.competencyScores', { count: data.competency_scores.length })}
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {data.competency_scores.map((comp, idx) => {
-              const rBadge = ratingBadgeStyles[comp.rating] || {
+              const rBadge = ratingConfig[comp.rating] || {
                 label: comp.rating,
                 style: 'bg-secondary text-foreground',
               };
@@ -119,7 +124,9 @@ export function InterviewRenderer({ data, className }: InterviewRendererProps) {
                       </Badge>
                     </div>
                     <div>
-                      <span className="font-medium text-muted-foreground">Bukti Perilaku:</span>
+                      <span className="font-medium text-muted-foreground">
+                        {t('recording.templates.interview.behaviorEvidence')}
+                      </span>
                       <p className="text-foreground/90 mt-0.5 leading-relaxed">{comp.evidence}</p>
                     </div>
                   </CardContent>
@@ -137,7 +144,7 @@ export function InterviewRenderer({ data, className }: InterviewRendererProps) {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-semibold flex items-center gap-2 text-emerald-400">
               <CheckCircle2 className="h-4 w-4" />
-              Kekuatan Utama ({data.strengths.length})
+              {t('recording.templates.interview.strengths', { count: data.strengths.length })}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -157,7 +164,7 @@ export function InterviewRenderer({ data, className }: InterviewRendererProps) {
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-semibold flex items-center gap-2 text-rose-400">
               <XCircle className="h-4 w-4" />
-              Poin Perhatian / Kekhawatiran ({data.concerns.length})
+              {t('recording.templates.interview.concerns', { count: data.concerns.length })}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -180,7 +187,7 @@ export function InterviewRenderer({ data, className }: InterviewRendererProps) {
             <CardHeader className="pb-2">
               <CardTitle className="text-xs font-semibold flex items-center gap-1.5 text-purple-400">
                 <Sparkles className="h-3.5 w-3.5" />
-                Kesesuaian Budaya (Culture Fit)
+                {t('recording.templates.interview.cultureFit')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -196,7 +203,7 @@ export function InterviewRenderer({ data, className }: InterviewRendererProps) {
             <CardHeader className="pb-2">
               <CardTitle className="text-xs font-semibold flex items-center gap-1.5 text-sky-400">
                 <HelpCircle className="h-3.5 w-3.5" />
-                Pertanyaan Pendalaman Babak Selanjutnya ({data.next_round_probes.length})
+                {t('recording.templates.interview.nextRoundProbes', { count: data.next_round_probes.length })}
               </CardTitle>
             </CardHeader>
             <CardContent>

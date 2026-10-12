@@ -14,15 +14,15 @@ const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://youten.ai';
 export const metadata: Metadata = {
   metadataBase: new URL(appUrl),
   title: {
-    default: 'Youten AI — Platform Transkripsi Percakapan & Notula Rapat AI',
+    default: 'Youten AI — AI Speech Transcription & Intelligent Meeting Synthesis Platform',
     template: '%s | Youten AI',
   },
   description:
-    'Platform transkripsi percakapan enterprise bertenaga AI dengan diarization multi-pembicara, sintesis notula rapat cerdas, dan pencarian semantik.',
+    'Enterprise-grade AI conversation transcription with multi-speaker diarization, intelligent meeting synthesis, and semantic search.',
   keywords: [
-    'transkripsi ai',
-    'notula rapat otomatis',
-    'speech to text indonesia',
+    'ai transcription',
+    'automated meeting notes',
+    'speech to text',
     'meeting summarizer',
     'diarization',
     'youten ai',
@@ -44,13 +44,13 @@ export const metadata: Metadata = {
   },
   openGraph: {
     type: 'website',
-    locale: 'id_ID',
-    alternateLocale: ['en_US'],
+    locale: 'en_US',
+    alternateLocale: ['id_ID'],
     url: appUrl,
     siteName: 'Youten AI',
-    title: 'Youten AI — Platform Transkripsi Percakapan & Notula Rapat AI',
+    title: 'Youten AI — AI Speech Transcription & Intelligent Meeting Synthesis Platform',
     description:
-      'Transkripsi cerdas, intisari keputusan, dan tanya jawab bertenaga AI untuk rapat, wawancara, kuliah, dan catatan suara Anda.',
+      'Intelligent transcription, strategic decision highlights, and AI-powered Q&A for meetings, interviews, lectures, and voice memos.',
     images: [
       {
         url: '/icon.svg',
@@ -62,16 +62,16 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary',
-    title: 'Youten AI — Platform Transkripsi Percakapan & Notula Rapat AI',
+    title: 'Youten AI — AI Speech Transcription & Intelligent Meeting Synthesis Platform',
     description:
-      'Transkripsi cerdas, intisari keputusan, dan tanya jawab bertenaga AI untuk rapat dan catatan suara.',
+      'Intelligent transcription, strategic decision highlights, and AI-powered Q&A for meetings and voice memos.',
     images: ['/icon.svg'],
   },
   alternates: {
     canonical: '/',
     languages: {
-      'id-ID': '/?lang=id',
       'en-US': '/?lang=en',
+      'id-ID': '/?lang=id',
     },
   },
   robots: {
@@ -96,7 +96,7 @@ const jsonLd = {
       name: 'Youten AI',
       url: appUrl,
       logo: `${appUrl}/icon.svg`,
-      description: 'Platform transkripsi percakapan enterprise bertenaga AI.',
+      description: 'Enterprise-grade AI conversation transcription and intelligence platform.',
     },
     {
       '@type': 'SoftwareApplication',
@@ -110,7 +110,7 @@ const jsonLd = {
         priceCurrency: 'USD',
       },
       description:
-        'Transkripsi cerdas, intisari keputusan, dan tanya jawab bertenaga AI untuk rapat, wawancara, dan catatan suara.',
+        'Intelligent transcription, strategic decision highlights, and AI-powered Q&A for meetings, interviews, and voice memos.',
     },
   ],
 };
@@ -121,7 +121,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="id" className={inter.variable} suppressHydrationWarning>
+    <html lang="en" className={inter.variable} suppressHydrationWarning>
       <head>
         <script
           type="application/ld+json"

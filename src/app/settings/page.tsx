@@ -16,6 +16,7 @@ import { Label } from '@/components/atoms/label';
 import { Progress } from '@/components/atoms/progress';
 import { UserNavDropdown } from '@/components/molecules/user-nav-dropdown';
 import { toast } from 'sonner';
+import { useTranslation } from '@/locales';
 import {
   User,
   Shield,
@@ -34,6 +35,7 @@ import {
 
 export default function SettingsPage() {
   const router = useRouter();
+  const { t } = useTranslation();
 
   // Auth & Profile State
   const [user, setUser] = useState<UserProfileResponse | null>(null);
@@ -91,7 +93,7 @@ export default function SettingsPage() {
       setUser(null);
       router.push('/login');
     } catch {
-      toast.error('Gagal keluar dari sesi. Silakan coba kembali.');
+      toast.error(t('settings.profile.logoutFailed'));
     }
   };
 
@@ -100,11 +102,11 @@ export default function SettingsPage() {
     e.preventDefault();
     const trimmed = fullName.trim();
     if (trimmed.length < 2) {
-      toast.error('Nama lengkap minimal harus terdiri dari 2 karakter.');
+      toast.error(t('settings.validation.nameMin'));
       return;
     }
     if (trimmed.length > 100) {
-      toast.error('Nama lengkap tidak boleh lebih dari 100 karakter.');
+      toast.error(t('settings.validation.nameMax'));
       return;
     }
 
@@ -119,12 +121,12 @@ export default function SettingsPage() {
       if (res && res.data) {
         const updated = res.data;
         setUser((prev) => (prev ? Object.assign({}, prev, { full_name: updated.full_name }) : prev));
-        toast.success('Profil berhasil diperbarui!');
+        toast.success(t('settings.profile.success'));
       } else {
-        toast.error('Gagal memperbarui profil.');
+        toast.error(t('settings.profile.failed'));
       }
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Gagal memperbarui profil.';
+      const message = err instanceof Error ? err.message : t('settings.profile.failed');
       toast.error(message);
     } finally {
       setIsUpdatingProfile(false);
@@ -136,27 +138,27 @@ export default function SettingsPage() {
     e.preventDefault();
 
     if (!oldPassword) {
-      toast.error('Harap masukkan kata sandi saat ini.');
+      toast.error(t('settings.validation.currentPasswordRequired'));
       return;
     }
 
     if (newPassword.length < 8 || newPassword.length > 72) {
-      toast.error('Kata sandi baru harus berukuran antara 8 hingga 72 karakter.');
+      toast.error(t('settings.validation.newPasswordLength'));
       return;
     }
 
     if (!/[0-9]/.test(newPassword)) {
-      toast.error('Kata sandi baru harus mengandung minimal satu angka (0-9).');
+      toast.error(t('settings.validation.newPasswordNumber'));
       return;
     }
 
     if (newPassword === oldPassword) {
-      toast.error('Kata sandi baru tidak boleh sama dengan kata sandi saat ini.');
+      toast.error(t('settings.validation.passwordSame'));
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      toast.error('Konfirmasi kata sandi tidak cocok.');
+      toast.error(t('settings.validation.passwordMismatch'));
       return;
     }
 
@@ -172,15 +174,15 @@ export default function SettingsPage() {
       });
 
       if (res) {
-        toast.success('Kata sandi berhasil diperbarui!');
+        toast.success(t('settings.security.success'));
         setOldPassword('');
         setNewPassword('');
         setConfirmPassword('');
       } else {
-        toast.error('Gagal memperbarui kata sandi.');
+        toast.error(t('settings.security.failed'));
       }
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Gagal memperbarui kata sandi.';
+      const message = err instanceof Error ? err.message : t('settings.security.failed');
       toast.error(message);
     } finally {
       setIsChangingPassword(false);
@@ -195,7 +197,7 @@ export default function SettingsPage() {
       >
         <div className="flex flex-col items-center gap-4">
           <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
-          <p className="text-sm font-medium text-slate-500">Memeriksa sesi akun...</p>
+          <p className="text-sm font-medium text-slate-500">{t('settings.header.loadingSession')}</p>
         </div>
       </div>
     );
@@ -228,7 +230,7 @@ export default function SettingsPage() {
                   className="text-slate-600 hover:text-blue-600 hover:bg-slate-100 gap-1.5 h-8 text-xs font-medium"
                 >
                   <LayoutDashboard className="w-3.5 h-3.5" />
-                  <span>Dashboard</span>
+                  <span>{t('navbar.links.dashboard')}</span>
                 </Button>
               </Link>
               <Link href="/speakers">
@@ -238,7 +240,7 @@ export default function SettingsPage() {
                   className="text-slate-600 hover:text-blue-600 hover:bg-slate-100 gap-1.5 h-8 text-xs font-medium"
                 >
                   <Users className="w-3.5 h-3.5" />
-                  <span>Direktori Pembicara</span>
+                  <span>{t('navbar.links.speakers')}</span>
                 </Button>
               </Link>
             </nav>
@@ -258,13 +260,13 @@ export default function SettingsPage() {
           <div>
             <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-bold mb-2 border border-blue-200/50">
               <Sparkles className="w-3.5 h-3.5" />
-              <span>Manajemen Akun</span>
+              <span>{t('settings.header.badge')}</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-              Pengaturan Akun
+              {t('settings.header.title')}
             </h1>
             <p className="text-sm text-slate-500 mt-1 max-w-xl">
-              Kelola profil pengguna, preferensi keamanan sandi, dan pantau status alokasi kuota harian Anda.
+              {t('settings.header.subtitle')}
             </p>
           </div>
         </div>
@@ -276,28 +278,28 @@ export default function SettingsPage() {
             data-testid="tab-profile"
             onClick={() => setActiveTab('profile')}
             className={cn(
-              'flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 transition-all -mb-px',
+              'flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 transition-all -mb-px cursor-pointer',
               activeTab === 'profile'
                 ? 'border-blue-600 text-blue-600 bg-blue-50/50 rounded-t-lg'
                 : 'border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300'
             )}
           >
             <User className="w-4 h-4" />
-            <span>Profil & Kuota</span>
+            <span>{t('settings.tabs.profile')}</span>
           </button>
           <button
             type="button"
             data-testid="tab-security"
             onClick={() => setActiveTab('security')}
             className={cn(
-              'flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 transition-all -mb-px',
+              'flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 transition-all -mb-px cursor-pointer',
               activeTab === 'security'
                 ? 'border-blue-600 text-blue-600 bg-blue-50/50 rounded-t-lg'
                 : 'border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300'
             )}
           >
             <Shield className="w-4 h-4" />
-            <span>Keamanan & Kata Sandi</span>
+            <span>{t('settings.tabs.security')}</span>
           </button>
         </div>
 
@@ -310,17 +312,17 @@ export default function SettingsPage() {
                 <CardHeader>
                   <CardTitle className="text-lg font-bold text-slate-900 flex items-center gap-2">
                     <User className="w-4 h-4 text-blue-600" />
-                    Informasi Profil
+                    <span>{t('settings.profile.title')}</span>
                   </CardTitle>
                   <CardDescription className="text-xs text-slate-500">
-                    Perbarui nama identitas yang ditampilkan di seluruh ruang rapat dan notulen.
+                    {t('settings.profile.subtitle')}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <form onSubmit={handleUpdateProfile} className="space-y-5">
                     <div className="space-y-1.5">
                       <Label htmlFor="full_name" className="text-xs font-semibold text-slate-700">
-                        Nama Lengkap
+                        {t('settings.profile.fullNameLabel')}
                       </Label>
                       <Input
                         id="full_name"
@@ -328,7 +330,7 @@ export default function SettingsPage() {
                         type="text"
                         value={fullName}
                         onChange={(e) => setFullName(e.target.value)}
-                        placeholder="Masukkan nama lengkap Anda"
+                        placeholder={t('settings.profile.fullNamePlaceholder')}
                         disabled={isUpdatingProfile}
                         className="bg-white border-slate-200 focus-visible:ring-blue-500"
                         required
@@ -336,13 +338,13 @@ export default function SettingsPage() {
                         maxLength={100}
                       />
                       <p className="text-[11px] text-slate-400">
-                        Nama ini akan digunakan pada kepemilikan rapat dan notulen AI.
+                        {t('settings.profile.fullNameHint')}
                       </p>
                     </div>
 
                     <div className="space-y-1.5">
                       <Label htmlFor="email" className="text-xs font-semibold text-slate-700">
-                        Alamat Email
+                        {t('settings.profile.emailLabel')}
                       </Label>
                       <Input
                         id="email"
@@ -353,7 +355,7 @@ export default function SettingsPage() {
                         className="bg-slate-50 text-slate-500 border-slate-200 cursor-not-allowed"
                       />
                       <p className="text-[11px] text-slate-400">
-                        Email ini terikat dengan akun Anda dan digunakan untuk masuk ke sistem.
+                        {t('settings.profile.emailHint')}
                       </p>
                     </div>
 
@@ -362,10 +364,10 @@ export default function SettingsPage() {
                         type="submit"
                         data-testid="button-save-profile"
                         disabled={isUpdatingProfile || fullName.trim() === user?.full_name}
-                        className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold gap-1.5"
+                        className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold gap-1.5 cursor-pointer"
                       >
                         <Save className="w-3.5 h-3.5" />
-                        <span>{isUpdatingProfile ? 'Menyimpan...' : 'Simpan Perubahan'}</span>
+                        <span>{isUpdatingProfile ? t('settings.profile.saving') : t('settings.profile.saveButton')}</span>
                       </Button>
                     </div>
                   </form>
@@ -379,50 +381,50 @@ export default function SettingsPage() {
                 <CardHeader>
                   <CardTitle className="text-lg font-bold text-slate-900 flex items-center gap-2">
                     <Zap className="w-4 h-4 text-amber-500" />
-                    Alokasi Kuota Harian
+                    <span>{t('settings.quota.title')}</span>
                   </CardTitle>
                   <CardDescription className="text-xs text-slate-500">
-                    Batas proses transkripsi & ringkasan rapat harian Anda.
+                    {t('settings.quota.subtitle')}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-5">
                   <div className="p-4 rounded-xl bg-gradient-to-br from-blue-50/60 to-indigo-50/40 border border-blue-100">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs font-semibold text-slate-600">Sisa Kuota Hari Ini</span>
+                      <span className="text-xs font-semibold text-slate-600">{t('settings.quota.remainingToday')}</span>
                       <span className="text-xl font-extrabold text-blue-700">
                         {quotaRemaining} <span className="text-xs font-medium text-slate-500">/ {quotaTotal}</span>
                       </span>
                     </div>
                     <Progress value={quotaPercent} className="h-2 bg-slate-200" />
                     <div className="flex items-center justify-between text-[11px] text-slate-500 mt-2">
-                      <span>Terpakai: {quotaUsed} rapat</span>
-                      <span>{quotaPercent}% terpakai</span>
+                      <span>{t('settings.quota.usedRatio', { used: quotaUsed })}</span>
+                      <span>{t('settings.quota.percentUsed', { percent: quotaPercent })}</span>
                     </div>
                   </div>
 
                   <div className="space-y-3 pt-1 border-t border-slate-100 text-xs">
                     <div className="flex items-center justify-between">
-                      <span className="text-slate-500">Status Akun:</span>
+                      <span className="text-slate-500">{t('settings.quota.accountStatus')}</span>
                       <span className="inline-flex items-center gap-1 font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/60">
                         <CheckCircle2 className="w-3 h-3" />
                         {user?.status || 'ACTIVE'}
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-slate-500">Verifikasi Email:</span>
+                      <span className="text-slate-500">{t('settings.quota.emailVerification')}</span>
                       <span className={cn(
                         'inline-flex items-center gap-1 font-medium px-2 py-0.5 rounded-full text-[11px]',
                         user?.email_verified
                           ? 'text-blue-700 bg-blue-50 border border-blue-200'
                           : 'text-amber-700 bg-amber-50 border border-amber-200'
                       )}>
-                        {user?.email_verified ? 'Terverifikasi' : 'Belum Diverifikasi'}
+                        {user?.email_verified ? t('settings.quota.verified') : t('settings.quota.unverified')}
                       </span>
                     </div>
                     <div className="flex items-center justify-between text-slate-500">
                       <span className="flex items-center gap-1">
                         <Clock className="w-3.5 h-3.5" />
-                        Reset Kuota:
+                        {t('settings.quota.resetTime')}
                       </span>
                       <span className="font-medium text-slate-700">00:00 UTC</span>
                     </div>
@@ -440,10 +442,10 @@ export default function SettingsPage() {
               <CardHeader>
                 <CardTitle className="text-lg font-bold text-slate-900 flex items-center gap-2">
                   <KeyRound className="w-4 h-4 text-blue-600" />
-                  Ubah Kata Sandi
+                  <span>{t('settings.security.title')}</span>
                 </CardTitle>
                 <CardDescription className="text-xs text-slate-500">
-                  Perbarui kata sandi Anda secara berkala untuk menjaga keamanan akun rapat.
+                  {t('settings.security.subtitle')}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -451,7 +453,7 @@ export default function SettingsPage() {
                   {/* Current Password */}
                   <div className="space-y-1.5">
                     <Label htmlFor="old_password" className="text-xs font-semibold text-slate-700">
-                      Kata Sandi Saat Ini
+                      {t('settings.security.currentPasswordLabel')}
                     </Label>
                     <div className="relative">
                       <Input
@@ -460,7 +462,7 @@ export default function SettingsPage() {
                         type={showOldPassword ? 'text' : 'password'}
                         value={oldPassword}
                         onChange={(e) => setOldPassword(e.target.value)}
-                        placeholder="Masukkan kata sandi saat ini"
+                        placeholder={t('settings.security.currentPasswordPlaceholder')}
                         disabled={isChangingPassword}
                         className="bg-white border-slate-200 pr-10 focus-visible:ring-blue-500"
                         required
@@ -468,7 +470,7 @@ export default function SettingsPage() {
                       <button
                         type="button"
                         onClick={() => setShowOldPassword(!showOldPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
                         tabIndex={-1}
                       >
                         {showOldPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -479,7 +481,7 @@ export default function SettingsPage() {
                   {/* New Password */}
                   <div className="space-y-1.5">
                     <Label htmlFor="new_password" className="text-xs font-semibold text-slate-700">
-                      Kata Sandi Baru
+                      {t('settings.security.newPasswordLabel')}
                     </Label>
                     <div className="relative">
                       <Input
@@ -488,7 +490,7 @@ export default function SettingsPage() {
                         type={showNewPassword ? 'text' : 'password'}
                         value={newPassword}
                         onChange={(e) => setNewPassword(e.target.value)}
-                        placeholder="Minimal 8 karakter dan mengandung angka"
+                        placeholder={t('settings.security.newPasswordPlaceholder')}
                         disabled={isChangingPassword}
                         className="bg-white border-slate-200 pr-10 focus-visible:ring-blue-500"
                         required
@@ -498,7 +500,7 @@ export default function SettingsPage() {
                       <button
                         type="button"
                         onClick={() => setShowNewPassword(!showNewPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
                         tabIndex={-1}
                       >
                         {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -509,7 +511,7 @@ export default function SettingsPage() {
                   {/* Confirm Password */}
                   <div className="space-y-1.5">
                     <Label htmlFor="confirm_password" className="text-xs font-semibold text-slate-700">
-                      Konfirmasi Kata Sandi Baru
+                      {t('settings.security.confirmPasswordLabel')}
                     </Label>
                     <div className="relative">
                       <Input
@@ -518,7 +520,7 @@ export default function SettingsPage() {
                         type={showConfirmPassword ? 'text' : 'password'}
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
-                        placeholder="Ketik ulang kata sandi baru Anda"
+                        placeholder={t('settings.security.confirmPasswordPlaceholder')}
                         disabled={isChangingPassword}
                         className="bg-white border-slate-200 pr-10 focus-visible:ring-blue-500"
                         required
@@ -528,7 +530,7 @@ export default function SettingsPage() {
                       <button
                         type="button"
                         onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
                         tabIndex={-1}
                       >
                         {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -540,17 +542,17 @@ export default function SettingsPage() {
                   <div className="p-3.5 rounded-lg bg-slate-50 border border-slate-200/80 text-xs text-slate-600 space-y-1.5">
                     <div className="font-semibold text-slate-700 flex items-center gap-1.5">
                       <AlertCircle className="w-3.5 h-3.5 text-blue-600" />
-                      Ketentuan Kata Sandi:
+                      <span>{t('settings.security.rulesTitle')}</span>
                     </div>
                     <ul className="list-disc list-inside space-y-0.5 text-[11px] text-slate-500 pl-1">
                       <li className={newPassword.length >= 8 ? 'text-emerald-600 font-medium' : ''}>
-                        Minimal 8 karakter dan maksimal 72 karakter
+                        {t('settings.security.ruleMinLength')}
                       </li>
                       <li className={/[0-9]/.test(newPassword) ? 'text-emerald-600 font-medium' : ''}>
-                        Mengandung sekurang-kurangnya satu angka (0-9)
+                        {t('settings.security.ruleNumber')}
                       </li>
                       <li className={newPassword && newPassword !== oldPassword ? 'text-emerald-600 font-medium' : ''}>
-                        Berbeda dari kata sandi saat ini
+                        {t('settings.security.ruleDifferent')}
                       </li>
                     </ul>
                   </div>
@@ -560,10 +562,10 @@ export default function SettingsPage() {
                       type="submit"
                       data-testid="button-change-password"
                       disabled={isChangingPassword || !oldPassword || !newPassword || !confirmPassword}
-                      className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold gap-1.5"
+                      className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold gap-1.5 cursor-pointer"
                     >
                       <KeyRound className="w-3.5 h-3.5" />
-                      <span>{isChangingPassword ? 'Memperbarui...' : 'Perbarui Kata Sandi'}</span>
+                      <span>{isChangingPassword ? t('settings.security.saving') : t('settings.security.saveButton')}</span>
                     </Button>
                   </div>
                 </form>

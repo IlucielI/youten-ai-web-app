@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/atoms/button';
 import { Badge } from '@/components/atoms/badge';
 import { Play, BookOpen, Clock } from 'lucide-react';
+import { useTranslation } from '@/locales';
 
 export interface ChapterListProps {
   chapters: ChapterDTO[];
@@ -21,6 +22,8 @@ export function ChapterList({
   onSeek,
   className,
 }: ChapterListProps) {
+  const { t } = useTranslation();
+
   if (!chapters || chapters.length === 0) {
     return (
       <div
@@ -33,9 +36,11 @@ export function ChapterList({
         <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary mb-3">
           <BookOpen className="h-5 w-5" />
         </div>
-        <h4 className="text-sm font-semibold text-foreground">Belum Ada Bab</h4>
+        <h4 className="text-sm font-semibold text-foreground">
+          {t('recording.chapters.emptyTitle')}
+        </h4>
         <p className="text-xs text-muted-foreground mt-1 max-w-xs">
-          Bab percakapan akan dibuat secara otomatis setelah transkrip selesai dianalisis oleh AI.
+          {t('recording.chapters.emptyDescription')}
         </p>
       </div>
     );
@@ -56,9 +61,9 @@ export function ChapterList({
     >
       <div className="flex items-center justify-between text-xs text-muted-foreground px-1 mb-1">
         <span className="font-medium text-foreground">
-          Daftar Bab ({sortedChapters.length})
+          {t('recording.chapters.listTitle', { count: sortedChapters.length })}
         </span>
-        <span>Klik untuk melompat ke bab terkait</span>
+        <span>{t('recording.chapters.listSubtitle')}</span>
       </div>
 
       <div className="space-y-2.5">
@@ -97,7 +102,7 @@ export function ChapterList({
                         className="inline-flex items-center gap-1 text-[11px] font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full"
                       >
                         <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
-                        Sedang Diputar
+                        {t('recording.chapters.nowPlaying')}
                       </span>
                     )}
                   </div>
@@ -121,10 +126,10 @@ export function ChapterList({
                     onClick={() => onSeek(chapter.start_time)}
                     data-testid={`seek-chapter-btn-${chapter.id || index}`}
                     className="shrink-0 h-8 px-2.5 text-xs gap-1.5 transition-transform active:scale-95"
-                    title={`Lompat ke ${chapter.title}`}
+                    title={t('recording.chapters.jumpToTitle', { title: chapter.title })}
                   >
                     <Play className="h-3.5 w-3.5 fill-current" />
-                    <span>Putar</span>
+                    <span>{t('recording.chapters.playButton')}</span>
                   </Button>
                 )}
               </div>

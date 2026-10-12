@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Daftar Pembicara',
-  description: 'Kelola direktori profil pembicara dan pengenalan suara Anda di Youten AI.',
+  title: 'Speaker Directory',
+  description: 'Manage speaker profiles and voice intelligence directory in Youten AI.',
   robots: {
     index: false,
     follow: false,

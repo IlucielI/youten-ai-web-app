@@ -36,7 +36,7 @@ import {
 
 export default function LandingPage() {
   const router = useRouter();
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const [activeTab, setActiveTab] = useState<'upload' | 'url' | 'record' | 'bot'>('upload');
   const [isUrlImporting, setIsUrlImporting] = useState(false);
   const [quotaExhausted, setQuotaExhausted] = useState(false);
@@ -75,7 +75,7 @@ export default function LandingPage() {
       );
 
       if (!presignRes.data) {
-        throw new Error('Gagal mendapatkan URL unggahan berkas.');
+        throw new Error(locale === 'en' ? 'Failed to obtain file upload URL.' : 'Gagal mendapatkan URL unggahan berkas.');
       }
 
       const { upload_url, object_key } = presignRes.data;
@@ -93,7 +93,11 @@ export default function LandingPage() {
         if (!s3Res.ok && s3Res.status !== 0) {
           // If S3 upload fails and is not local mock, throw error
           if (!upload_url.includes('localhost') && !upload_url.includes('127.0.0.1')) {
-            throw new Error(`Gagal mengunggah berkas ke penyimpanan (${s3Res.status})`);
+            throw new Error(
+              locale === 'en'
+                ? `Failed to upload file to storage (${s3Res.status})`
+                : `Gagal mengunggah berkas ke penyimpanan (${s3Res.status})`
+            );
           }
         }
       } catch (err: unknown) {
@@ -122,7 +126,7 @@ export default function LandingPage() {
       );
 
       if (!uploadRes.data) {
-        throw new Error('Gagal membuat data rekaman.');
+        throw new Error(locale === 'en' ? 'Failed to create recording record.' : 'Gagal membuat data rekaman.');
       }
 
       const recording = uploadRes.data;
@@ -144,9 +148,18 @@ export default function LandingPage() {
     } catch (err: unknown) {
       if (err instanceof ApiClientError && err.status === 429) {
         setQuotaExhausted(true);
-        setErrorMessage('Batas kuota harian tercapai. Silakan masuk atau daftar untuk kuota tanpa batas.');
+        setErrorMessage(
+          locale === 'en'
+            ? 'Daily quota limit reached. Please sign in or register for unlimited quota.'
+            : 'Batas kuota harian tercapai. Silakan masuk atau daftar untuk kuota tanpa batas.'
+        );
       } else {
-        const msg = err instanceof Error ? err.message : 'Gagal memproses unggahan berkas.';
+        const msg =
+          err instanceof Error
+            ? err.message
+            : locale === 'en'
+            ? 'Failed to process file upload.'
+            : 'Gagal memproses unggahan berkas.';
         setErrorMessage(msg);
       }
       throw err;
@@ -191,7 +204,7 @@ export default function LandingPage() {
       );
 
       if (!res.data) {
-        throw new Error('Gagal mengimpor data rekaman dari URL.');
+        throw new Error(locale === 'en' ? 'Failed to import recording from URL.' : 'Gagal mengimpor data rekaman dari URL.');
       }
 
       const recording = res.data;
@@ -209,9 +222,18 @@ export default function LandingPage() {
     } catch (err: unknown) {
       if (err instanceof ApiClientError && err.status === 429) {
         setQuotaExhausted(true);
-        setErrorMessage('Batas kuota harian tercapai. Silakan masuk atau daftar untuk kuota tanpa batas.');
+        setErrorMessage(
+          locale === 'en'
+            ? 'Daily quota limit reached. Please sign in or register for unlimited quota.'
+            : 'Batas kuota harian tercapai. Silakan masuk atau daftar untuk kuota tanpa batas.'
+        );
       } else {
-        const msg = err instanceof Error ? err.message : 'Gagal mengimpor audio dari URL.';
+        const msg =
+          err instanceof Error
+            ? err.message
+            : locale === 'en'
+            ? 'Failed to import audio from URL.'
+            : 'Gagal mengimpor audio dari URL.';
         setErrorMessage(msg);
       }
     } finally {
@@ -227,9 +249,10 @@ export default function LandingPage() {
     _durationSeconds?: number,
     options?: { title?: string; templateCategory?: TemplateKey }
   ) => {
+    const prefix = locale === 'en' ? 'voice-recording' : 'rekaman-suara';
     const file = new File(
       [audioBlob],
-      `rekaman-suara-${new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')}.webm`,
+      `${prefix}-${new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')}.webm`,
       { type: audioBlob.type || 'audio/webm' }
     );
 

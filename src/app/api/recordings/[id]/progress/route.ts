@@ -110,7 +110,7 @@ export async function GET(
           status: RecordingStatus.COMPLETED,
           stage: 'completed',
           progress: 100,
-          message: 'Pemrosesan rekaman selesai dan siap ditinjau.',
+          message: 'Recording processing completed and ready for review.',
         });
         controller.close();
         return;
@@ -122,9 +122,9 @@ export async function GET(
           status: RecordingStatus.FAILED,
           stage: 'failed',
           progress: 45,
-          message: initialDetail?.error_message || 'Transkripsi audio mengalami kegagalan proses.',
+          message: initialDetail?.error_message || 'Audio transcription encountered an issue.',
           errorCode: initialDetail?.error_code || 'ERR_PIPELINE_FAILED',
-          errorMessage: initialDetail?.error_message || 'Format audio tidak didukung atau koneksi pipeline terputus.',
+          errorMessage: initialDetail?.error_message || 'Unsupported audio format or pipeline connection interrupted.',
         });
         controller.close();
         return;
@@ -136,25 +136,25 @@ export async function GET(
           status: RecordingStatus.EXTRACTING,
           stage: 'extraction',
           progress: 30,
-          message: 'Memvalidasi berkas dan mengekstrak sinyal audio...',
+          message: 'Validating file and extracting audio track...',
         },
         {
           status: RecordingStatus.TRANSCRIBING,
           stage: 'transcription',
           progress: 60,
-          message: 'Mentranskripsi ujaran dan mendeteksi segmen pembicara...',
+          message: 'Transcribing speech and detecting speaker segments...',
         },
         {
           status: RecordingStatus.SUMMARIZING,
           stage: 'intelligence',
           progress: 85,
-          message: 'Menghasilkan ringkasan pintar, action items, dan vektor semantik...',
+          message: 'Generating intelligent summary, action items, and insights...',
         },
         {
           status: RecordingStatus.COMPLETED,
           stage: 'completed',
           progress: 100,
-          message: 'Seluruh tahap pemrosesan selesai. Mengalihkan ke halaman tinjauan...',
+          message: 'All processing stages completed. Redirecting to review screen...',
         },
       ];
 

@@ -7,6 +7,7 @@ import { ApiResponse } from '@/server/dtos/response.dto';
 import { UserProfileResponse } from '@/server/dtos/auth.dto';
 import { SpeakerDirectoryResponse, SpeakerSummaryDTO } from '@/server/dtos/workspace.dto';
 import { toast } from 'sonner';
+import { useLocaleStore } from '@/stores/locale.store';
 
 const mockPush = vi.fn();
 vi.mock('next/navigation', () => ({
@@ -63,6 +64,7 @@ describe('SpeakersPage Component', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    useLocaleStore.setState({ locale: 'id' });
   });
 
   afterEach(() => {
@@ -118,6 +120,37 @@ describe('SpeakersPage Component', () => {
     expect(await screen.findByText('Alice Johnson')).toBeInTheDocument();
     expect(screen.getByText('Bob Smith')).toBeInTheDocument();
     expect(screen.getByText('Charlie Brown')).toBeInTheDocument();
+  });
+
+  it('renders header and metrics in English when locale is en', async () => {
+    useLocaleStore.setState({ locale: 'en' });
+    vi.spyOn(apiClient, 'apiFetch').mockImplementation(async (url: string) => {
+      if (url === '/api/auth/me') {
+        return {
+          status: 'success',
+          code: 'SUCCESS',
+          message: 'OK',
+          data: mockUser,
+          timestamp: new Date().toISOString(),
+        } as unknown as ApiResponse<never>;
+      }
+      if (url === '/api/speakers') {
+        return {
+          status: 'success',
+          code: 'SUCCESS',
+          message: 'OK',
+          data: mockDirectoryResponse,
+          timestamp: new Date().toISOString(),
+        } as unknown as ApiResponse<never>;
+      }
+      return {} as ApiResponse<never>;
+    });
+
+    render(<SpeakersPage />);
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Speaker Directory' })).toBeInTheDocument();
+    expect(await screen.findByText('Total Unique Speakers')).toBeInTheDocument();
+    expect(await screen.findByText('Total Attendance Sessions')).toBeInTheDocument();
   });
 
   it('filters speakers by search query and allows resetting search', async () => {

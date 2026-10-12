@@ -8,6 +8,7 @@ import { Badge } from '@/components/atoms/badge';
 import { Button } from '@/components/atoms/button';
 import { cn } from '@/lib/utils';
 import { Users, Calendar, Search, Mic } from 'lucide-react';
+import { useTranslation } from '@/locales';
 
 export interface SpeakerCardProps {
   speaker: SpeakerSummaryDTO;
@@ -50,9 +51,25 @@ export function getAvatarColorClass(name: string): string {
 }
 
 /**
- * Formats talk time seconds into readable Indonesian string.
+ * Formats talk time seconds into readable string with locale support.
  */
-export function formatTalkDuration(seconds: number): string {
+export function formatTalkDuration(seconds: number, locale: string = 'id'): string {
+  if (locale === 'en') {
+    if (!Number.isFinite(seconds) || seconds <= 0) return '0s';
+    const totalSecs = Math.floor(seconds);
+    const hours = Math.floor(totalSecs / 3600);
+    const minutes = Math.floor((totalSecs % 3600) / 60);
+    const remainingSecs = totalSecs % 60;
+
+    if (hours > 0) {
+      return minutes > 0 ? `${hours}h ${minutes}m` : `${hours}h`;
+    }
+    if (minutes > 0) {
+      return remainingSecs > 0 ? `${minutes}m ${remainingSecs}s` : `${minutes}m`;
+    }
+    return `${remainingSecs}s`;
+  }
+
   if (!Number.isFinite(seconds) || seconds <= 0) return '0 dtk';
   const totalSecs = Math.floor(seconds);
   const hours = Math.floor(totalSecs / 3600);
@@ -71,12 +88,12 @@ export function formatTalkDuration(seconds: number): string {
 /**
  * Formats ISO date string to localized date format.
  */
-export function formatLastActiveDate(dateString: string): string {
+export function formatLastActiveDate(dateString: string, locale: string = 'id'): string {
   if (!dateString) return '-';
   try {
     const date = new Date(dateString);
     if (isNaN(date.getTime())) return '-';
-    return new Intl.DateTimeFormat('id-ID', {
+    return new Intl.DateTimeFormat(locale === 'en' ? 'en-US' : 'id-ID', {
       day: 'numeric',
       month: 'short',
       year: 'numeric',
@@ -91,10 +108,11 @@ export const SpeakerCard: React.FC<SpeakerCardProps> = ({
   onClick,
   className = '',
 }) => {
+  const { t, locale } = useTranslation();
   const initials = getSpeakerInitials(speaker.name);
   const avatarClass = getAvatarColorClass(speaker.name);
-  const formattedDuration = formatTalkDuration(speaker.total_talk_time);
-  const formattedLastActive = formatLastActiveDate(speaker.last_active);
+  const formattedDuration = formatTalkDuration(speaker.total_talk_time, locale);
+  const formattedLastActive = formatLastActiveDate(speaker.last_active, locale);
   const searchHref = `/dashboard?search=${encodeURIComponent(speaker.name)}`;
 
   return (
@@ -127,7 +145,7 @@ export const SpeakerCard: React.FC<SpeakerCardProps> = ({
               </h3>
               <p className="text-xs text-slate-500 flex items-center gap-1.5 mt-0.5">
                 <Calendar className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                <span>Terakhir aktif: {formattedLastActive}</span>
+                <span>{t('speakers.card.lastActive', { date: formattedLastActive })}</span>
               </p>
             </div>
           </div>
@@ -136,7 +154,7 @@ export const SpeakerCard: React.FC<SpeakerCardProps> = ({
             variant="outline"
             className="text-xs font-semibold px-2.5 py-0.5 rounded-full shrink-0 bg-blue-50 text-blue-700 border-blue-200/60"
           >
-            {speaker.total_meetings} Rapat
+            {t('speakers.card.meetingsCount', { count: speaker.total_meetings })}
           </Badge>
         </div>
 
@@ -145,7 +163,7 @@ export const SpeakerCard: React.FC<SpeakerCardProps> = ({
           <div className="bg-slate-50/80 border border-slate-100 rounded-xl p-3 space-y-1">
             <div className="flex items-center gap-1.5 text-slate-500 text-[11px] font-medium">
               <Mic className="w-3.5 h-3.5 text-blue-500" />
-              <span>Waktu Bicara</span>
+              <span>{t('speakers.card.talkTime')}</span>
             </div>
             <div className="text-sm font-bold text-slate-900 truncate">
               {formattedDuration}
@@ -155,10 +173,10 @@ export const SpeakerCard: React.FC<SpeakerCardProps> = ({
           <div className="bg-slate-50/80 border border-slate-100 rounded-xl p-3 space-y-1">
             <div className="flex items-center gap-1.5 text-slate-500 text-[11px] font-medium">
               <Users className="w-3.5 h-3.5 text-emerald-500" />
-              <span>Kehadiran</span>
+              <span>{t('speakers.card.attendance')}</span>
             </div>
             <div className="text-sm font-bold text-slate-900 truncate">
-              {speaker.total_meetings} Pertemuan
+              {t('speakers.card.attendanceMeetings', { count: speaker.total_meetings })}
             </div>
           </div>
         </div>
@@ -176,7 +194,7 @@ export const SpeakerCard: React.FC<SpeakerCardProps> = ({
               className="text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50 gap-1.5 h-8 font-medium px-2.5"
             >
               <Search className="w-3.5 h-3.5" />
-              <span>Cari Kutipan</span>
+              <span>{t('speakers.card.searchQuotes')}</span>
             </Button>
           </Link>
         </div>

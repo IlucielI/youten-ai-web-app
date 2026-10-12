@@ -14,18 +14,12 @@ describe('Footer Component', () => {
     expect(screen.getByText(new RegExp(`${new Date().getFullYear()} Youten AI`, 'i'))).toBeInTheDocument();
   });
 
-  it('renders quick navigation links when showLinks is true', () => {
-    render(<Footer showLinks={true} />);
-
-    expect(screen.getByRole('link', { name: /Dashboard/i })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /Status Sistem/i })).toBeInTheDocument();
-  });
-
-  it('hides quick navigation links when showLinks is false', () => {
-    render(<Footer showLinks={false} />);
+  it('does not render quick navigation links', () => {
+    render(<Footer />);
 
     expect(screen.queryByRole('link', { name: /Dashboard/i })).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: /Status Sistem/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /System Status/i })).not.toBeInTheDocument();
   });
 
   it('applies custom className correctly', () => {

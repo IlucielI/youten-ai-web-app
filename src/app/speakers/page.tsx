@@ -24,6 +24,7 @@ import { UserNavDropdown } from '@/components/molecules/user-nav-dropdown';
 import { EmptyState } from '@/components/molecules/empty-state';
 import { SpeakerCard, formatTalkDuration } from '@/components/molecules/speaker-card';
 import { toast } from 'sonner';
+import { useTranslation } from '@/locales';
 import {
   Users,
   Mic,
@@ -41,6 +42,7 @@ type SortOption = 'talk_time' | 'meetings' | 'last_active' | 'name';
 
 export default function SpeakersPage() {
   const router = useRouter();
+  const { t, locale } = useTranslation();
 
   // Auth User State
   const [user, setUser] = useState<UserProfileResponse | null>(null);
@@ -98,13 +100,11 @@ export default function SpeakersPage() {
     if (authLoading || !user) return;
 
     let isMounted = true;
-
     apiFetch<ApiResponse<SpeakerDirectoryResponse>>('/api/speakers')
       .then((res) => {
         if (!isMounted) return;
-        if (res && res.data) {
-          setDataError(null);
-          setSpeakers(res.data.speakers || []);
+        if (res && res.data && Array.isArray(res.data.speakers)) {
+          setSpeakers(res.data.speakers);
         } else {
           setSpeakers([]);
         }
@@ -133,15 +133,15 @@ export default function SpeakersPage() {
       setUser(null);
       router.push('/login');
     } catch {
-      toast.error('Gagal keluar dari sesi. Silakan coba kembali.');
+      toast.error(t('notifications.error.logoutFailed'));
     }
   };
 
-  // 4. Filter & Sort Speakers
+  // 4. Memoized Filtered & Sorted Speakers
   const filteredAndSortedSpeakers = useMemo(() => {
     let result = [...speakers];
 
-    // Filter by name
+    // Filter
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase().trim();
       result = result.filter((s) => s.name.toLowerCase().includes(q));
@@ -183,7 +183,7 @@ export default function SpeakersPage() {
       >
         <div className="flex flex-col items-center gap-4">
           <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
-          <p className="text-sm font-medium text-slate-500">Memeriksa sesi pengguna...</p>
+          <p className="text-sm font-medium text-slate-500">{t('speakers.header.loadingSession')}</p>
         </div>
       </div>
     );
@@ -208,20 +208,20 @@ export default function SpeakersPage() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="text-slate-600 hover:text-blue-600 hover:bg-slate-100 gap-1.5 h-8 text-xs font-medium"
+                  className="text-slate-600 hover:text-blue-600 hover:bg-slate-100 gap-1.5 h-8 text-xs font-medium cursor-pointer"
                 >
                   <LayoutDashboard className="w-3.5 h-3.5" />
-                  <span>Dashboard</span>
+                  <span>{t('navbar.links.dashboard')}</span>
                 </Button>
               </Link>
               <Link href="/speakers">
                 <Button
                   variant="secondary"
                   size="sm"
-                  className="bg-blue-50 text-blue-700 hover:bg-blue-100 gap-1.5 h-8 text-xs font-semibold border border-blue-200/60"
+                  className="bg-blue-50 text-blue-700 hover:bg-blue-100 gap-1.5 h-8 text-xs font-semibold border border-blue-200/60 cursor-pointer"
                 >
                   <Users className="w-3.5 h-3.5" />
-                  <span>Direktori Pembicara</span>
+                  <span>{t('navbar.links.speakers')}</span>
                 </Button>
               </Link>
             </nav>
@@ -241,14 +241,13 @@ export default function SpeakersPage() {
           <div className="space-y-2 max-w-2xl">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-100 text-blue-700 text-xs font-semibold">
               <Sparkles className="w-3.5 h-3.5" />
-              <span>Workspace Intelligence</span>
+              <span>{t('speakers.header.badge')}</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-              Direktori Pembicara
+              {t('speakers.header.title')}
             </h1>
             <p className="text-sm text-slate-500 leading-relaxed">
-              Pantau partisipasi, durasi waktu bicara, dan riwayat interaksi setiap pembicara di
-              seluruh rekaman rapat dalam workspace Anda.
+              {t('speakers.header.subtitle')}
             </p>
           </div>
 
@@ -257,10 +256,10 @@ export default function SpeakersPage() {
             size="sm"
             onClick={handleRefresh}
             disabled={dataLoading}
-            className="self-start md:self-auto gap-2 text-xs border-slate-200 hover:border-slate-300"
+            className="self-start md:self-auto gap-2 text-xs border-slate-200 hover:border-slate-300 cursor-pointer"
           >
             <RefreshCw className={cn('w-3.5 h-3.5', dataLoading && 'animate-spin')} />
-            <span>Segarkan Data</span>
+            <span>{t('speakers.header.refresh')}</span>
           </Button>
         </section>
 
@@ -272,7 +271,7 @@ export default function SpeakersPage() {
                 <Users className="w-6 h-6" />
               </div>
               <div>
-                <p className="text-xs font-medium text-slate-500">Total Pembicara Unik</p>
+                <p className="text-xs font-medium text-slate-500">{t('speakers.stats.totalSpeakers')}</p>
                 <p className="text-2xl font-extrabold text-slate-900">
                   {dataLoading ? '-' : speakers.length}
                 </p>
@@ -286,9 +285,9 @@ export default function SpeakersPage() {
                 <Mic className="w-6 h-6" />
               </div>
               <div>
-                <p className="text-xs font-medium text-slate-500">Total Waktu Bicara</p>
+                <p className="text-xs font-medium text-slate-500">{t('speakers.stats.totalTalkTime')}</p>
                 <p className="text-2xl font-extrabold text-slate-900 truncate">
-                  {dataLoading ? '-' : formatTalkDuration(totalTalkSeconds)}
+                  {dataLoading ? '-' : formatTalkDuration(totalTalkSeconds, locale)}
                 </p>
               </div>
             </CardContent>
@@ -300,7 +299,7 @@ export default function SpeakersPage() {
                 <Clock className="w-6 h-6" />
               </div>
               <div>
-                <p className="text-xs font-medium text-slate-500">Total Sesi Kehadiran</p>
+                <p className="text-xs font-medium text-slate-500">{t('speakers.stats.totalMeetings')}</p>
                 <p className="text-2xl font-extrabold text-slate-900">
                   {dataLoading ? '-' : totalMeetings}
                 </p>
@@ -318,14 +317,14 @@ export default function SpeakersPage() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Cari nama pembicara..."
+              placeholder={t('speakers.filters.searchPlaceholder')}
               className="w-full pl-10 pr-9 py-2 rounded-xl text-xs sm:text-sm border border-slate-200 bg-slate-50/60 focus:bg-white focus:outline-hidden focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all"
             />
             {searchQuery && (
               <button
                 type="button"
                 onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -335,16 +334,16 @@ export default function SpeakersPage() {
           {/* Sort Selector */}
           <div className="flex items-center gap-2">
             <ArrowUpDown className="w-4 h-4 text-slate-400 shrink-0 hidden sm:block" />
-            <span className="text-xs font-semibold text-slate-600 whitespace-nowrap">Urutkan:</span>
+            <span className="text-xs font-semibold text-slate-600 whitespace-nowrap">{t('speakers.filters.sortBy')}:</span>
             <Select value={sortBy} onValueChange={(val) => setSortBy(val as SortOption)}>
-              <SelectTrigger className="w-52 h-9 text-xs border-slate-200 bg-white">
-                <SelectValue placeholder="Pilih urutan" />
+              <SelectTrigger className="w-52 h-9 text-xs border-slate-200 bg-white cursor-pointer">
+                <SelectValue placeholder={t('speakers.filters.sortBy')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="talk_time">Waktu Bicara Terbanyak</SelectItem>
-                <SelectItem value="meetings">Rapat Terbanyak</SelectItem>
-                <SelectItem value="last_active">Terakhir Aktif</SelectItem>
-                <SelectItem value="name">Nama (A - Z)</SelectItem>
+                <SelectItem value="talk_time">{t('speakers.filters.sortTalkTime')}</SelectItem>
+                <SelectItem value="meetings">{t('speakers.filters.sortMeetings')}</SelectItem>
+                <SelectItem value="last_active">{t('speakers.filters.sortRecent')}</SelectItem>
+                <SelectItem value="name">{t('speakers.filters.sortName')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -395,7 +394,7 @@ export default function SpeakersPage() {
               variant="outline"
               size="sm"
               onClick={handleRefresh}
-              className="mt-2 text-xs border-rose-300 hover:bg-rose-100 text-rose-800"
+              className="mt-2 text-xs border-rose-300 hover:bg-rose-100 text-rose-800 cursor-pointer"
             >
               Coba Lagi
             </Button>
@@ -404,27 +403,27 @@ export default function SpeakersPage() {
           /* Empty State */
           searchQuery ? (
             <EmptyState
-              title="Pembicara Tidak Ditemukan"
-              description={`Tidak ada pembicara yang cocok dengan kata kunci "${searchQuery}". Silakan coba kata kunci lain.`}
+              title={t('speakers.empty.title')}
+              description={t('speakers.empty.descSearch', { query: searchQuery })}
               action={
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => setSearchQuery('')}
-                  className="text-xs"
+                  className="text-xs cursor-pointer"
                 >
-                  Reset Pencarian
+                  {t('speakers.empty.clearSearch')}
                 </Button>
               }
             />
           ) : (
             <EmptyState
-              title="Belum Ada Pembicara Terindeks"
-              description="Ketika rekaman rapat diunggah dan ditranskripsi, profil pembicara akan dianalisis dan dirangkum otomatis di halaman ini."
+              title={t('speakers.empty.noSpeakersIndexed')}
+              description={t('speakers.empty.descEmpty')}
               action={
                 <Link href="/dashboard">
-                  <Button size="sm" className="text-xs bg-blue-600 hover:bg-blue-700 text-white">
-                    Buka Dashboard Rekaman
+                  <Button size="sm" className="text-xs bg-blue-600 hover:bg-blue-700 text-white cursor-pointer">
+                    {t('speakers.empty.openDashboard')}
                   </Button>
                 </Link>
               }

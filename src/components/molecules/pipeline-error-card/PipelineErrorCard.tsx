@@ -10,6 +10,7 @@ import { usePipelineStore } from '@/stores/pipeline.store';
 import { useTokenStore } from '@/stores/token.store';
 import { apiFetch } from '@/lib/api-client';
 import { RecordingStatus } from '@/server/constants';
+import { useTranslation } from '@/locales';
 
 export interface PipelineErrorCardProps {
   errorCode?: string | null;
@@ -20,40 +21,13 @@ export interface PipelineErrorCardProps {
   className?: string;
 }
 
-export const PIPELINE_ERROR_TAXONOMY: Record<
-  string,
-  { title: string; description: string; canRetry: boolean }
-> = {
-  [PipelineErrorCode.ERR_AUDIO_CORRUPT]: {
-    title: 'Berkas Audio Tidak Valid atau Rusak',
-    description: 'Format audio tidak dapat dibaca atau file terpotong saat pengunggahan.',
-    canRetry: false,
-  },
-  [PipelineErrorCode.ERR_EXTRACTION_FAILED]: {
-    title: 'Ekstraksi Audio Gagal',
-    description: 'Sistem gagal mengekstrak aliran audio dari media yang diunggah.',
-    canRetry: true,
-  },
-  [PipelineErrorCode.ERR_TRANSCRIPTION_FAILED]: {
-    title: 'Transkripsi Speech-to-Text Terkendala',
-    description: 'Mesin AI transkripsi mengalami gangguan saat memproses ujaran suara.',
-    canRetry: true,
-  },
-  [PipelineErrorCode.ERR_NO_SPEECH_DETECTED]: {
-    title: 'Tidak Ada Percakapan Terdeteksi',
-    description: 'Tidak ditemukan suara atau percakapan manusia yang dapat ditranskripsikan.',
-    canRetry: false,
-  },
-  [PipelineErrorCode.ERR_SUMMARIZATION_FAILED]: {
-    title: 'Ringkasan AI Mengalami Gangguan',
-    description: 'Model AI mengalami kegagalan saat mengekstraksi poin dan ringkasan terstruktur.',
-    canRetry: true,
-  },
-  [PipelineErrorCode.ERR_INDEXING_FAILED]: {
-    title: 'Pengindeksan Vektor Semantik Gagal',
-    description: 'Gagal membuat indeks memori untuk fitur pencarian percakapan.',
-    canRetry: true,
-  },
+const RETRY_CAPABILITY: Record<string, boolean> = {
+  [PipelineErrorCode.ERR_AUDIO_CORRUPT]: false,
+  [PipelineErrorCode.ERR_EXTRACTION_FAILED]: true,
+  [PipelineErrorCode.ERR_TRANSCRIPTION_FAILED]: true,
+  [PipelineErrorCode.ERR_NO_SPEECH_DETECTED]: false,
+  [PipelineErrorCode.ERR_SUMMARIZATION_FAILED]: true,
+  [PipelineErrorCode.ERR_INDEXING_FAILED]: true,
 };
 
 export const PipelineErrorCard: React.FC<PipelineErrorCardProps> = ({
@@ -64,14 +38,25 @@ export const PipelineErrorCard: React.FC<PipelineErrorCardProps> = ({
   recordingId,
   className,
 }) => {
+  const { t } = useTranslation();
   const [internalLoading, setInternalLoading] = useState(false);
   const [retryConflictError, setRetryConflictError] = useState<string | null>(null);
 
-  const errorInfo = (errorCode && PIPELINE_ERROR_TAXONOMY[errorCode]) || {
-    title: 'Pemrosesan Rekaman Terkendala',
-    description: errorMessage || 'Terjadi kendala teknis saat memproses aliran pipeline.',
-    canRetry: true,
-  };
+  const errorInfo = React.useMemo(() => {
+    if (errorCode && errorCode in RETRY_CAPABILITY) {
+      const taxonomyKey = `pipeline.errors.taxonomy.${errorCode}` as const;
+      return {
+        title: t(`${taxonomyKey}.title`),
+        description: t(`${taxonomyKey}.description`),
+        canRetry: RETRY_CAPABILITY[errorCode] ?? true,
+      };
+    }
+    return {
+      title: t('pipeline.errors.defaultTitle'),
+      description: errorMessage || t('pipeline.errors.defaultDescription'),
+      canRetry: true,
+    };
+  }, [errorCode, errorMessage, t]);
 
   const handleRetryClick = async () => {
     if (isRetrying || internalLoading) return;
@@ -94,7 +79,7 @@ export const PipelineErrorCard: React.FC<PipelineErrorCardProps> = ({
             status: RecordingStatus.TRANSCRIBING,
             stage: 'transcription',
             progress: 35,
-            message: 'Memulai ulang pemrosesan pipeline...',
+            message: t('pipeline.errors.restartingMessage'),
           });
           if (typeof window !== 'undefined') {
             window.location.reload();
@@ -103,9 +88,9 @@ export const PipelineErrorCard: React.FC<PipelineErrorCardProps> = ({
       }
     } catch (err: unknown) {
       if (err instanceof Error && err.message.includes('409')) {
-        setRetryConflictError('Pipeline sedang diproses kembali di latar belakang.');
+        setRetryConflictError(t('pipeline.errors.conflictInProgress'));
       } else {
-        setRetryConflictError('Gagal memicu percobaan ulang. Silakan coba sesaat lagi.');
+        setRetryConflictError(t('pipeline.errors.conflictFailed'));
       }
     } finally {
       setInternalLoading(false);
@@ -182,8 +167,8 @@ export const PipelineErrorCard: React.FC<PipelineErrorCardProps> = ({
                 <RefreshCw className={cn('w-3.5 h-3.5', isLoading && 'animate-spin')} />
                 <span>
                   {isLoading
-                    ? 'Memulai Ulang Pipeline...'
-                    : 'Coba Lagi dari Tahap Terakhir'}
+                    ? t('pipeline.errors.retryingButton')
+                    : t('pipeline.errors.retryButton')}
                 </span>
               </Button>
             </div>
