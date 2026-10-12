@@ -30,6 +30,7 @@ export interface HttpClientConfig {
   defaultHeaders?: Record<string, string>;
   logger?: ILogger;
   autoForwardSession?: boolean;
+  authHeaderResolver?: () => Promise<string | null>;
 }
 
 /**
@@ -51,6 +52,7 @@ export class HttpClient implements IHttpClient {
   private readonly defaultHeaders: Record<string, string>;
   private readonly logger?: ILogger;
   private readonly autoForwardSession: boolean;
+  private authHeaderResolver?: () => Promise<string | null>;
 
   constructor(config: HttpClientConfig = {}) {
     this.baseUrl = (config.baseUrl || '').replace(/\/$/, '');
@@ -58,6 +60,11 @@ export class HttpClient implements IHttpClient {
     this.defaultHeaders = config.defaultHeaders || {};
     this.logger = config.logger;
     this.autoForwardSession = config.autoForwardSession ?? true;
+    this.authHeaderResolver = config.authHeaderResolver;
+  }
+
+  setAuthHeaderResolver(resolver: () => Promise<string | null>): void {
+    this.authHeaderResolver = resolver;
   }
 
   async get<T = unknown>(path: string, options?: HttpRequestOptions<T>): Promise<T> {
@@ -118,6 +125,18 @@ export class HttpClient implements IHttpClient {
         }
       } catch {
         // Outside Next.js request context (tests, background jobs)
+      }
+    }
+
+    // 1b. Fallback to authHeaderResolver if no session or guest token found:
+    if (!headers['Authorization'] && !headers['authorization'] && this.authHeaderResolver) {
+      try {
+        const resolved = await this.authHeaderResolver();
+        if (resolved) {
+          headers['Authorization'] = resolved.startsWith('Bearer ') ? resolved : `Bearer ${resolved}`;
+        }
+      } catch {
+        // Outside request context or resolution failure
       }
     }
 

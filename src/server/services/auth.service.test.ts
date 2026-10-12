@@ -43,6 +43,7 @@ describe('AuthService', () => {
         },
         timestamp: new Date().toISOString(),
       }),
+      getGatewayAnonToken: vi.fn().mockResolvedValue('anon-jwt-token'),
       register: vi.fn().mockResolvedValue({
         status: ResponseStatus.SUCCESS,
         code: ResponseCode.SUCCESS,

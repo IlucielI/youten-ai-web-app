@@ -18,6 +18,7 @@ import { ApiResponse, BaseResponse } from '../dtos/response.dto';
 
 export interface IAuthRepository {
   anonToken(): Promise<ApiResponse<AnonTokenResponse>>;
+  getGatewayAnonToken(): Promise<string>;
   register(payload: RegisterRequest): Promise<ApiResponse<AuthResponse>>;
   login(payload: LoginRequest): Promise<ApiResponse<AuthResponse>>;
   refreshToken(payload: RefreshTokenRequest): Promise<ApiResponse<AuthResponse>>;
