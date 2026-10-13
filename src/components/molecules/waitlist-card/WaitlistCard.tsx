@@ -4,13 +4,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/atoms/card';
 import { Button } from '@/components/atoms/button';
 import { Badge } from '@/components/atoms/badge';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/atoms/select';
+import { SearchableSelect } from '@/components/molecules/searchable-select';
 import { WaitlistRequest, WaitlistResponse } from '@/server/dtos/waitlist.dto';
 import { cn } from '@/lib/utils';
 import {
@@ -217,18 +211,15 @@ export const WaitlistCard: React.FC<WaitlistCardProps> = ({
                   <Video className="w-3.5 h-3.5 text-slate-400" />
                   <span>Platform Rapat Utama</span>
                 </label>
-                <Select value={platform} onValueChange={setPlatform} disabled={isLoading}>
-                  <SelectTrigger className="w-full h-10 text-sm border-slate-200 bg-white">
-                    <SelectValue placeholder="Pilih platform rapat" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {PLATFORM_OPTIONS.map((opt) => (
-                      <SelectItem key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <SearchableSelect
+                  value={platform}
+                  onValueChange={setPlatform}
+                  options={PLATFORM_OPTIONS}
+                  disabled={isLoading}
+                  placeholder="Pilih platform rapat"
+                  searchPlaceholder="Cari platform rapat..."
+                  triggerClassName="w-full h-10 text-sm border-slate-200 bg-white"
+                />
               </div>
 
               {/* Company Size Selector */}
@@ -237,18 +228,15 @@ export const WaitlistCard: React.FC<WaitlistCardProps> = ({
                   <Building2 className="w-3.5 h-3.5 text-slate-400" />
                   <span>Jumlah Anggota Tim / Perusahaan</span>
                 </label>
-                <Select value={companySize} onValueChange={setCompanySize} disabled={isLoading}>
-                  <SelectTrigger className="w-full h-10 text-sm border-slate-200 bg-white">
-                    <SelectValue placeholder="Pilih ukuran tim" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {COMPANY_SIZE_OPTIONS.map((opt) => (
-                      <SelectItem key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <SearchableSelect
+                  value={companySize}
+                  onValueChange={setCompanySize}
+                  options={COMPANY_SIZE_OPTIONS}
+                  disabled={isLoading}
+                  placeholder="Pilih ukuran tim"
+                  searchPlaceholder="Cari ukuran tim..."
+                  triggerClassName="w-full h-10 text-sm border-slate-200 bg-white"
+                />
               </div>
 
               {/* Error Alert */}

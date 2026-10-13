@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { SearchableSelect, SearchableSelectOption } from '@/components/molecules/searchable-select';
 import { apiFetch, ApiClientError } from '@/lib/api-client';
 import { ApiResponse, BaseResponse } from '@/server/dtos/response.dto';
 import { UserProfileResponse } from '@/server/dtos/auth.dto';
@@ -86,14 +87,30 @@ export default function DashboardPage() {
   const { t, locale } = useTranslation();
   const { templates, getTemplateLabel } = useTemplates();
 
-  const statusOptions = [
-    { value: '', label: t('dashboard.filters.allStatuses') },
-    { value: RecordingStatus.COMPLETED, label: t('dashboard.statusLabels.completed') },
-    { value: RecordingStatus.QUEUED, label: t('dashboard.statusLabels.queued') },
-    { value: 'TRANSCRIBING', label: t('dashboard.statusLabels.processing') },
-    { value: RecordingStatus.PENDING, label: t('dashboard.statusLabels.pending') },
-    { value: RecordingStatus.FAILED, label: t('dashboard.statusLabels.failed') },
-  ];
+  const statusSelectOptions: SearchableSelectOption[] = useMemo(
+    () => [
+      { value: '', label: t('dashboard.filters.allStatuses') },
+      { value: RecordingStatus.COMPLETED, label: t('dashboard.statusLabels.completed'), badge: '100%' },
+      { value: RecordingStatus.QUEUED, label: t('dashboard.statusLabels.queued') },
+      { value: 'TRANSCRIBING', label: t('dashboard.statusLabels.processing') },
+      { value: RecordingStatus.PENDING, label: t('dashboard.statusLabels.pending') },
+      { value: RecordingStatus.FAILED, label: t('dashboard.statusLabels.failed') },
+    ],
+    [t]
+  );
+
+  const templateSelectOptions: SearchableSelectOption[] = useMemo(
+    () => [
+      { value: '', label: t('dashboard.filters.allTemplates') },
+      ...templates.map((tmpl) => ({
+        value: tmpl.key,
+        label: tmpl.label,
+        description: tmpl.description,
+        icon: tmpl.icon,
+      })),
+    ],
+    [templates, t]
+  );
 
   // Auth User State
   const [user, setUser] = useState<UserProfileResponse | null>(null);
@@ -387,39 +404,36 @@ export default function DashboardPage() {
             {/* Filters & View Switcher */}
             <div className="flex flex-wrap items-center gap-2.5">
               {/* Status Filter */}
-              <select
-                data-testid="status-filter-select"
-                value={selectedStatus}
-                onChange={(e) => {
-                  setSelectedStatus(e.target.value);
-                  setPage(1);
-                }}
-                className="px-3 py-2 text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl text-slate-700 focus:outline-none focus:border-blue-500 cursor-pointer"
-              >
-                {statusOptions.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
+              <div className="w-36 sm:w-44">
+                <SearchableSelect
+                  data-testid="status-filter-select"
+                  value={selectedStatus}
+                  onValueChange={(val) => {
+                    setSelectedStatus(val);
+                    setPage(1);
+                  }}
+                  options={statusSelectOptions}
+                  placeholder={t('dashboard.filters.allStatuses')}
+                  searchPlaceholder={`${t('common.actions.search')}...`}
+                  triggerClassName="h-9 text-xs rounded-xl border-slate-200 bg-slate-50/90 font-medium"
+                />
+              </div>
 
               {/* Template Filter */}
-              <select
-                data-testid="template-filter-select"
-                value={selectedTemplate}
-                onChange={(e) => {
-                  setSelectedTemplate(e.target.value);
-                  setPage(1);
-                }}
-                className="px-3 py-2 text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl text-slate-700 focus:outline-none focus:border-blue-500 cursor-pointer"
-              >
-                <option value="">{t('dashboard.filters.allTemplates')}</option>
-                {templates.map((tmpl) => (
-                  <option key={tmpl.key} value={tmpl.key}>
-                    {tmpl.label}
-                  </option>
-                ))}
-              </select>
+              <div className="w-40 sm:w-48">
+                <SearchableSelect
+                  data-testid="template-filter-select"
+                  value={selectedTemplate}
+                  onValueChange={(val) => {
+                    setSelectedTemplate(val);
+                    setPage(1);
+                  }}
+                  options={templateSelectOptions}
+                  placeholder={t('dashboard.filters.allTemplates')}
+                  searchPlaceholder="Cari template..."
+                  triggerClassName="h-9 text-xs rounded-xl border-slate-200 bg-slate-50/90 font-medium"
+                />
+              </div>
 
               {/* View Mode Toggle */}
               <div className="flex items-center bg-slate-100 p-0.5 rounded-xl border border-slate-200/80">

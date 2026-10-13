@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { TemplateKey, DefaultTemplateKey } from '@/server/constants/template.constant';
 import { Button } from '@/components/atoms/button';
 import { Input } from '@/components/atoms/input';
 import { Label } from '@/components/atoms/label';
+import { SearchableSelect, SearchableSelectOption } from '@/components/molecules/searchable-select';
 import {
   Link as LinkIcon,
   ShieldCheck,
@@ -61,6 +62,26 @@ export function UrlImportForm({
   const [language, setLanguage] = useState('id');
   const [validationError, setValidationError] = useState<string | null>(null);
   const { templates } = useTemplates();
+
+  const templateOptions: SearchableSelectOption[] = useMemo(
+    () =>
+      templates.map((tmpl) => ({
+        value: tmpl.key,
+        label: tmpl.label,
+        description: tmpl.description,
+        icon: tmpl.icon,
+      })),
+    [templates]
+  );
+
+  const languageOptions: SearchableSelectOption[] = useMemo(
+    () => [
+      { value: 'id', label: t('ingestion.url.languageId'), description: 'Bahasa Indonesia' },
+      { value: 'en', label: t('ingestion.url.languageEn'), description: 'English (Global)' },
+      { value: 'auto', label: t('ingestion.url.languageAuto'), description: 'Deteksi Otomatis' },
+    ],
+    [t]
+  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -146,44 +167,32 @@ export function UrlImportForm({
           <Label htmlFor="url-template-select" className="text-xs font-semibold text-foreground">
             {t('ingestion.url.templateLabel')}
           </Label>
-          <select
+          <SearchableSelect
             id="url-template-select"
-            value={templateCategory}
-            onChange={(e) => setTemplateCategory(e.target.value as TemplateKey)}
-            disabled={isLoading}
-            className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-xs shadow-sm cursor-pointer focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-50 disabled:cursor-not-allowed"
             data-testid="url-template-select"
-          >
-            {templates.map((tmpl) => (
-              <option key={tmpl.key} value={tmpl.key} className="bg-popover text-foreground">
-                {tmpl.label}
-              </option>
-            ))}
-          </select>
+            value={templateCategory}
+            onValueChange={(val) => setTemplateCategory(val as TemplateKey)}
+            options={templateOptions}
+            disabled={isLoading}
+            placeholder={t('ingestion.url.templateLabel')}
+            searchPlaceholder="Cari template..."
+          />
         </div>
 
         <div className="space-y-1.5">
           <Label htmlFor="url-language-select" className="text-xs font-semibold text-foreground">
             {t('ingestion.url.languageLabel')}
           </Label>
-          <select
+          <SearchableSelect
             id="url-language-select"
-            value={language}
-            onChange={(e) => setLanguage(e.target.value)}
-            disabled={isLoading}
-            className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-xs shadow-sm cursor-pointer focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-50 disabled:cursor-not-allowed"
             data-testid="url-language-select"
-          >
-            <option value="id" className="bg-popover text-foreground">
-              {t('ingestion.url.languageId')}
-            </option>
-            <option value="en" className="bg-popover text-foreground">
-              {t('ingestion.url.languageEn')}
-            </option>
-            <option value="auto" className="bg-popover text-foreground">
-              {t('ingestion.url.languageAuto')}
-            </option>
-          </select>
+            value={language}
+            onValueChange={setLanguage}
+            options={languageOptions}
+            disabled={isLoading}
+            placeholder={t('ingestion.url.languageLabel')}
+            searchPlaceholder="Cari bahasa..."
+          />
         </div>
       </div>
 
