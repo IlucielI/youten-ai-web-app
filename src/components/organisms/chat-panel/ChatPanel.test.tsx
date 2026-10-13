@@ -169,4 +169,13 @@ describe('ChatPanel Organism', () => {
     expect(screen.queryByTestId('chat-message-empty-msg-1')).not.toBeInTheDocument();
     expect(screen.getByTestId('chat-message-valid-msg-2')).toBeInTheDocument();
   });
+
+  it('forwards template prop to ChatChips and renders template-specific questions', () => {
+    render(<ChatPanel isOpen={true} template="INTERVIEW" />);
+
+    expect(screen.getByTestId('chat-empty-state')).toBeInTheDocument();
+    expect(
+      screen.getByText('Bagaimana evaluasi kualifikasi dan kompetensi kandidat?')
+    ).toBeInTheDocument();
+  });
 });

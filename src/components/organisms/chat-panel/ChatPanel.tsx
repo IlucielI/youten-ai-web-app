@@ -25,6 +25,7 @@ import { useTranslation } from '@/locales';
 
 export interface ChatPanelProps {
   recordingId?: string;
+  template?: string | null;
   isOpen?: boolean;
   onClose?: () => void;
   onSendMessage?: (message: string) => Promise<void> | void;
@@ -168,6 +169,7 @@ export function renderMessageContent(content: string, onSeek?: (timestamp: numbe
 }
 
 export function ChatPanel({
+  template,
   isOpen = true,
   onClose,
   onSendMessage,
@@ -222,7 +224,7 @@ export function ChatPanel({
     <aside
       data-testid="chat-panel"
       className={cn(
-        'flex flex-col h-full w-full max-w-md rounded-2xl border border-border/80 bg-card/80 backdrop-blur-xl shadow-2xl transition-all',
+        'flex flex-col h-full w-full max-w-md rounded-2xl border border-border/80 bg-card/80 backdrop-blur-xl shadow-2xl transition-all overflow-hidden',
         className
       )}
       aria-label="AI Chat Panel"
@@ -297,7 +299,10 @@ export function ChatPanel({
             </div>
 
             <div className="w-full pt-4 border-t border-border/40">
-              <ChatChips onSelectPrompt={(prompt) => void handleSend(prompt)} />
+              <ChatChips
+                template={template}
+                onSelectPrompt={(prompt) => void handleSend(prompt)}
+              />
             </div>
           </div>
         ) : (

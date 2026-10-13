@@ -175,6 +175,56 @@ export const enRecording: typeof idRecording = {
       deadlines: 'Summarize deadlines and commitments discussed',
       blockers: 'Are there any critical unresolved issues or blockers?',
     },
+    templatePrompts: {
+      interview: {
+        evalCompetencies: "How are the candidate's qualifications and competencies evaluated?",
+        strengthsConcerns: "What are the candidate's core strengths and areas of concern?",
+        hiringRecommendation: 'What is the overall hiring recommendation and justification?',
+        nextRoundProbes: 'What follow-up questions are suggested for the next interview round?',
+      },
+      oneOnOne: {
+        feedbackDiscussion: 'What are the main discussion topics and feedback in this 1-on-1?',
+        sentimentWorkload: 'What sentiment, wellbeing, or workload challenges were shared?',
+        goalsCommitments: 'What growth goals and development commitments were agreed upon?',
+        managerSupport: 'Are there any blockers or manager support requested?',
+      },
+      techReview: {
+        architectureDecisions: 'What are the core architecture proposals and technical decisions (ADR)?',
+        rejectedAlternatives: 'What alternative solutions were rejected and why?',
+        nfrRisks: 'How are scalability, performance, and security risks evaluated?',
+        actionItemsPoc: 'List all technical action items and POCs to be completed',
+      },
+      salesDiscovery: {
+        painPoints: "What are the prospect's primary pain points and urgent needs?",
+        budgetTimeline: "What are the prospect's decision criteria, budget, and timeline?",
+        decisionMakers: 'Who are the key decision makers and stakeholders involved?',
+        nextSteps: 'What next steps and follow-ups were agreed upon?',
+      },
+      dailyStandup: {
+        yesterdayProgress: 'What progress was completed yesterday by each team member?',
+        todayPriorities: 'What are the priority tasks planned for today?',
+        blockers: 'Are there any blockers or impediments that need resolution?',
+        sprintHealth: 'What is the overall sprint health and delivery status?',
+      },
+      podcast: {
+        centralThemes: 'What are the central themes and interesting stories in this episode?',
+        memorableQuotes: 'What are the most memorable quotes from the guest/host?',
+        keyTakeaways: 'Summarize the core takeaways and insights for listeners',
+        resources: 'Were there any resources or recommendations shared?',
+      },
+      lecture: {
+        coreTheories: 'What core concepts and theories were taught in this lecture?',
+        caseStudies: 'What case studies or illustrations were explored?',
+        examTakeaways: 'Summarize the essential takeaways for study review and exams',
+        assignments: 'What homework assignments or further reading were assigned?',
+      },
+      researchDeepdive: {
+        researchQuestions: 'What are the core research questions and hypotheses investigated?',
+        methodologyFindings: 'What methodology was used and what were the key findings?',
+        limitations: 'What are the critical implications and research limitations?',
+        recommendations: 'What recommendations are proposed for future research or next steps?',
+      },
+    },
   },
   comments: {
     title: 'Comments & Notes',

@@ -971,12 +971,12 @@ export default function RecordingDetailPage() {
               onValueChange={(val) => setActiveTab(val as typeof activeTab)}
               className="w-full"
             >
-              <TabsList className="grid grid-cols-4 w-full max-w-lg mb-6">
+              <TabsList className="inline-flex w-fit max-w-full h-auto items-center gap-1 p-1 rounded-xl mb-6 overflow-x-auto bg-muted/70">
                 <TabsTrigger
                   value="summary"
                   data-testid="tab-trigger-summary"
                   onClick={() => setActiveTab('summary')}
-                  className="gap-1.5 text-xs font-semibold"
+                  className="flex items-center gap-2 text-xs font-semibold px-3.5 py-1.5 shrink-0"
                 >
                   <FileText className="w-3.5 h-3.5" />
                   <span>{t('recording.tabs.summary')}</span>
@@ -986,7 +986,7 @@ export default function RecordingDetailPage() {
                   value="transcript"
                   data-testid="tab-trigger-transcript"
                   onClick={() => setActiveTab('transcript')}
-                  className="gap-1.5 text-xs font-semibold"
+                  className="flex items-center gap-2 text-xs font-semibold px-3.5 py-1.5 shrink-0"
                 >
                   <UserCheck className="w-3.5 h-3.5" />
                   <span>{t('recording.tabs.transcript')}</span>
@@ -996,7 +996,7 @@ export default function RecordingDetailPage() {
                   value="chapters"
                   data-testid="tab-trigger-chapters"
                   onClick={() => setActiveTab('chapters')}
-                  className="gap-1.5 text-xs font-semibold"
+                  className="flex items-center gap-2 text-xs font-semibold px-3.5 py-1.5 shrink-0"
                 >
                   <ListOrdered className="w-3.5 h-3.5" />
                   <span>{t('recording.tabs.chapters')}</span>
@@ -1006,7 +1006,7 @@ export default function RecordingDetailPage() {
                   value="analytics"
                   data-testid="tab-trigger-analytics"
                   onClick={() => setActiveTab('analytics')}
-                  className="gap-1.5 text-xs font-semibold"
+                  className="flex items-center gap-2 text-xs font-semibold px-3.5 py-1.5 shrink-0"
                 >
                   <BarChart3 className="w-3.5 h-3.5" />
                   <span>{t('recording.tabs.analytics')}</span>
@@ -1125,24 +1125,26 @@ export default function RecordingDetailPage() {
 
           {/* Right Collapsible AI Chat Panel */}
           {isChatOpen && (
-            <aside
+            <div
               data-testid="recording-chat-panel"
-              className="w-full lg:w-[380px] shrink-0 border border-border/80 rounded-2xl bg-card shadow-lg sticky top-28 max-h-[calc(100vh-140px)] flex flex-col overflow-hidden animate-in slide-in-from-right duration-300"
+              className="w-full lg:w-[380px] shrink-0 sticky top-[168px] max-h-[calc(100vh-184px)] flex flex-col animate-in slide-in-from-right duration-300 z-20"
             >
               <ChatPanel
                 recordingId={recording.id}
+                template={activeSummaryData?.template_category || recording.selected_template}
                 isOpen={isChatOpen}
                 onClose={() => setIsChatOpen(false)}
                 onSendMessage={handleSendMessage}
                 onSeekAudio={(timestamp) => seek(timestamp)}
+                className="h-full max-w-none shadow-lg"
               />
-            </aside>
+            </div>
           )}
         </div>
       </main>
 
-      {/* Sticky Bottom Audio Player Bar */}
-      <div data-testid="sticky-audio-player-container" className="sticky bottom-4 z-40 px-4 my-2">
+      {/* Bottom Audio Player Bar */}
+      <div data-testid="sticky-audio-player-container" className="w-full max-w-4xl mx-auto px-4 my-6">
         <AudioPlayer
           src={recording.audio_url || recording.playback_url || undefined}
           title={recording.title}
