@@ -222,7 +222,7 @@ export function ChatPanel({
     <aside
       data-testid="chat-panel"
       className={cn(
-        'flex flex-col h-full w-full max-w-md rounded-2xl border border-border/80 bg-card/80 backdrop-blur-xl shadow-2xl transition-all',
+        'flex flex-col h-full w-full max-w-md rounded-2xl border border-border/80 bg-card/80 backdrop-blur-xl shadow-2xl transition-all overflow-hidden',
         className
       )}
       aria-label="AI Chat Panel"

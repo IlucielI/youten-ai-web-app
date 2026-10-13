@@ -1125,9 +1125,9 @@ export default function RecordingDetailPage() {
 
           {/* Right Collapsible AI Chat Panel */}
           {isChatOpen && (
-            <aside
+            <div
               data-testid="recording-chat-panel"
-              className="w-full lg:w-[380px] shrink-0 border border-border/80 rounded-2xl bg-card shadow-lg sticky top-28 max-h-[calc(100vh-140px)] flex flex-col overflow-hidden animate-in slide-in-from-right duration-300"
+              className="w-full lg:w-[380px] shrink-0 sticky top-[168px] max-h-[calc(100vh-184px)] flex flex-col animate-in slide-in-from-right duration-300 z-20"
             >
               <ChatPanel
                 recordingId={recording.id}
@@ -1135,8 +1135,9 @@ export default function RecordingDetailPage() {
                 onClose={() => setIsChatOpen(false)}
                 onSendMessage={handleSendMessage}
                 onSeekAudio={(timestamp) => seek(timestamp)}
+                className="h-full max-w-none shadow-lg"
               />
-            </aside>
+            </div>
           )}
         </div>
       </main>
