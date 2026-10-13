@@ -277,12 +277,12 @@ export default function SharedRecordingPage() {
         >
           {/* Tab Selection Header */}
           <div className="border-b border-border/80 pb-px">
-            <TabsList className="bg-muted/70 p-1 rounded-xl">
+            <TabsList className="bg-muted/70 p-1 rounded-xl h-auto gap-1 max-w-full overflow-x-auto">
               <TabsTrigger
                 value="summary"
                 data-testid="tab-trigger-summary"
                 onClick={() => setActiveTab('summary')}
-                className="flex items-center gap-2 text-xs font-semibold px-4 py-2"
+                className="flex items-center gap-2 text-xs font-semibold px-4 py-2 shrink-0"
               >
                 <FileText className="w-3.5 h-3.5" />
                 {t('recording.tabs.summary')}
@@ -292,7 +292,7 @@ export default function SharedRecordingPage() {
                 value="transcript"
                 data-testid="tab-trigger-transcript"
                 onClick={() => setActiveTab('transcript')}
-                className="flex items-center gap-2 text-xs font-semibold px-4 py-2"
+                className="flex items-center gap-2 text-xs font-semibold px-4 py-2 shrink-0"
               >
                 <ListOrdered className="w-3.5 h-3.5" />
                 {t('recording.tabs.transcript')} ({recording.segments?.length || 0})
@@ -302,7 +302,7 @@ export default function SharedRecordingPage() {
                 value="chapters"
                 data-testid="tab-trigger-chapters"
                 onClick={() => setActiveTab('chapters')}
-                className="flex items-center gap-2 text-xs font-semibold px-4 py-2"
+                className="flex items-center gap-2 text-xs font-semibold px-4 py-2 shrink-0"
               >
                 <Bookmark className="w-3.5 h-3.5" />
                 {t('recording.tabs.chapters')} ({recording.chapters?.length || 0})

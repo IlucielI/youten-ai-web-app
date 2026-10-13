@@ -971,12 +971,12 @@ export default function RecordingDetailPage() {
               onValueChange={(val) => setActiveTab(val as typeof activeTab)}
               className="w-full"
             >
-              <TabsList className="grid grid-cols-4 w-full max-w-lg mb-6">
+              <TabsList className="inline-flex w-fit max-w-full h-auto items-center gap-1 p-1 rounded-xl mb-6 overflow-x-auto bg-muted/70">
                 <TabsTrigger
                   value="summary"
                   data-testid="tab-trigger-summary"
                   onClick={() => setActiveTab('summary')}
-                  className="gap-1.5 text-xs font-semibold"
+                  className="flex items-center gap-2 text-xs font-semibold px-3.5 py-1.5 shrink-0"
                 >
                   <FileText className="w-3.5 h-3.5" />
                   <span>{t('recording.tabs.summary')}</span>
@@ -986,7 +986,7 @@ export default function RecordingDetailPage() {
                   value="transcript"
                   data-testid="tab-trigger-transcript"
                   onClick={() => setActiveTab('transcript')}
-                  className="gap-1.5 text-xs font-semibold"
+                  className="flex items-center gap-2 text-xs font-semibold px-3.5 py-1.5 shrink-0"
                 >
                   <UserCheck className="w-3.5 h-3.5" />
                   <span>{t('recording.tabs.transcript')}</span>
@@ -996,7 +996,7 @@ export default function RecordingDetailPage() {
                   value="chapters"
                   data-testid="tab-trigger-chapters"
                   onClick={() => setActiveTab('chapters')}
-                  className="gap-1.5 text-xs font-semibold"
+                  className="flex items-center gap-2 text-xs font-semibold px-3.5 py-1.5 shrink-0"
                 >
                   <ListOrdered className="w-3.5 h-3.5" />
                   <span>{t('recording.tabs.chapters')}</span>
@@ -1006,7 +1006,7 @@ export default function RecordingDetailPage() {
                   value="analytics"
                   data-testid="tab-trigger-analytics"
                   onClick={() => setActiveTab('analytics')}
-                  className="gap-1.5 text-xs font-semibold"
+                  className="flex items-center gap-2 text-xs font-semibold px-3.5 py-1.5 shrink-0"
                 >
                   <BarChart3 className="w-3.5 h-3.5" />
                   <span>{t('recording.tabs.analytics')}</span>
