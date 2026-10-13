@@ -123,6 +123,18 @@ export const enPipeline: typeof idPipeline = {
         title: 'Pipeline Processing Timed Out',
         description: 'Recording processing exceeded the reasonable duration limit or connection was lost.',
       },
+      ERR_GDRIVE_ACCESS_DENIED: {
+        title: 'Google Drive Access Denied',
+        description: 'The Google Drive file is private or requires permission. Please change the link sharing setting to "Anyone with the link" and try again.',
+      },
+      ERR_IMPORT_FETCH_FAILED: {
+        title: 'Media Import Failed',
+        description: 'Could not fetch or download the media from the provided link. Please verify the URL is valid and publicly accessible.',
+      },
+      ERR_UNSUPPORTED_MEDIA_TYPE: {
+        title: 'Unsupported Media Format',
+        description: 'The linked or uploaded media is in an unsupported format or does not contain a valid audio stream.',
+      },
     },
   },
 };

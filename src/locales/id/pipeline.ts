@@ -121,6 +121,18 @@ export const idPipeline = {
         title: 'Pemrosesan Melebihi Batas Waktu (Timeout)',
         description: 'Pemrosesan rekaman melebihi batas durasi wajar atau aliran pipeline terputus.',
       },
+      ERR_GDRIVE_ACCESS_DENIED: {
+        title: 'Akses Google Drive Ditolak / Berkas Privat',
+        description: 'Berkas Google Drive ini bersifat privat atau memerlukan izin akses. Harap ubah setelan berbagi menjadi "Siapa saja yang memiliki link" (Anyone with the link), lalu coba lagi.',
+      },
+      ERR_IMPORT_FETCH_FAILED: {
+        title: 'Impor Media Gagal',
+        description: 'Tidak dapat mengunduh media dari tautan yang diberikan. Pastikan tautan valid dan dapat diakses secara publik.',
+      },
+      ERR_UNSUPPORTED_MEDIA_TYPE: {
+        title: 'Format Media Tidak Didukung',
+        description: 'Media yang ditautkan atau diunggah berformat tidak didukung atau tidak memiliki aliran audio yang valid.',
+      },
     },
   },
 };
