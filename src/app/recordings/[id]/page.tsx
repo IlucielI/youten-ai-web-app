@@ -485,7 +485,11 @@ export default function RecordingDetailPage() {
     let rawCitations: string[] = [];
 
     try {
-      const ownershipToken = useTokenStore.getState().getGuestToken(recordingId);
+      const ownershipToken =
+        useTokenStore.getState().getGuestToken(recordingId) ||
+        (typeof window !== 'undefined'
+          ? new URLSearchParams(window.location.search).get('token') || undefined
+          : undefined);
       const headers: Record<string, string> = {
         'Content-Type': 'application/json',
       };
