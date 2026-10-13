@@ -34,4 +34,33 @@ describe('ChatChips Molecule', () => {
     const firstChip = screen.getByTestId('chat-chip-0');
     expect(firstChip).toBeDisabled();
   });
+
+  it('renders template-specific prompt chips when template is INTERVIEW', () => {
+    render(<ChatChips template="INTERVIEW" onSelectPrompt={vi.fn()} />);
+
+    expect(screen.getByTestId('chat-chips')).toBeInTheDocument();
+    expect(
+      screen.getByText('Bagaimana evaluasi kualifikasi dan kompetensi kandidat?')
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('Apa kelebihan utama dan area perhatian (red flags) kandidat?')
+    ).toBeInTheDocument();
+  });
+
+  it('handles lowercase or dash template keys like interview or 1-on-1', () => {
+    const { rerender } = render(<ChatChips template="interview" onSelectPrompt={vi.fn()} />);
+    expect(
+      screen.getByText('Bagaimana evaluasi kualifikasi dan kompetensi kandidat?')
+    ).toBeInTheDocument();
+
+    rerender(<ChatChips template="1-on-1" onSelectPrompt={vi.fn()} />);
+    expect(
+      screen.getByText('Apa topik diskusi dan umpan balik utama dalam sesi 1-on-1 ini?')
+    ).toBeInTheDocument();
+  });
+
+  it('gracefully falls back to default prompts when template is unknown or general', () => {
+    render(<ChatChips template="UNKNOWN_CUSTOM" onSelectPrompt={vi.fn()} />);
+    expect(screen.getByText(DEFAULT_CHAT_PROMPTS[0])).toBeInTheDocument();
+  });
 });

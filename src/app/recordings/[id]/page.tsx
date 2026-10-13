@@ -1131,6 +1131,7 @@ export default function RecordingDetailPage() {
             >
               <ChatPanel
                 recordingId={recording.id}
+                template={activeSummaryData?.template_category || recording.selected_template}
                 isOpen={isChatOpen}
                 onClose={() => setIsChatOpen(false)}
                 onSendMessage={handleSendMessage}

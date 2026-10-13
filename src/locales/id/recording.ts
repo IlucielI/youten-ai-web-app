@@ -173,6 +173,56 @@ export const idRecording = {
       deadlines: 'Rangkum tenggat waktu dan komitmen yang dibahas',
       blockers: 'Apakah ada isu atau blocker kritis yang belum terselesaikan?',
     },
+    templatePrompts: {
+      interview: {
+        evalCompetencies: 'Bagaimana evaluasi kualifikasi dan kompetensi kandidat?',
+        strengthsConcerns: 'Apa kelebihan utama dan area perhatian (red flags) kandidat?',
+        hiringRecommendation: 'Bagaimana kesimpulan rekomendasi keputusan perekrutan (hiring)?',
+        nextRoundProbes: 'Pertanyaan apa yang disarankan untuk wawancara babak berikutnya?',
+      },
+      oneOnOne: {
+        feedbackDiscussion: 'Apa topik diskusi dan umpan balik utama dalam sesi 1-on-1 ini?',
+        sentimentWorkload: 'Bagaimana kondisi sentimen atau beban kerja yang diungkapkan?',
+        goalsCommitments: 'Apa target sasaran dan rencana pengembangan yang disepakati?',
+        managerSupport: 'Apakah ada hambatan (blocker) atau dukungan yang dibutuhkan?',
+      },
+      techReview: {
+        architectureDecisions: 'Apa rancangan arsitektur dan keputusan teknis utama (ADR)?',
+        rejectedAlternatives: 'Apa alternatif solusi yang ditolak beserta alasan teknisnya?',
+        nfrRisks: 'Bagaimana analisis skalabilitas, performa, dan risiko keamanannya?',
+        actionItemsPoc: 'Daftar tindak lanjut teknis dan POC yang harus diselesaikan',
+      },
+      salesDiscovery: {
+        painPoints: 'Apa masalah mendesak (pain points) dan kebutuhan utama prospek?',
+        budgetTimeline: 'Bagaimana kriteria keputusan, alokasi anggaran, dan timeline klien?',
+        decisionMakers: 'Siapa saja pengambil keputusan (decision makers) yang terlibat?',
+        nextSteps: 'Apa langkah tindak lanjut (next steps) yang disepakati bersama?',
+      },
+      dailyStandup: {
+        yesterdayProgress: 'Apa capaian pekerjaan kemarin dari setiap anggota tim?',
+        todayPriorities: 'Apa rencana tugas prioritas yang akan dikerjakan hari ini?',
+        blockers: 'Apakah ada blocker atau hambatan kerja yang membutuhkan bantuan?',
+        sprintHealth: 'Bagaimana status kesehatan target sprint saat ini?',
+      },
+      podcast: {
+        centralThemes: 'Apa tema utama dan cerita paling menarik dalam episode ini?',
+        memorableQuotes: 'Apa kutipan kunci (key quotes) paling berkesan dari narasumber?',
+        keyTakeaways: 'Rangkum wawasan dan intisari penting bagi para pendengar',
+        resources: 'Apakah ada referensi atau rekomendasi yang dibagikan?',
+      },
+      lecture: {
+        coreTheories: 'Apa konsep dan teori inti yang dijelaskan dalam materi kuliah ini?',
+        caseStudies: 'Apa contoh kasus atau studi ilustrasi yang dipelajari?',
+        examTakeaways: 'Rangkum poin-poin penting untuk bahan review dan persiapan ujian',
+        assignments: 'Apa tugas atau referensi bacaan lanjutan yang diberikan?',
+      },
+      researchDeepdive: {
+        researchQuestions: 'Apa pertanyaan riset dan hipotesis utama yang diinvestigasi?',
+        methodologyFindings: 'Bagaimana metodologi penelitian dan temuan data yang didapat?',
+        limitations: 'Apa implikasi penting serta batasan (limitations) studi ini?',
+        recommendations: 'Rekomendasi apa yang diusulkan untuk riset atau tahap selanjutnya?',
+      },
+    },
   },
   comments: {
     title: 'Komentar & Catatan',

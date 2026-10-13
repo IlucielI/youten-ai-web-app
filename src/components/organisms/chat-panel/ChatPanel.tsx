@@ -25,6 +25,7 @@ import { useTranslation } from '@/locales';
 
 export interface ChatPanelProps {
   recordingId?: string;
+  template?: string | null;
   isOpen?: boolean;
   onClose?: () => void;
   onSendMessage?: (message: string) => Promise<void> | void;
@@ -168,6 +169,7 @@ export function renderMessageContent(content: string, onSeek?: (timestamp: numbe
 }
 
 export function ChatPanel({
+  template,
   isOpen = true,
   onClose,
   onSendMessage,
@@ -297,7 +299,10 @@ export function ChatPanel({
             </div>
 
             <div className="w-full pt-4 border-t border-border/40">
-              <ChatChips onSelectPrompt={(prompt) => void handleSend(prompt)} />
+              <ChatChips
+                template={template}
+                onSelectPrompt={(prompt) => void handleSend(prompt)}
+              />
             </div>
           </div>
         ) : (
