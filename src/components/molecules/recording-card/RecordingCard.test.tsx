@@ -36,6 +36,11 @@ describe('RecordingCard Component', () => {
     expect(screen.getByText('Selesai')).toBeInTheDocument();
   });
 
+  it('renders dash fallback when file_size_bytes is 0 or uncalculated', () => {
+    render(<RecordingCard recording={{ ...mockRecording, file_size_bytes: 0 }} />);
+    expect(screen.getByText('-')).toBeInTheDocument();
+  });
+
   it('correctly maps various recording statuses to pill configs', () => {
     expect(getStatusPillConfig(RecordingStatus.COMPLETED).label).toBe('Selesai');
     expect(getStatusPillConfig(RecordingStatus.FAILED).label).toBe('Gagal');

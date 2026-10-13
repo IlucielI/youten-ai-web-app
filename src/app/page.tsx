@@ -121,6 +121,7 @@ export default function LandingPage() {
             object_key,
             title: options.title || file.name.replace(/\.[^/.]+$/, ''),
             template: options.templateCategory || DefaultTemplateKey,
+            file_size_bytes: file.size,
           }),
         }
       );

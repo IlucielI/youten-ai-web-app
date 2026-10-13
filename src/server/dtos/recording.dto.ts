@@ -23,6 +23,7 @@ export interface UploadRecordingRequest {
   title?: string;
   template?: string;
   language?: string;
+  file_size_bytes?: number;
 }
 
 export interface RecordingUploadResponse {

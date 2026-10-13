@@ -108,7 +108,10 @@ export const RecordingCard: React.FC<RecordingCardProps> = ({
     locale === 'en'
       ? enTemplateLabels[recording.selected_template] || templateLabels[recording.selected_template] || recording.selected_template
       : templateLabels[recording.selected_template] || recording.selected_template;
-  const fileSizeMb = (recording.file_size_bytes / (1024 * 1024)).toFixed(1);
+  const fileSizeDisplay =
+    recording.file_size_bytes > 0
+      ? `${(recording.file_size_bytes / (1024 * 1024)).toFixed(1)} MB`
+      : '-';
 
   const formattedDate = new Date(recording.created_at).toLocaleDateString(
     locale === 'en' ? 'en-US' : 'id-ID',
@@ -196,7 +199,7 @@ export const RecordingCard: React.FC<RecordingCardProps> = ({
           </span>
           <span className="flex items-center gap-1">
             <HardDrive className="w-3.5 h-3.5 text-slate-400" />
-            {fileSizeMb} MB
+            {fileSizeDisplay}
           </span>
           <span className="hidden sm:flex items-center gap-1">
             <Calendar className="w-3.5 h-3.5 text-slate-400" />
