@@ -35,6 +35,7 @@ export const UploadRecordingRequestSchema = z.object({
   title: z.string().trim().max(255).optional(),
   template: z.string().trim().max(100).optional(),
   language: z.string().trim().max(50).optional(),
+  file_size_bytes: z.number().int().nonnegative().optional(),
 });
 export type UploadRecordingRequestInput = z.infer<typeof UploadRecordingRequestSchema>;
 
