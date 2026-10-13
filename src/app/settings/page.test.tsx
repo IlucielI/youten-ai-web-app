@@ -85,6 +85,9 @@ describe('SettingsPage', () => {
     expect(screen.getByText('3')).toBeInTheDocument(); // remaining
     expect(screen.getByText('/ 5')).toBeInTheDocument(); // total
     expect(screen.getByText('Terpakai: 2 rapat')).toBeInTheDocument();
+
+    // Check footer
+    expect(screen.getByTestId('app-footer')).toBeInTheDocument();
   });
 
   it('renders profile and quota data in English by default when locale is en', async () => {
