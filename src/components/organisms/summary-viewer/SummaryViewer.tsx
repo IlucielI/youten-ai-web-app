@@ -323,18 +323,20 @@ export function SummaryViewer({ summary, isLoading = false, className }: Summary
   }
 
   return (
-    <div data-testid="summary-viewer" className={cn('space-y-4', className)}>
+    <div data-testid="summary-viewer" className={cn('space-y-4 max-w-full min-w-0', className)}>
       {/* Custom Perspective Angle Banner */}
       {summary.custom_angle && (
-        <div className="flex items-center gap-2 rounded-lg border border-primary/20 bg-primary/5 px-3 py-2 text-xs text-primary">
+        <div className="flex items-center gap-2 rounded-lg border border-primary/20 bg-primary/5 px-3 py-2 text-xs text-primary max-w-full min-w-0">
           <Compass className="h-3.5 w-3.5 shrink-0" />
-          <span className="font-medium">{t('recording.templates.customAngleLabel')}</span>
-          <span className="text-foreground/90 italic truncate">&ldquo;{summary.custom_angle}&rdquo;</span>
+          <span className="font-medium shrink-0">{t('recording.templates.customAngleLabel')}</span>
+          <span className="text-foreground/90 italic break-words min-w-0">&ldquo;{summary.custom_angle}&rdquo;</span>
         </div>
       )}
 
       {/* Main Rendered Content */}
-      {renderedContent}
+      <div className="max-w-full min-w-0">
+        {renderedContent}
+      </div>
     </div>
   );
 }

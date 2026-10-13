@@ -223,67 +223,67 @@ export function MarkdownFallback({
   return (
     <div
       data-testid="markdown-summary-fallback"
-      className={cn('space-y-4 text-foreground', className)}
+      className={cn('space-y-4 text-foreground max-w-full min-w-0', className)}
     >
-      <div className="rounded-xl border border-border/60 bg-card/60 p-4 backdrop-blur-sm shadow-sm flex items-center justify-between">
-        <div className="flex items-center gap-2 text-xs font-semibold text-primary">
-          <FileText className="h-4 w-4" />
-          <span>{t('recording.templates.markdown.badge', { category: templateCategory ? `(${templateCategory})` : '' }).trim()}</span>
+      <div className="rounded-xl border border-border/60 bg-card/60 p-4 backdrop-blur-sm shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-2 max-w-full min-w-0">
+        <div className="flex items-center gap-2 text-xs font-semibold text-primary min-w-0">
+          <FileText className="h-4 w-4 shrink-0" />
+          <span className="break-words min-w-0">{t('recording.templates.markdown.badge', { category: templateCategory ? `(${templateCategory})` : '' }).trim()}</span>
         </div>
-        <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-          <Sparkles className="h-3.5 w-3.5 text-amber-400" />
+        <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground shrink-0">
+          <Sparkles className="h-3.5 w-3.5 text-amber-400 shrink-0" />
           <span>{t('recording.templates.markdown.structuredAiFormat')}</span>
         </div>
       </div>
 
-      <Card className="border-border/60 bg-card/50 overflow-hidden shadow-sm">
-        <CardContent className="p-6 md:p-8">
-          <div className="prose prose-slate dark:prose-invert max-w-none text-foreground/90 leading-relaxed font-sans">
+      <Card className="border-border/60 bg-card/50 overflow-hidden shadow-sm max-w-full">
+        <CardContent className="p-6 md:p-8 max-w-full overflow-hidden">
+          <div className="prose prose-slate dark:prose-invert max-w-none text-foreground/90 leading-relaxed font-sans break-words [overflow-wrap:anywhere]">
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
               components={{
                 h1: ({ children }) => (
-                  <h1 className="text-xl md:text-2xl font-bold tracking-tight text-foreground border-b border-border/60 pb-3 mt-6 mb-4 first:mt-0">
+                  <h1 className="text-xl md:text-2xl font-bold tracking-tight text-foreground border-b border-border/60 pb-3 mt-6 mb-4 first:mt-0 break-words">
                     {children}
                   </h1>
                 ),
                 h2: ({ children }) => (
-                  <h2 className="text-lg md:text-xl font-bold tracking-tight text-foreground mt-6 mb-3 border-b border-border/40 pb-2">
+                  <h2 className="text-lg md:text-xl font-bold tracking-tight text-foreground mt-6 mb-3 border-b border-border/40 pb-2 break-words">
                     {children}
                   </h2>
                 ),
                 h3: ({ children }) => (
-                  <h3 className="text-base font-semibold text-foreground/95 mt-5 mb-2">
+                  <h3 className="text-base font-semibold text-foreground/95 mt-5 mb-2 break-words">
                     {children}
                   </h3>
                 ),
                 h4: ({ children }) => (
-                  <h4 className="text-sm font-semibold text-foreground mt-4 mb-2">
+                  <h4 className="text-sm font-semibold text-foreground mt-4 mb-2 break-words">
                     {children}
                   </h4>
                 ),
                 p: ({ children }) => (
-                  <p className="text-sm md:text-base leading-relaxed text-foreground/85 mb-4">
+                  <p className="text-sm md:text-base leading-relaxed text-foreground/85 mb-4 break-words">
                     {children}
                   </p>
                 ),
                 ul: ({ children }) => (
-                  <ul className="list-disc list-outside pl-5 space-y-1.5 mb-4 text-sm md:text-base text-foreground/85 marker:text-primary">
+                  <ul className="list-disc list-outside pl-5 space-y-1.5 mb-4 text-sm md:text-base text-foreground/85 marker:text-primary max-w-full">
                     {children}
                   </ul>
                 ),
                 ol: ({ children }) => (
-                  <ol className="list-decimal list-outside pl-5 space-y-1.5 mb-4 text-sm md:text-base text-foreground/85 marker:text-primary">
+                  <ol className="list-decimal list-outside pl-5 space-y-1.5 mb-4 text-sm md:text-base text-foreground/85 marker:text-primary max-w-full">
                     {children}
                   </ol>
                 ),
                 li: ({ children }) => (
-                  <li className="leading-relaxed">
+                  <li className="leading-relaxed break-words">
                     {children}
                   </li>
                 ),
                 blockquote: ({ children }) => (
-                  <blockquote className="border-l-4 border-primary bg-primary/5 pl-4 py-3 my-4 rounded-r-xl italic text-sm md:text-base text-foreground/90">
+                  <blockquote className="border-l-4 border-primary bg-primary/5 pl-4 py-3 my-4 rounded-r-xl italic text-sm md:text-base text-foreground/90 break-words max-w-full">
                     {children}
                   </blockquote>
                 ),
@@ -291,8 +291,8 @@ export function MarkdownFallback({
                   <hr className="border-border/60 my-6" />
                 ),
                 table: ({ children }) => (
-                  <div className="overflow-x-auto my-6 rounded-xl border border-border/60 bg-card/40 shadow-sm">
-                    <table className="w-full border-collapse text-sm">
+                  <div className="overflow-x-auto my-6 rounded-xl border border-border/60 bg-card/40 shadow-sm max-w-full">
+                    <table className="w-full border-collapse text-sm min-w-[500px]">
                       {children}
                     </table>
                   </div>
@@ -303,12 +303,12 @@ export function MarkdownFallback({
                   </thead>
                 ),
                 th: ({ children }) => (
-                  <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-muted-foreground border border-border/40">
+                  <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-muted-foreground border border-border/40 break-words">
                     {children}
                   </th>
                 ),
                 td: ({ children }) => (
-                  <td className="px-4 py-3 text-sm text-foreground/85 border border-border/40 align-top">
+                  <td className="px-4 py-3 text-sm text-foreground/85 border border-border/40 align-top break-words">
                     {children}
                   </td>
                 ),
