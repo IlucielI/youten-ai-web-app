@@ -16,7 +16,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
   showFooter = true,
 }) => {
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900">
+    <div className="min-h-screen flex flex-col bg-background text-foreground">
       <Navbar {...navbarProps} />
 
       <main className="flex-1 w-full">{children}</main>

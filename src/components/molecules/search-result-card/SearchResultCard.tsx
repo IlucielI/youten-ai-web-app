@@ -21,18 +21,18 @@ export function getScoreBadgeConfig(score: number): { label: string; className: 
   if (percentage >= 85) {
     return {
       label: `${percentage}% Relevan`,
-      className: 'bg-emerald-50 text-emerald-700 border-emerald-200/80',
+      className: 'bg-emerald-50 text-emerald-700 border-emerald-200/80 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800/60',
     };
   }
   if (percentage >= 70) {
     return {
       label: `${percentage}% Relevan`,
-      className: 'bg-blue-50 text-blue-700 border-blue-200/80',
+      className: 'bg-blue-50 text-blue-700 border-blue-200/80 dark:bg-blue-950/40 dark:text-blue-400 dark:border-blue-800/60',
     };
   }
   return {
     label: `${percentage}% Relevan`,
-    className: 'bg-amber-50 text-amber-700 border-amber-200/80',
+    className: 'bg-amber-50 text-amber-700 border-amber-200/80 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-800/60',
   };
 }
 
@@ -48,7 +48,7 @@ export const SearchResultCard: React.FC<SearchResultCardProps> = ({
   return (
     <Card
       className={cn(
-        'group border border-slate-200/80 bg-white hover:border-blue-300/80 hover:shadow-md transition-all duration-200 rounded-2xl overflow-hidden',
+        'group border border-border bg-card text-card-foreground hover:border-primary/50 hover:shadow-md transition-all duration-200 rounded-2xl overflow-hidden',
         className
       )}
       data-testid="search-result-card"
@@ -57,20 +57,20 @@ export const SearchResultCard: React.FC<SearchResultCardProps> = ({
         {/* Top Header Row */}
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-8 h-8 rounded-xl bg-blue-50 border border-blue-200/60 flex items-center justify-center shrink-0 text-blue-600">
+            <div className="w-8 h-8 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0 text-primary">
               <FileText className="w-4 h-4" />
             </div>
             <div className="min-w-0">
               <Link
                 href={recordingHref}
                 onClick={() => onClick?.(result)}
-                className="font-bold text-sm sm:text-base text-slate-900 group-hover:text-blue-600 transition-colors truncate block"
+                className="font-bold text-sm sm:text-base text-foreground group-hover:text-primary transition-colors truncate block"
               >
                 {result.recording_title}
               </Link>
-              <div className="flex items-center gap-2 text-xs text-slate-500">
-                <span className="inline-flex items-center gap-1 font-mono text-[11px] text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">
-                  <PlayCircle className="w-3 h-3 text-slate-400" />
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <span className="inline-flex items-center gap-1 font-mono text-[11px] text-muted-foreground bg-muted px-2 py-0.5 rounded-md">
+                  <PlayCircle className="w-3.5 h-3.5 text-muted-foreground/70" />
                   {timeRange}
                 </span>
                 <span>•</span>
@@ -90,8 +90,8 @@ export const SearchResultCard: React.FC<SearchResultCardProps> = ({
         </div>
 
         {/* Snippet Block */}
-        <div className="bg-slate-50/80 border border-slate-100 rounded-xl p-3.5 text-xs sm:text-sm text-slate-700 leading-relaxed font-sans relative">
-          <p className="line-clamp-3 italic text-slate-600">
+        <div className="bg-muted/50 border border-border rounded-xl p-3.5 text-xs sm:text-sm text-foreground leading-relaxed font-sans relative">
+          <p className="line-clamp-3 italic text-muted-foreground">
             &ldquo;{result.snippet}&rdquo;
           </p>
         </div>
@@ -102,7 +102,7 @@ export const SearchResultCard: React.FC<SearchResultCardProps> = ({
             <Button
               variant="ghost"
               size="sm"
-              className="text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50 gap-1.5 h-8 font-medium"
+              className="text-xs text-primary hover:text-primary/90 hover:bg-primary/10 gap-1.5 h-8 font-medium"
             >
               <span>Buka di Rekaman</span>
               <ExternalLink className="w-3.5 h-3.5" />

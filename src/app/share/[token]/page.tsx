@@ -28,6 +28,7 @@ import { ChapterList } from '@/components/organisms/chapters-list';
 import { HighlightsGrid } from '@/components/organisms/highlights-grid';
 import { AudioPlayer } from '@/components/organisms/audio-player';
 import { Footer } from '@/components/organisms/footer';
+import { ThemeToggle } from '@/components/molecules/theme-toggle';
 import { formatTime } from '@/lib/time';
 import { usePlayerStore } from '@/stores/player.store';
 import { apiFetch } from '@/lib/api-client';
@@ -132,14 +133,15 @@ export default function SharedRecordingPage() {
     return (
       <div
         data-testid="shared-recording-loading"
-        className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 text-foreground"
+        className="min-h-screen flex flex-col bg-background text-foreground"
       >
         {/* Distraction-free Top Banner */}
-        <header className="border-b border-border/60 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md px-4 py-3 flex items-center justify-between">
+        <header className="border-b border-border/60 bg-background/90 backdrop-blur-md px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <YoutenLogo size="sm" />
             <span className="font-bold text-sm tracking-tight text-foreground">Youten AI</span>
           </div>
+          <ThemeToggle />
         </header>
 
         <div className="flex-1 flex flex-col items-center justify-center gap-3">
@@ -154,22 +156,25 @@ export default function SharedRecordingPage() {
     return (
       <div
         data-testid="shared-recording-error"
-        className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 text-foreground"
+        className="min-h-screen flex flex-col bg-background text-foreground"
       >
         {/* Distraction-free Top Banner */}
-        <header className="border-b border-border/60 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md px-4 sm:px-6 py-3 flex items-center justify-between">
+        <header className="border-b border-border/60 bg-background/90 backdrop-blur-md px-4 sm:px-6 py-3 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 group">
             <YoutenLogo size="sm" className="group-hover:scale-105 transition-transform" />
             <span className="font-bold text-sm tracking-tight text-foreground group-hover:text-primary transition-colors">
               Youten AI
             </span>
           </Link>
-          <Button asChild size="sm" variant="default" className="text-xs">
-            <Link href="/">
-              {t('share.tryFree')}
-              <ArrowRight className="w-3.5 h-3.5 ml-1" />
-            </Link>
-          </Button>
+          <div className="flex items-center gap-3">
+            <ThemeToggle />
+            <Button asChild size="sm" variant="default" className="text-xs">
+              <Link href="/">
+                {t('share.tryFree')}
+                <ArrowRight className="w-3.5 h-3.5 ml-1" />
+              </Link>
+            </Button>
+          </div>
         </header>
 
         <div className="flex-1 flex flex-col items-center justify-center max-w-md mx-auto text-center px-4">
@@ -193,10 +198,10 @@ export default function SharedRecordingPage() {
   return (
     <div
       data-testid="shared-recording-container"
-      className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 text-foreground selection:bg-primary/20 selection:text-primary"
+      className="min-h-screen flex flex-col bg-background text-foreground selection:bg-primary/20 selection:text-primary"
     >
       {/* 1. Distraction-Free Powered-by Header Banner */}
-      <header className="border-b border-border/60 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md sticky top-0 z-40">
+      <header className="border-b border-border/60 bg-background/90 backdrop-blur-md sticky top-0 z-40">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-4">
           {/* Left: Branding & Read-Only Badge */}
           <div className="flex items-center gap-3">
@@ -213,11 +218,12 @@ export default function SharedRecordingPage() {
             </span>
           </div>
 
-          {/* Right: Promotional CTA */}
+          {/* Right: Promotional CTA & ThemeToggle */}
           <div className="flex items-center gap-2.5">
             <span className="hidden md:inline-block text-xs text-muted-foreground">
               {t('share.poweredBy')}
             </span>
+            <ThemeToggle />
             <Button asChild size="sm" className="text-xs font-semibold shadow-xs">
               <Link href="/" data-testid="try-free-cta-btn">
                 {t('share.tryFree')}

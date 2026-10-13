@@ -17,9 +17,9 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
 }) => {
   return (
     <div
-      className={`p-8 sm:p-12 text-center rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50/50 flex flex-col items-center justify-center space-y-3 ${className}`}
+      className={`p-8 sm:p-12 text-center rounded-2xl border-2 border-dashed border-border/80 bg-muted/20 flex flex-col items-center justify-center space-y-3 ${className}`}
     >
-      <div className="p-3 bg-white rounded-2xl border border-slate-200/80 shadow-xs text-slate-400">
+      <div className="p-3 bg-card rounded-2xl border border-border shadow-xs text-muted-foreground">
         {icon || (
           <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path
@@ -33,9 +33,9 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
       </div>
 
       <div className="max-w-sm space-y-1">
-        <h4 className="text-sm font-bold text-slate-900">{title}</h4>
+        <h4 className="text-sm font-bold text-foreground">{title}</h4>
         {description && (
-          <p className="text-xs text-slate-500 leading-relaxed">{description}</p>
+          <p className="text-xs text-muted-foreground leading-relaxed">{description}</p>
         )}
       </div>
 

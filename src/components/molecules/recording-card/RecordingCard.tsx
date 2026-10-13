@@ -125,13 +125,13 @@ export const RecordingCard: React.FC<RecordingCardProps> = ({
   return (
     <div
       data-testid={`recording-card-${recording.id}`}
-      className={`group bg-white rounded-2xl border border-slate-200/90 hover:border-blue-400/80 shadow-xs hover:shadow-md transition-all duration-200 flex flex-col justify-between p-5 relative overflow-hidden ${className}`}
+      className={`group bg-card text-card-foreground rounded-2xl border border-border hover:border-primary/60 shadow-xs hover:shadow-md transition-all duration-200 flex flex-col justify-between p-5 relative overflow-hidden ${className}`}
     >
       {/* Top Header: Template & Menu */}
       <div className="flex items-center justify-between gap-2 mb-3">
         <Badge
           variant="secondary"
-          className="text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200/60"
+          className="text-[11px] font-semibold bg-primary/10 text-primary border border-primary/20"
         >
           {templateName}
         </Badge>
@@ -139,36 +139,36 @@ export const RecordingCard: React.FC<RecordingCardProps> = ({
         <DropdownMenu open={open} onOpenChange={onOpenChange}>
           <DropdownMenuTrigger
             aria-label={`Menu pilihan untuk ${recording.title}`}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors focus:outline-none"
+            className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors focus:outline-none"
           >
             <MoreVertical className="w-4 h-4" />
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-44">
+          <DropdownMenuContent align="end" className="w-44 border-border bg-popover text-popover-foreground">
             <DropdownMenuItem asChild>
               <Link
                 href={`/recordings/${recording.id}`}
-                className="flex items-center gap-2 cursor-pointer"
+                className="flex items-center gap-2 cursor-pointer text-foreground hover:bg-muted"
               >
-                <ExternalLink className="w-4 h-4 text-slate-500" />
+                <ExternalLink className="w-4 h-4 text-muted-foreground" />
                 <span>{t('dashboard.table.viewDetail')}</span>
               </Link>
             </DropdownMenuItem>
             {onShare && (
               <DropdownMenuItem
                 onClick={() => onShare(recording)}
-                className="flex items-center gap-2 cursor-pointer"
+                className="flex items-center gap-2 cursor-pointer text-foreground hover:bg-muted"
               >
-                <Share2 className="w-4 h-4 text-slate-500" />
+                <Share2 className="w-4 h-4 text-muted-foreground" />
                 <span>{t('dashboard.table.share')}</span>
               </DropdownMenuItem>
             )}
-            <DropdownMenuSeparator />
+            <DropdownMenuSeparator className="bg-border" />
             {onDelete && (
               <DropdownMenuItem
                 onClick={() => onDelete(recording)}
-                className="flex items-center gap-2 text-rose-600 focus:text-rose-700 cursor-pointer"
+                className="flex items-center gap-2 text-destructive focus:text-destructive hover:bg-destructive/10 cursor-pointer"
               >
-                <Trash2 className="w-4 h-4 text-rose-500" />
+                <Trash2 className="w-4 h-4 text-destructive" />
                 <span>{t('dashboard.table.delete')}</span>
               </DropdownMenuItem>
             )}
@@ -180,29 +180,29 @@ export const RecordingCard: React.FC<RecordingCardProps> = ({
       <div className="space-y-2 mb-4 flex-1">
         <Link
           href={`/recordings/${recording.id}`}
-          className="font-bold text-slate-900 group-hover:text-blue-600 transition-colors line-clamp-2 text-base leading-snug"
+          className="font-bold text-foreground group-hover:text-primary transition-colors line-clamp-2 text-base leading-snug"
         >
           {recording.title || recording.original_filename}
         </Link>
-        <p className="text-xs text-slate-400 truncate flex items-center gap-1.5">
-          <FileAudio className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+        <p className="text-xs text-muted-foreground truncate flex items-center gap-1.5">
+          <FileAudio className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
           <span className="truncate">{recording.original_filename}</span>
         </p>
       </div>
 
       {/* Metadata footer */}
-      <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+      <div className="pt-3 border-t border-border/80 flex items-center justify-between text-xs text-muted-foreground">
         <div className="flex items-center gap-3">
           <span className="flex items-center gap-1">
-            <Clock className="w-3.5 h-3.5 text-slate-400" />
+            <Clock className="w-3.5 h-3.5 text-muted-foreground" />
             {formatTime(recording.duration_seconds)}
           </span>
           <span className="flex items-center gap-1">
-            <HardDrive className="w-3.5 h-3.5 text-slate-400" />
+            <HardDrive className="w-3.5 h-3.5 text-muted-foreground" />
             {fileSizeDisplay}
           </span>
           <span className="hidden sm:flex items-center gap-1">
-            <Calendar className="w-3.5 h-3.5 text-slate-400" />
+            <Calendar className="w-3.5 h-3.5 text-muted-foreground" />
             {formattedDate}
           </span>
         </div>

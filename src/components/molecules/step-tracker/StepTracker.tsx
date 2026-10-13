@@ -35,16 +35,16 @@ export const StepTracker: React.FC<StepTrackerProps> = ({
           const isPending = currentStep < step.number;
 
           const cardBorder = isActive
-            ? 'border-blue-600 bg-blue-50/50 ring-2 ring-blue-500/10'
+            ? 'border-primary bg-primary/10 ring-2 ring-primary/20'
             : isCompleted
-            ? 'border-emerald-200 bg-emerald-50/30'
-            : 'border-slate-200 bg-white opacity-70';
+            ? 'border-emerald-500/30 bg-emerald-500/10'
+            : 'border-border bg-card text-card-foreground opacity-70';
 
           const numberBg = isActive
-            ? 'bg-blue-600 text-white shadow-sm shadow-blue-500/30'
+            ? 'bg-primary text-primary-foreground shadow-xs shadow-primary/30'
             : isCompleted
             ? 'bg-emerald-600 text-white'
-            : 'bg-slate-100 text-slate-500';
+            : 'bg-muted text-muted-foreground';
 
           return (
             <button
@@ -53,7 +53,7 @@ export const StepTracker: React.FC<StepTrackerProps> = ({
               disabled={isPending}
               onClick={() => onStepClick?.(step.number)}
               className={`flex items-center gap-3 p-3 rounded-xl border text-left transition-all ${cardBorder} ${
-                isPending ? 'cursor-default' : 'cursor-pointer hover:border-blue-300'
+                isPending ? 'cursor-default' : 'cursor-pointer hover:border-primary/50'
               }`}
             >
               <div
@@ -66,16 +66,16 @@ export const StepTracker: React.FC<StepTrackerProps> = ({
                 <p
                   className={`text-xs font-bold truncate ${
                     isActive
-                      ? 'text-blue-900'
+                      ? 'text-primary'
                       : isCompleted
-                      ? 'text-emerald-900'
-                      : 'text-slate-600'
+                      ? 'text-emerald-500'
+                      : 'text-foreground'
                   }`}
                 >
                   {step.title}
                 </p>
                 {step.subtitle && (
-                  <p className="text-[10px] text-slate-400 truncate mt-0.5">{step.subtitle}</p>
+                  <p className="text-[10px] text-muted-foreground/80 truncate mt-0.5">{step.subtitle}</p>
                 )}
               </div>
             </button>

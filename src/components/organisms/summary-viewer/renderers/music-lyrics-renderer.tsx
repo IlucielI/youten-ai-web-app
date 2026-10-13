@@ -14,58 +14,69 @@ export function MusicLyricsRenderer({ data, className }: MusicLyricsRendererProp
   return (
     <div
       data-testid="music-lyrics-summary-renderer"
-      className={cn('space-y-6 text-foreground', className)}
+      className={cn('space-y-6 text-foreground max-w-full overflow-hidden', className)}
     >
       {/* Song Header Banner */}
-      <div className="rounded-xl border border-rose-500/30 bg-gradient-to-br from-rose-500/10 via-card/80 to-purple-500/5 p-5 backdrop-blur-sm shadow-sm space-y-3">
+      <div className="rounded-xl border border-rose-500/30 bg-gradient-to-br from-rose-500/10 via-card/80 to-purple-500/5 p-5 backdrop-blur-sm shadow-sm space-y-4 max-w-full overflow-hidden">
         <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-rose-400">
-          <Music2 className="h-4 w-4 text-rose-400 animate-pulse" />
+          <Music2 className="h-4 w-4 text-rose-400 animate-pulse shrink-0" />
           <span>Komposisi & Transkrip Lirik Musik</span>
         </div>
-        <div className="flex items-center justify-between gap-2 flex-wrap">
-          <h2 className="text-xl font-bold text-foreground md:text-2xl tracking-tight">
+
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 max-w-full min-w-0">
+          <h2 className="text-xl font-bold text-foreground md:text-2xl tracking-tight break-words min-w-0">
             {data.song_title}
           </h2>
-          <div className="flex items-center gap-2 flex-wrap">
-            {data.artist_or_performers && (
-              <Badge variant="outline" className="text-xs bg-rose-500/10 text-rose-300 border-rose-500/30 flex items-center gap-1">
-                <Mic2 className="h-3 w-3" />
-                {data.artist_or_performers}
-              </Badge>
-            )}
-            {data.musical_style && (
-              <Badge variant="secondary" className="text-xs bg-purple-500/10 text-purple-300 border-purple-500/20 flex items-center gap-1">
-                <Disc className="h-3 w-3" />
-                {data.musical_style}
-              </Badge>
-            )}
-          </div>
+          {data.artist_or_performers && (
+            <Badge
+              variant="outline"
+              className="text-xs bg-rose-500/10 text-rose-300 border-rose-500/30 inline-flex items-center gap-1.5 whitespace-normal break-words max-w-full text-left py-1 px-2.5 h-auto w-fit shrink-0"
+            >
+              <Mic2 className="h-3 w-3 shrink-0" />
+              <span>{data.artist_or_performers}</span>
+            </Badge>
+          )}
         </div>
 
+        {data.musical_style && (
+          <div className="flex items-start gap-2 rounded-lg border border-purple-500/20 bg-purple-500/10 px-3 py-2 text-xs text-purple-300 max-w-full break-words">
+            <Disc className="h-3.5 w-3.5 shrink-0 mt-0.5 text-purple-400" />
+            <span className="leading-relaxed whitespace-normal break-words">{data.musical_style}</span>
+          </div>
+        )}
+
         {/* Emotional Tone & Energy Assessment */}
-        <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3 pt-2 border-t border-border/40">
-          <div className="p-3 rounded-lg border border-rose-500/20 bg-rose-500/5 space-y-1 text-xs">
+        <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3.5 pt-3 border-t border-border/40 max-w-full">
+          <div className="p-3.5 rounded-lg border border-rose-500/20 bg-rose-500/5 space-y-2 text-xs min-w-0 max-w-full overflow-hidden break-words">
             <span className="font-semibold text-rose-400 flex items-center gap-1.5">
-              <Heart className="h-3.5 w-3.5" />
+              <Heart className="h-3.5 w-3.5 shrink-0" />
               Suasana Hati & Energi (Mood & Energy)
             </span>
-            <div className="flex items-center gap-2 pt-0.5">
-              <Badge className="bg-rose-500 text-white text-[10px]">{data.emotional_tone.primary_mood}</Badge>
-              <Badge variant="outline" className="text-[10px]">{data.emotional_tone.energy_level}</Badge>
+            <div className="flex flex-wrap items-center gap-1.5 pt-0.5 max-w-full">
+              {data.emotional_tone?.primary_mood && (
+                <Badge className="bg-rose-500 text-white text-[11px] whitespace-normal break-words max-w-full text-left leading-snug py-1 px-2.5 h-auto rounded-md">
+                  {data.emotional_tone.primary_mood}
+                </Badge>
+              )}
+              {data.emotional_tone?.energy_level && (
+                <Badge variant="outline" className="text-[11px] whitespace-normal break-words max-w-full text-left leading-snug py-1 px-2.5 h-auto rounded-md border-rose-500/30 text-rose-300">
+                  {data.emotional_tone.energy_level}
+                </Badge>
+              )}
             </div>
-            {data.emotional_tone.sentiment_analysis && (
-              <p className="text-muted-foreground text-[11px] leading-relaxed pt-1">
+            {data.emotional_tone?.sentiment_analysis && (
+              <p className="text-muted-foreground text-[11px] leading-relaxed pt-1 break-words">
                 {data.emotional_tone.sentiment_analysis}
               </p>
             )}
           </div>
 
-          <div className="p-3 rounded-lg border border-purple-500/20 bg-purple-500/5 space-y-1 text-xs">
+          <div className="p-3.5 rounded-lg border border-purple-500/20 bg-purple-500/5 space-y-2 text-xs min-w-0 max-w-full overflow-hidden break-words">
             <span className="font-semibold text-purple-400 flex items-center gap-1.5">
-              <Sparkles className="h-3.5 w-3.5" />
+              <Sparkles className="h-3.5 w-3.5 shrink-0" />
               Makna & Pesan Inti (Core Message)
             </span>
-            <p className="text-foreground/90 text-xs leading-relaxed pt-0.5">
+            <p className="text-foreground/90 text-xs leading-relaxed pt-0.5 break-words">
               {data.core_message}
             </p>
           </div>
@@ -74,22 +85,22 @@ export function MusicLyricsRenderer({ data, className }: MusicLyricsRendererProp
 
       {/* Structured Lyrics per Section */}
       {data.structured_lyrics && data.structured_lyrics.length > 0 && (
-        <div className="space-y-4">
+        <div className="space-y-4 max-w-full overflow-hidden">
           <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-            <Disc className="h-4 w-4 text-rose-400" />
+            <Disc className="h-4 w-4 text-rose-400 shrink-0" />
             Lirik Berdasarkan Bagian Lagu ({data.structured_lyrics.length})
           </h3>
-          <div className="space-y-3">
+          <div className="space-y-3 max-w-full">
             {data.structured_lyrics.map((sec, idx) => (
-              <Card key={idx} className="border-border/60 bg-card/40">
+              <Card key={idx} className="border-border/60 bg-card/40 max-w-full overflow-hidden">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-xs font-bold uppercase tracking-wider text-rose-400 flex items-center gap-2">
-                    <span className="h-2 w-2 rounded-full bg-rose-400" />
-                    {sec.section}
+                    <span className="h-2 w-2 rounded-full bg-rose-400 shrink-0" />
+                    <span className="break-words">{sec.section}</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-xs text-foreground/90 leading-relaxed whitespace-pre-line font-serif italic pl-4 border-l-2 border-rose-500/30">
+                  <p className="text-xs text-foreground/90 leading-relaxed whitespace-pre-line font-serif italic pl-4 border-l-2 border-rose-500/30 break-words">
                     {sec.lyrics}
                   </p>
                 </CardContent>
@@ -101,17 +112,17 @@ export function MusicLyricsRenderer({ data, className }: MusicLyricsRendererProp
 
       {/* Thematic Elements */}
       {data.thematic_elements && data.thematic_elements.length > 0 && (
-        <Card className="border-border/60 bg-card/40">
+        <Card className="border-border/60 bg-card/40 max-w-full overflow-hidden">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-semibold flex items-center gap-2 text-indigo-400">
-              <Tag className="h-4 w-4" />
+              <Tag className="h-4 w-4 shrink-0" />
               Elemen Tematik ({data.thematic_elements.length})
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex flex-wrap gap-2">
               {data.thematic_elements.map((theme, idx) => (
-                <Badge key={idx} variant="secondary" className="text-xs px-2.5 py-1 bg-primary/10 text-primary border-primary/20">
+                <Badge key={idx} variant="secondary" className="text-xs px-2.5 py-1 bg-primary/10 text-primary border-primary/20 max-w-full whitespace-normal break-words h-auto text-left">
                   #{theme}
                 </Badge>
               ))}

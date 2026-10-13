@@ -787,7 +787,7 @@ export default function RecordingDetailPage() {
     return (
       <div
         data-testid="recording-detail-loading"
-        className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 text-foreground"
+        className="min-h-screen flex flex-col bg-background text-foreground"
       >
         <Navbar />
         <div className="flex-1 flex flex-col items-center justify-center gap-3">
@@ -802,7 +802,7 @@ export default function RecordingDetailPage() {
     return (
       <div
         data-testid="recording-detail-error"
-        className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 text-foreground"
+        className="min-h-screen flex flex-col bg-background text-foreground"
       >
         <Navbar />
         <div className="flex-1 flex flex-col items-center justify-center p-6 text-center max-w-md mx-auto">
@@ -825,7 +825,7 @@ export default function RecordingDetailPage() {
   return (
     <div
       data-testid="recording-detail-container"
-      className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 text-foreground selection:bg-primary/20 selection:text-primary"
+      className="min-h-screen flex flex-col bg-background text-foreground selection:bg-primary/20 selection:text-primary"
     >
       {/* Top Navbar */}
       <Navbar />

@@ -14,7 +14,7 @@ export default function AuthLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen flex flex-col justify-between bg-slate-50/80 dark:bg-slate-950 text-foreground antialiased selection:bg-primary selection:text-primary-foreground relative overflow-hidden">
+    <div className="min-h-screen flex flex-col justify-between bg-background text-foreground antialiased selection:bg-primary selection:text-primary-foreground relative overflow-hidden">
       {/* Ambient decorative background glows */}
       <div
         className="pointer-events-none absolute -top-48 left-1/2 -translate-x-1/2 w-[720px] h-[400px] rounded-full bg-gradient-to-b from-blue-400/15 to-indigo-500/0 blur-3xl dark:from-blue-600/15"

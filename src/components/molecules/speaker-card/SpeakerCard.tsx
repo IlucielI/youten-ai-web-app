@@ -119,7 +119,7 @@ export const SpeakerCard: React.FC<SpeakerCardProps> = ({
     <Card
       data-testid="speaker-card"
       className={cn(
-        'group border border-slate-200/80 bg-white hover:border-blue-300/80 hover:shadow-md transition-all duration-200 rounded-2xl overflow-hidden flex flex-col justify-between',
+        'group border border-border bg-card text-card-foreground hover:border-primary/50 hover:shadow-md transition-all duration-200 rounded-2xl overflow-hidden flex flex-col justify-between',
         className
       )}
     >
@@ -130,7 +130,7 @@ export const SpeakerCard: React.FC<SpeakerCardProps> = ({
             <div
               data-testid="speaker-avatar"
               className={cn(
-                'w-11 h-11 rounded-2xl flex items-center justify-center font-bold text-sm tracking-tight shrink-0 shadow-xs ring-2 ring-white',
+                'w-11 h-11 rounded-2xl flex items-center justify-center font-bold text-sm tracking-tight shrink-0 shadow-xs ring-2 ring-card',
                 avatarClass
               )}
             >
@@ -139,12 +139,12 @@ export const SpeakerCard: React.FC<SpeakerCardProps> = ({
             <div className="min-w-0">
               <h3
                 data-testid="speaker-name"
-                className="font-bold text-base text-slate-900 group-hover:text-blue-600 transition-colors truncate"
+                className="font-bold text-base text-foreground group-hover:text-primary transition-colors truncate"
               >
                 {speaker.name}
               </h3>
-              <p className="text-xs text-slate-500 flex items-center gap-1.5 mt-0.5">
-                <Calendar className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+              <p className="text-xs text-muted-foreground flex items-center gap-1.5 mt-0.5">
+                <Calendar className="w-3.5 h-3.5 text-muted-foreground/70 shrink-0" />
                 <span>{t('speakers.card.lastActive', { date: formattedLastActive })}</span>
               </p>
             </div>
@@ -152,7 +152,7 @@ export const SpeakerCard: React.FC<SpeakerCardProps> = ({
 
           <Badge
             variant="outline"
-            className="text-xs font-semibold px-2.5 py-0.5 rounded-full shrink-0 bg-blue-50 text-blue-700 border-blue-200/60"
+            className="text-xs font-semibold px-2.5 py-0.5 rounded-full shrink-0 bg-primary/10 text-primary border-primary/20"
           >
             {t('speakers.card.meetingsCount', { count: speaker.total_meetings })}
           </Badge>
@@ -160,30 +160,30 @@ export const SpeakerCard: React.FC<SpeakerCardProps> = ({
 
         {/* Metric Badges / Stats Container */}
         <div className="grid grid-cols-2 gap-2.5 pt-1">
-          <div className="bg-slate-50/80 border border-slate-100 rounded-xl p-3 space-y-1">
-            <div className="flex items-center gap-1.5 text-slate-500 text-[11px] font-medium">
-              <Mic className="w-3.5 h-3.5 text-blue-500" />
+          <div className="bg-muted/50 border border-border rounded-xl p-3 space-y-1">
+            <div className="flex items-center gap-1.5 text-muted-foreground text-[11px] font-medium">
+              <Mic className="w-3.5 h-3.5 text-primary" />
               <span>{t('speakers.card.talkTime')}</span>
             </div>
-            <div className="text-sm font-bold text-slate-900 truncate">
+            <div className="text-sm font-bold text-foreground truncate">
               {formattedDuration}
             </div>
           </div>
 
-          <div className="bg-slate-50/80 border border-slate-100 rounded-xl p-3 space-y-1">
-            <div className="flex items-center gap-1.5 text-slate-500 text-[11px] font-medium">
+          <div className="bg-muted/50 border border-border rounded-xl p-3 space-y-1">
+            <div className="flex items-center gap-1.5 text-muted-foreground text-[11px] font-medium">
               <Users className="w-3.5 h-3.5 text-emerald-500" />
               <span>{t('speakers.card.attendance')}</span>
             </div>
-            <div className="text-sm font-bold text-slate-900 truncate">
+            <div className="text-sm font-bold text-foreground truncate">
               {t('speakers.card.attendanceMeetings', { count: speaker.total_meetings })}
             </div>
           </div>
         </div>
 
         {/* Footer Action */}
-        <div className="flex items-center justify-between pt-1 border-t border-slate-100">
-          <span className="text-[11px] text-slate-400 font-mono">
+        <div className="flex items-center justify-between pt-1 border-t border-border">
+          <span className="text-[11px] text-muted-foreground/60 font-mono">
             ID: {speaker.name.toLowerCase().replace(/\s+/g, '-')}
           </span>
 
@@ -191,7 +191,7 @@ export const SpeakerCard: React.FC<SpeakerCardProps> = ({
             <Button
               variant="ghost"
               size="sm"
-              className="text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50 gap-1.5 h-8 font-medium px-2.5"
+              className="text-xs text-primary hover:text-primary/90 hover:bg-primary/10 gap-1.5 h-8 font-medium px-2.5"
             >
               <Search className="w-3.5 h-3.5" />
               <span>{t('speakers.card.searchQuotes')}</span>

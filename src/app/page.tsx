@@ -296,7 +296,7 @@ export default function LandingPage() {
         {currentUser ? (
           <div
             data-testid="user-quota-banner"
-            className="max-w-5xl mx-auto rounded-xl border border-primary/20 bg-primary/5 p-4 flex items-center justify-between gap-4 text-xs sm:text-sm text-foreground shadow-sm"
+            className="max-w-5xl mx-auto rounded-xl border border-primary/30 bg-primary/10 p-4 flex items-center justify-between gap-4 text-xs sm:text-sm text-foreground shadow-sm"
           >
             <div className="flex items-center gap-2.5">
               <Sparkles className="h-4 w-4 text-primary shrink-0" />
@@ -315,7 +315,7 @@ export default function LandingPage() {
         ) : (
           <div
             data-testid="guest-quota-banner"
-            className="max-w-5xl mx-auto rounded-xl border border-primary/20 bg-primary/5 p-4 flex items-center justify-between gap-4 text-xs sm:text-sm text-foreground shadow-sm"
+            className="max-w-5xl mx-auto rounded-xl border border-primary/30 bg-primary/10 p-4 flex items-center justify-between gap-4 text-xs sm:text-sm text-foreground shadow-sm"
           >
             <div className="flex items-center gap-2.5">
               <Info className="h-4 w-4 text-primary shrink-0" />
@@ -370,14 +370,14 @@ export default function LandingPage() {
             onValueChange={(val) => setActiveTab(val as typeof activeTab)}
             className="w-full"
           >
-            <TabsList className="grid grid-cols-4 w-full mb-6 h-11 p-1 bg-muted/60">
+            <TabsList className="grid grid-cols-4 w-full mb-6 h-11 p-1 bg-muted/60 border border-border/40">
               <TabsTrigger
                 value="upload"
                 data-testid="tab-upload"
                 onClick={() => setActiveTab('upload')}
-                className="flex items-center gap-2 text-xs sm:text-sm font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm"
+                className="flex items-center justify-center gap-2 text-xs sm:text-sm font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm truncate min-w-0"
               >
-                <UploadCloud className="h-4 w-4" />
+                <UploadCloud className="h-4 w-4 shrink-0" />
                 <span className="hidden sm:inline">{t('landing.tabs.upload')}</span>
                 <span className="sm:hidden">{t('landing.tabs.uploadShort')}</span>
               </TabsTrigger>
@@ -385,9 +385,9 @@ export default function LandingPage() {
                 value="url"
                 data-testid="tab-url"
                 onClick={() => setActiveTab('url')}
-                className="flex items-center gap-2 text-xs sm:text-sm font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm"
+                className="flex items-center justify-center gap-2 text-xs sm:text-sm font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm truncate min-w-0"
               >
-                <LinkIcon className="h-4 w-4" />
+                <LinkIcon className="h-4 w-4 shrink-0" />
                 <span className="hidden sm:inline">{t('landing.tabs.url')}</span>
                 <span className="sm:hidden">{t('landing.tabs.urlShort')}</span>
               </TabsTrigger>
@@ -395,9 +395,9 @@ export default function LandingPage() {
                 value="record"
                 data-testid="tab-record"
                 onClick={() => setActiveTab('record')}
-                className="flex items-center gap-2 text-xs sm:text-sm font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm"
+                className="flex items-center justify-center gap-2 text-xs sm:text-sm font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm truncate min-w-0"
               >
-                <Mic className="h-4 w-4" />
+                <Mic className="h-4 w-4 shrink-0" />
                 <span className="hidden sm:inline">{t('landing.tabs.record')}</span>
                 <span className="sm:hidden">{t('landing.tabs.recordShort')}</span>
               </TabsTrigger>
@@ -405,17 +405,19 @@ export default function LandingPage() {
                 value="bot"
                 data-testid="tab-bot"
                 disabled
-                className="flex items-center gap-1.5 text-xs sm:text-sm font-medium opacity-60 cursor-not-allowed data-[state=active]:bg-background data-[state=active]:shadow-sm"
+                className="flex items-center justify-center gap-1.5 text-xs sm:text-sm font-medium opacity-60 cursor-not-allowed data-[state=active]:bg-background data-[state=active]:shadow-sm truncate min-w-0"
               >
-                <Bot className="h-4 w-4" />
+                <Bot className="h-4 w-4 shrink-0" />
                 <span className="hidden sm:inline">{t('landing.tabs.bot')}</span>
                 <span className="sm:hidden">{t('landing.tabs.botShort')}</span>
-                <Badge
-                  variant="secondary"
-                  className="ml-1 text-[10px] px-1.5 py-0 font-normal tracking-wide bg-muted-foreground/15 text-muted-foreground border-transparent"
-                >
-                  {t('landing.tabs.comingSoonBadge')}
-                </Badge>
+                <span className="hidden sm:inline-flex">
+                  <Badge
+                    variant="secondary"
+                    className="ml-1 text-[10px] px-1.5 py-0 font-normal tracking-wide bg-muted-foreground/15 text-muted-foreground border-transparent"
+                  >
+                    {t('landing.tabs.comingSoonBadge')}
+                  </Badge>
+                </span>
               </TabsTrigger>
             </TabsList>
 

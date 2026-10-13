@@ -43,6 +43,7 @@ import { EmptyState } from '@/components/molecules/empty-state';
 import { ShareDialog } from '@/components/molecules/share-dialog';
 import { UserNavDropdown } from '@/components/molecules/user-nav-dropdown';
 import { LanguageSwitcher } from '@/components/molecules/language-switcher';
+import { ThemeToggle } from '@/components/molecules/theme-toggle';
 import { Footer } from '@/components/organisms/footer';
 import { toast } from 'sonner';
 import { useTemplates } from '@/hooks';
@@ -327,20 +328,21 @@ export default function DashboardPage() {
   const safeRecordings = Array.isArray(recordings) ? recordings : [];
 
   return (
-    <div data-testid="dashboard-page" className="min-h-screen bg-slate-50/60 font-sans flex flex-col">
+    <div data-testid="dashboard-page" className="min-h-screen bg-background text-foreground font-sans flex flex-col">
       {/* Top Navigation */}
-      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/90 shadow-2xs">
+      <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-md border-b border-border/80 shadow-2xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           {/* Brand Logo */}
           <Link href="/" className="flex items-center gap-2.5 group">
             <YoutenLogo size="sm" className="group-hover:scale-105 transition-transform" />
-            <span className="font-extrabold text-base tracking-tight text-slate-900 group-hover:text-blue-600 transition-colors">
+            <span className="font-extrabold text-base tracking-tight text-foreground group-hover:text-primary transition-colors">
               Youten AI
             </span>
           </Link>
 
           {/* Right Header Controls */}
           <div className="flex items-center gap-3">
+            <ThemeToggle />
             <LanguageSwitcher />
             <UserNavDropdown user={user} onLogout={handleLogout} />
           </div>
@@ -350,35 +352,35 @@ export default function DashboardPage() {
       {/* Main Workspace Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         {/* Hero Welcome & Quota Header */}
-        <section className="bg-white rounded-3xl border border-slate-200/80 p-6 sm:p-8 shadow-xs relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <section className="bg-card text-card-foreground rounded-3xl border border-border p-6 sm:p-8 shadow-xs relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-2 max-w-xl">
             <div className="flex items-center gap-2.5 flex-wrap">
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight">
                 {t('dashboard.welcome.title', { name: user?.full_name || t('dashboard.welcome.defaultName') })}
               </h1>
             </div>
-            <p className="text-sm text-slate-500 leading-relaxed">
+            <p className="text-sm text-muted-foreground leading-relaxed">
               {t('dashboard.welcome.subtitle')}
             </p>
           </div>
 
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 shrink-0">
             {/* Daily Quota Widget */}
-            <div className="px-4 py-3 rounded-2xl bg-blue-50/70 border border-blue-200/70 flex items-center gap-3">
-              <div className="p-2 bg-blue-600 text-white rounded-xl shadow-xs">
+            <div className="px-4 py-3 rounded-2xl bg-primary/10 border border-primary/20 flex items-center gap-3">
+              <div className="p-2 bg-primary text-primary-foreground rounded-xl shadow-xs">
                 <Sparkles className="w-4 h-4" />
               </div>
               <div>
-                <p className="text-[11px] font-bold text-blue-900 tracking-tight">{t('dashboard.welcome.quotaTitle')}</p>
-                <p className="text-xs font-medium text-blue-700">
-                  <strong className="font-extrabold text-blue-900">{quotaRemaining}</strong>{' '}
+                <p className="text-[11px] font-bold text-foreground tracking-tight">{t('dashboard.welcome.quotaTitle')}</p>
+                <p className="text-xs font-medium text-muted-foreground">
+                  <strong className="font-extrabold text-primary">{quotaRemaining}</strong>{' '}
                   {t('dashboard.welcome.quotaRemainingSuffix', { total: quotaTotal })}
                 </p>
               </div>
             </div>
 
             {/* New Recording Primary CTA */}
-            <Button asChild size="lg" className="rounded-xl shadow-sm shadow-blue-500/20 font-bold gap-2">
+            <Button asChild size="lg" className="rounded-xl shadow-sm shadow-primary/20 font-bold gap-2">
               <Link href="/">
                 <Plus className="w-4 h-4" />
                 <span>{t('dashboard.welcome.newRecording')}</span>
@@ -388,18 +390,18 @@ export default function DashboardPage() {
         </section>
 
         {/* Search, Filter Toolbar & View Mode Switcher */}
-        <section className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-xs space-y-3">
+        <section className="bg-card text-card-foreground rounded-2xl border border-border p-4 shadow-xs space-y-3">
           <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
             {/* Search Input */}
             <div className="relative flex-1">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <Search className="w-4 h-4 text-muted-foreground absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input
                 data-testid="dashboard-search-input"
                 type="text"
                 placeholder={t('dashboard.search.placeholder')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 text-sm bg-slate-50/80 border border-slate-200 rounded-xl placeholder:text-slate-400 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-colors"
+                className="w-full pl-10 pr-4 py-2 text-sm bg-background border border-border rounded-xl placeholder:text-muted-foreground text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
               />
             </div>
 
@@ -417,7 +419,7 @@ export default function DashboardPage() {
                   options={statusSelectOptions}
                   placeholder={t('dashboard.filters.allStatuses')}
                   searchPlaceholder={`${t('common.actions.search')}...`}
-                  triggerClassName="h-9 text-xs rounded-xl border-slate-200 bg-slate-50/90 font-medium"
+                  triggerClassName="h-9 text-xs rounded-xl border-border bg-background font-medium text-foreground"
                 />
               </div>
 
@@ -433,20 +435,20 @@ export default function DashboardPage() {
                   options={templateSelectOptions}
                   placeholder={t('dashboard.filters.allTemplates')}
                   searchPlaceholder="Cari template..."
-                  triggerClassName="h-9 text-xs rounded-xl border-slate-200 bg-slate-50/90 font-medium"
+                  triggerClassName="h-9 text-xs rounded-xl border-border bg-background font-medium text-foreground"
                 />
               </div>
 
               {/* View Mode Toggle */}
-              <div className="flex items-center bg-slate-100 p-0.5 rounded-xl border border-slate-200/80">
+              <div className="flex items-center bg-muted p-0.5 rounded-xl border border-border">
                 <button
                   type="button"
                   data-testid="grid-view-btn"
                   onClick={() => setViewMode('grid')}
-                  className={`p-1.5 rounded-lg transition-colors ${
+                  className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
                     viewMode === 'grid'
-                      ? 'bg-white text-blue-600 shadow-2xs font-bold'
-                      : 'text-slate-500 hover:text-slate-900'
+                      ? 'bg-background text-primary shadow-xs font-bold'
+                      : 'text-muted-foreground hover:text-foreground'
                   }`}
                   aria-label={t('dashboard.filters.gridView')}
                 >
@@ -456,10 +458,10 @@ export default function DashboardPage() {
                   type="button"
                   data-testid="list-view-btn"
                   onClick={() => setViewMode('table')}
-                  className={`p-1.5 rounded-lg transition-colors ${
+                  className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
                     viewMode === 'table'
-                      ? 'bg-white text-blue-600 shadow-2xs font-bold'
-                      : 'text-slate-500 hover:text-slate-900'
+                      ? 'bg-background text-primary shadow-xs font-bold'
+                      : 'text-muted-foreground hover:text-foreground'
                   }`}
                   aria-label={t('dashboard.filters.tableView')}
                 >
@@ -472,10 +474,10 @@ export default function DashboardPage() {
                 variant="ghost"
                 size="sm"
                 onClick={refreshRecordings}
-                className="p-2 text-slate-400 hover:text-slate-700 rounded-xl"
+                className="p-2 text-muted-foreground hover:text-foreground rounded-xl cursor-pointer"
                 aria-label={t('dashboard.filters.refresh')}
               >
-                <RefreshCw className={`w-4 h-4 ${dataLoading ? 'animate-spin text-blue-600' : ''}`} />
+                <RefreshCw className={`w-4 h-4 ${dataLoading ? 'animate-spin text-primary' : ''}`} />
               </Button>
             </div>
           </div>
@@ -487,14 +489,14 @@ export default function DashboardPage() {
           viewMode === 'grid' ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
               {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="p-5 bg-white rounded-2xl border border-slate-200/80 space-y-4">
+                <div key={i} className="p-5 bg-card rounded-2xl border border-border space-y-4">
                   <div className="flex justify-between">
                     <Skeleton className="h-5 w-24 rounded-full" />
                     <Skeleton className="h-5 w-6 rounded-md" />
                   </div>
                   <Skeleton className="h-6 w-3/4 rounded-md" />
                   <Skeleton className="h-4 w-1/2 rounded-md" />
-                  <div className="pt-3 border-t border-slate-100 flex justify-between">
+                  <div className="pt-3 border-t border-border/60 flex justify-between">
                     <Skeleton className="h-4 w-28 rounded-md" />
                     <Skeleton className="h-4 w-16 rounded-full" />
                   </div>
@@ -502,7 +504,7 @@ export default function DashboardPage() {
               ))}
             </div>
           ) : (
-            <div className="bg-white rounded-2xl border border-slate-200/80 p-5 space-y-3">
+            <div className="bg-card rounded-2xl border border-border p-5 space-y-3">
               {Array.from({ length: 5 }).map((_, i) => (
                 <Skeleton key={i} className="h-10 w-full rounded-lg" />
               ))}
@@ -510,11 +512,11 @@ export default function DashboardPage() {
           )
         ) : dataError ? (
           /* Error State */
-          <div className="p-8 text-center bg-white rounded-2xl border border-rose-200 space-y-4">
-            <AlertTriangle className="w-10 h-10 text-rose-500 mx-auto" />
+          <div className="p-8 text-center bg-card rounded-2xl border border-destructive/30 space-y-4">
+            <AlertTriangle className="w-10 h-10 text-destructive mx-auto" />
             <div className="space-y-1">
-              <h3 className="font-bold text-slate-900">{t('dashboard.error.title')}</h3>
-              <p className="text-xs text-slate-500">{dataError}</p>
+              <h3 className="font-bold text-foreground">{t('dashboard.error.title')}</h3>
+              <p className="text-xs text-muted-foreground">{dataError}</p>
             </div>
             <Button onClick={refreshRecordings} size="sm" variant="outline">
               {t('dashboard.error.retry')}
@@ -529,7 +531,7 @@ export default function DashboardPage() {
                 ? t('dashboard.empty.searchDescription')
                 : t('dashboard.empty.description')
             }
-            icon={<FolderOpen className="w-8 h-8 text-blue-500" />}
+            icon={<FolderOpen className="w-8 h-8 text-primary" />}
             action={
               debouncedSearch || selectedStatus || selectedTemplate ? (
                 <Button
@@ -567,16 +569,16 @@ export default function DashboardPage() {
           </div>
         ) : (
           /* Table View */
-          <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden">
+          <div className="bg-card rounded-2xl border border-border shadow-xs overflow-hidden">
             <Table>
               <TableHeader>
-                <TableRow className="bg-slate-50/70 border-b border-slate-200/80">
-                  <TableHead className="font-bold text-slate-700">{t('dashboard.table.titleHeader')}</TableHead>
-                  <TableHead className="font-bold text-slate-700">{t('dashboard.table.templateHeader')}</TableHead>
-                  <TableHead className="font-bold text-slate-700">{t('dashboard.table.statusHeader')}</TableHead>
-                  <TableHead className="font-bold text-slate-700">{t('dashboard.table.durationHeader')}</TableHead>
-                  <TableHead className="font-bold text-slate-700">{t('dashboard.table.dateHeader')}</TableHead>
-                  <TableHead className="text-right font-bold text-slate-700">{t('dashboard.table.actionsHeader')}</TableHead>
+                <TableRow className="bg-muted/50 border-b border-border">
+                  <TableHead className="font-bold text-muted-foreground">{t('dashboard.table.titleHeader')}</TableHead>
+                  <TableHead className="font-bold text-muted-foreground">{t('dashboard.table.templateHeader')}</TableHead>
+                  <TableHead className="font-bold text-muted-foreground">{t('dashboard.table.statusHeader')}</TableHead>
+                  <TableHead className="font-bold text-muted-foreground">{t('dashboard.table.durationHeader')}</TableHead>
+                  <TableHead className="font-bold text-muted-foreground">{t('dashboard.table.dateHeader')}</TableHead>
+                  <TableHead className="text-right font-bold text-muted-foreground">{t('dashboard.table.actionsHeader')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -596,22 +598,22 @@ export default function DashboardPage() {
                   );
 
                   return (
-                    <TableRow key={recording.id} className="hover:bg-slate-50/80 transition-colors">
-                      <TableCell className="font-semibold text-slate-900">
+                    <TableRow key={recording.id} className="hover:bg-muted/50 transition-colors">
+                      <TableCell className="font-semibold text-foreground">
                         <Link
                           href={`/recordings/${recording.id}`}
-                          className="hover:text-blue-600 transition-colors line-clamp-1"
+                          className="hover:text-primary transition-colors line-clamp-1"
                         >
                           {recording.title || recording.original_filename}
                         </Link>
-                        <p className="text-[11px] text-slate-400 font-normal truncate">
+                        <p className="text-[11px] text-muted-foreground font-normal truncate">
                           {recording.original_filename}
                         </p>
                       </TableCell>
                       <TableCell>
                         <Badge
                           variant="secondary"
-                          className="text-[11px] font-medium bg-blue-50 text-blue-700 border border-blue-200/60"
+                          className="text-[11px] font-medium bg-primary/10 text-primary border border-primary/20"
                         >
                           {templateName}
                         </Badge>
@@ -619,15 +621,15 @@ export default function DashboardPage() {
                       <TableCell>
                         <StatusPill label={pillConfig.label} status={pillConfig.status} />
                       </TableCell>
-                      <TableCell className="text-xs text-slate-500 font-medium">
+                      <TableCell className="text-xs text-muted-foreground font-medium">
                         {formatTime(recording.duration_seconds)}
                       </TableCell>
-                      <TableCell className="text-xs text-slate-500">
+                      <TableCell className="text-xs text-muted-foreground">
                         {formattedDate}
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-1">
-                          <Button asChild variant="ghost" size="sm" className="h-8 w-8 p-0 text-slate-500">
+                          <Button asChild variant="ghost" size="sm" className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground">
                             <Link href={`/recordings/${recording.id}`} aria-label={t('dashboard.table.viewDetail')}>
                               <ExternalLink className="w-4 h-4" />
                             </Link>
@@ -636,7 +638,7 @@ export default function DashboardPage() {
                             variant="ghost"
                             size="sm"
                             onClick={() => handleOpenShare(recording)}
-                            className="h-8 w-8 p-0 text-slate-500"
+                            className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
                             aria-label={t('dashboard.table.share')}
                           >
                             <Share2 className="w-4 h-4" />
@@ -645,7 +647,7 @@ export default function DashboardPage() {
                             variant="ghost"
                             size="sm"
                             onClick={() => setRecordingToDelete(recording)}
-                            className="h-8 w-8 p-0 text-rose-500 hover:text-rose-600 hover:bg-rose-50"
+                            className="h-8 w-8 p-0 text-destructive hover:bg-destructive/10"
                             aria-label={t('dashboard.table.delete')}
                           >
                             <Trash2 className="w-4 h-4" />
@@ -662,7 +664,7 @@ export default function DashboardPage() {
 
         {/* Pagination Controls */}
         {!dataLoading && safeRecordings.length > 0 && (
-          <footer className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-slate-200/70 text-xs text-slate-500">
+          <footer className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-border/70 text-xs text-muted-foreground">
             <div>
               {t('dashboard.pagination.showing', {
                 start: startIndex,

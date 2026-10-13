@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { StatusPill } from '@/components/molecules/status-pill';
 import { UserNavDropdown } from '@/components/molecules/user-nav-dropdown';
 import { LanguageSwitcher } from '@/components/molecules/language-switcher';
+import { ThemeToggle } from '@/components/molecules/theme-toggle';
 import { YoutenLogo } from '@/components/atoms/youten-logo';
 import { useAuthStore } from '@/stores/auth.store';
 import { useTranslation } from '@/locales';
@@ -81,17 +82,17 @@ export const Navbar: React.FC<NavbarProps> = ({
   const handleLogout = onLogoutProp !== undefined ? onLogoutProp : storeLogout;
 
   return (
-    <header className={`sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/80 ${className}`}>
+    <header className={`sticky top-0 z-40 bg-background/95 backdrop-blur-md border-b border-border/80 text-foreground transition-colors ${className}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         {/* Brand Logo */}
         <Link href={brandHref} className="flex items-center gap-2.5 group">
           <YoutenLogo size="sm" className="group-hover:scale-105" />
           <div className="flex items-center gap-1.5">
-            <span className="font-extrabold text-base tracking-tight text-slate-900 group-hover:text-primary transition-colors">
+            <span className="font-extrabold text-base tracking-tight text-foreground group-hover:text-primary transition-colors">
               {brandName}
             </span>
             {brandTag ? (
-              <span className="text-[10px] font-bold text-primary bg-primary-subtle px-2 py-0.5 rounded-full border border-primary/20">
+              <span className="text-[10px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full border border-primary/20">
                 {brandTag}
               </span>
             ) : null}
@@ -108,8 +109,8 @@ export const Navbar: React.FC<NavbarProps> = ({
                 href={link.href}
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                   isActive
-                    ? 'text-primary bg-primary-subtle'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                    ? 'text-primary bg-primary/10 font-bold'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted'
                 }`}
               >
                 {link.label}
@@ -119,13 +120,14 @@ export const Navbar: React.FC<NavbarProps> = ({
         </nav>
 
         {/* Right Actions */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5 sm:gap-3">
           {showStatus && (
             <Link href="/health" className="hidden sm:inline-flex">
               <StatusPill label={effectiveStatusLabel} status="online" />
             </Link>
           )}
 
+          <ThemeToggle />
           <LanguageSwitcher />
 
           {activeUser ? (
@@ -153,7 +155,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               type="button"
               aria-label="Toggle mobile menu"
               onClick={() => setMobileMenuOpen((prev) => !prev)}
-              className="md:hidden p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+              className="md:hidden p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors cursor-pointer"
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 {mobileMenuOpen ? (
@@ -169,21 +171,24 @@ export const Navbar: React.FC<NavbarProps> = ({
 
       {/* Mobile Menu Dropdown */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-t border-slate-200 bg-white px-4 py-4 space-y-2">
+        <div className="md:hidden border-t border-border bg-card text-card-foreground px-4 py-4 space-y-2 shadow-xl">
           {links.map((link) => (
             <Link
               key={link.label}
               href={link.href}
               onClick={() => setMobileMenuOpen(false)}
-              className="block px-3 py-2 rounded-lg text-sm font-semibold text-slate-700 hover:bg-slate-100"
+              className="block px-3 py-2 rounded-lg text-sm font-semibold text-foreground hover:bg-muted"
             >
               {link.label}
             </Link>
           ))}
-          <div className="pt-3 border-t border-slate-100 flex flex-col gap-2">
+          <div className="pt-3 border-t border-border/70 flex flex-col gap-2">
             <div className="flex items-center justify-between px-1 py-1">
-              <span className="text-xs text-slate-500 font-medium">{t('common.labels.language')}</span>
-              <LanguageSwitcher />
+              <span className="text-xs text-muted-foreground font-medium">{t('common.labels.language')}</span>
+              <div className="flex items-center gap-2">
+                <ThemeToggle size="sm" />
+                <LanguageSwitcher />
+              </div>
             </div>
             {showStatus && (
               <Link href="/health" onClick={() => setMobileMenuOpen(false)}>
@@ -202,7 +207,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <Link
                   href="/settings"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="w-full text-center py-2 px-4 rounded-xl border border-slate-200 text-slate-700 text-xs font-bold"
+                  className="w-full text-center py-2 px-4 rounded-xl border border-border text-foreground hover:bg-muted text-xs font-bold"
                 >
                   {t('navbar.userMenu.settings')}
                 </Link>
