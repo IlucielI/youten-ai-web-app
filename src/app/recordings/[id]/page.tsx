@@ -595,9 +595,20 @@ export default function RecordingDetailPage() {
       if (res.data) {
         setIsShared(res.data.is_share_enabled);
         setShareToken(res.data.share_token || null);
+        toast.success(
+          enable
+            ? (locale === 'en' ? 'Public link enabled' : 'Tautan publik diaktifkan')
+            : (locale === 'en' ? 'Public link disabled' : 'Tautan publik dinonaktifkan')
+        );
       }
     } catch (err) {
       console.error('Failed to toggle share:', err);
+      toast.error(
+        locale === 'en'
+          ? 'Failed to update public link settings'
+          : 'Gagal memperbarui pengaturan tautan publik'
+      );
+      throw err;
     }
   };
 
@@ -1192,6 +1203,10 @@ export default function RecordingDetailPage() {
         isShared={isShared}
         shareToken={shareToken}
         onToggleShare={handleToggleShare}
+        isGuest={Boolean(recording?.is_guest)}
+        onClaim={isLoggedIn ? handleManualClaim : undefined}
+        claimUrl={!isLoggedIn && recording ? `/login?claim=${recording.id}` : undefined}
+        isClaiming={isClaiming}
       />
 
       {/* Comment Drawer */}
