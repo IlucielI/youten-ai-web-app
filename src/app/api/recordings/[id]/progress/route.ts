@@ -1,4 +1,5 @@
 import { recordingService } from '@/server/services/recording.service';
+import { authRepository } from '@/server/repositories/auth.repository';
 import { RecordingStatus, AUTH_COOKIE_NAME, GUEST_COOKIE_NAME } from '@/server/constants';
 import { env, isTest } from '@/server/config';
 import { cookies } from 'next/headers';
@@ -47,6 +48,18 @@ export async function GET(
       }
     } catch {
       // Ignore cookie parsing error outside request context
+    }
+
+    // Attach gateway anonymous token if still missing authorization header
+    if (!headers['authorization']) {
+      try {
+        const anonToken = await authRepository.getGatewayAnonToken();
+        if (anonToken) {
+          headers['authorization'] = `Bearer ${anonToken}`;
+        }
+      } catch {
+        // Ignore resolution error
+      }
     }
 
     try {

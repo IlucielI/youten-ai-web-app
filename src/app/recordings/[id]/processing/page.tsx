@@ -75,92 +75,194 @@ export default function RecordingProcessingPage() {
   const lastInitializedIdRef = useRef<string | null>(null);
 
   /**
+   * Helper to derive stage metadata, monotonic progress target, and localized message from recording status.
+   */
+  const getStatusMeta = useCallback(
+    (targetStatus: RecordingStatus | string) => {
+      const isEn = locale === 'en';
+      switch (targetStatus) {
+        case RecordingStatus.PENDING:
+          return {
+            progress: 10,
+            stage: 'extraction',
+            message: isEn
+              ? 'In queue, preparing recording pipeline...'
+              : 'Dalam antrean, menyiapkan pemrosesan...',
+          };
+        case RecordingStatus.QUEUED:
+          return {
+            progress: 15,
+            stage: 'extraction',
+            message: isEn
+              ? 'Allocated to worker pipeline...'
+              : 'Antrean dialokasikan ke pekerja...',
+          };
+        case RecordingStatus.VALIDATING:
+          return {
+            progress: 25,
+            stage: 'extraction',
+            message: isEn
+              ? 'Verifying audio file and stream format...'
+              : 'Memvalidasi berkas audio dan format stream...',
+          };
+        case RecordingStatus.EXTRACTING:
+          return {
+            progress: 40,
+            stage: 'extraction',
+            message: isEn
+              ? 'Extracting and normalizing audio tracks...'
+              : 'Mengekstrak dan menormalisasi trek audio...',
+          };
+        case RecordingStatus.TRANSCRIBING:
+          return {
+            progress: 65,
+            stage: 'transcription',
+            message: isEn
+              ? 'Transcribing speech & detecting speaker segments...'
+              : 'Mentranskripsi ujaran percakapan & mendeteksi pembicara...',
+          };
+        case RecordingStatus.SUMMARIZING:
+          return {
+            progress: 85,
+            stage: 'intelligence',
+            message: isEn
+              ? 'Synthesizing AI minutes summary and action items...'
+              : 'Menyusun ringkasan notula cerdas AI & poin keputusan...',
+          };
+        case RecordingStatus.INDEXING:
+          return {
+            progress: 95,
+            stage: 'intelligence',
+            message: isEn
+              ? 'Indexing semantic vectors & final checks...'
+              : 'Mengindeks vektor semantik & pemeriksaan akhir...',
+          };
+        case RecordingStatus.COMPLETED:
+          return {
+            progress: 100,
+            stage: 'completed',
+            message: isEn
+              ? 'Recording processing completed and ready for review!'
+              : 'Pemrosesan rekaman berhasil selesai!',
+          };
+        case RecordingStatus.FAILED:
+          return {
+            progress: 100,
+            stage: 'failed',
+            message: isEn
+              ? 'Recording processing halted.'
+              : 'Pemrosesan rekaman terhenti.',
+          };
+        default:
+          return {
+            progress: 15,
+            stage: 'extraction',
+            message: isEn
+              ? 'Processing recording pipeline...'
+              : 'Memproses rekaman percakapan...',
+          };
+      }
+    },
+    [locale]
+  );
+
+  /**
    * Connect to real-time Server-Sent Events (SSE) progress stream.
    */
-  const connectSSE = useCallback((id: string) => {
-    if (!id) return;
+  const connectSSE = useCallback(
+    (id: string) => {
+      if (!id) return;
 
-    // Close any existing SSE stream
-    if (eventSourceRef.current) {
-      eventSourceRef.current.close();
-      eventSourceRef.current = null;
-    }
-
-    // Check if EventSource is supported in browser/environment
-    if (typeof window === 'undefined' || !window.EventSource) {
-      return;
-    }
-
-    const guestToken = useTokenStore.getState().getGuestToken(id);
-    const sseUrl = guestToken
-      ? `/api/recordings/${id}/progress?token=${encodeURIComponent(guestToken)}`
-      : `/api/recordings/${id}/progress`;
-
-    const eventSource = new EventSource(sseUrl);
-    eventSourceRef.current = eventSource;
-
-    const handleProgressEvent = (event: MessageEvent) => {
-      try {
-        const payload = JSON.parse(event.data) as PipelineProgressPayload & {
-          recording_id?: string;
-          error_code?: string;
-          error_message?: string;
-          errorCode?: string;
-          errorMessage?: string;
-        };
-
-        const errCode = payload.error_code || payload.errorCode || 'ERR_PIPELINE_FAILED';
-        const errMsg =
-          payload.error_message ||
-          payload.errorMessage ||
-          payload.message ||
-          (locale === 'en' ? 'Recording processing failed.' : 'Pemrosesan rekaman gagal.');
-
-        if (payload.status === RecordingStatus.COMPLETED) {
-          usePipelineStore
-            .getState()
-            .setCompleted(
-              payload.message || (locale === 'en' ? 'Recording processing completed.' : 'Pemrosesan rekaman selesai.')
-            );
-          if (eventSourceRef.current) {
-            eventSourceRef.current.close();
-            eventSourceRef.current = null;
-          }
-
-          // Smooth redirect transition to review detail screen
-          setTimeout(() => {
-            routerRef.current.push(`/recordings/${id}`);
-          }, 1200);
-        } else if (payload.status === RecordingStatus.FAILED) {
-          usePipelineStore.getState().setFailure({
-            code: errCode,
-            message: errMsg,
-          });
-          if (eventSourceRef.current) {
-            eventSourceRef.current.close();
-            eventSourceRef.current = null;
-          }
-        } else {
-          usePipelineStore.getState().updateProgress(payload);
-        }
-      } catch {
-        // Ignore parse errors on ping/comments
-      }
-    };
-
-    // Support both default message events and named 'progress' events
-    eventSource.onmessage = handleProgressEvent;
-    if (typeof eventSource.addEventListener === 'function') {
-      eventSource.addEventListener('progress', handleProgressEvent as EventListener);
-    }
-
-    eventSource.onerror = () => {
-      // Handle connection termination
-      if (eventSource.readyState === EventSource.CLOSED) {
+      // Close any existing SSE stream
+      if (eventSourceRef.current) {
+        eventSourceRef.current.close();
         eventSourceRef.current = null;
       }
-    };
-  }, [locale]);
+
+      // Check if EventSource is supported in browser/environment
+      if (typeof window === 'undefined' || !window.EventSource) {
+        return;
+      }
+
+      const guestToken = useTokenStore.getState().getGuestToken(id);
+      const sseUrl = guestToken
+        ? `/api/recordings/${id}/progress?token=${encodeURIComponent(guestToken)}`
+        : `/api/recordings/${id}/progress`;
+
+      const eventSource = new EventSource(sseUrl);
+      eventSourceRef.current = eventSource;
+
+      const handleProgressEvent = (event: MessageEvent) => {
+        try {
+          const payload = JSON.parse(event.data) as PipelineProgressPayload & {
+            recording_id?: string;
+            error_code?: string;
+            error_message?: string;
+            errorCode?: string;
+            errorMessage?: string;
+          };
+
+          const recStatus = payload.status;
+          const meta = getStatusMeta(recStatus || '');
+          const errCode = payload.error_code || payload.errorCode || 'ERR_PIPELINE_FAILED';
+          const errMsg =
+            payload.error_message ||
+            payload.errorMessage ||
+            payload.message ||
+            (locale === 'en' ? 'Recording processing failed.' : 'Pemrosesan rekaman gagal.');
+
+          if (recStatus === RecordingStatus.COMPLETED) {
+            usePipelineStore
+              .getState()
+              .setCompleted(
+                payload.message || meta.message
+              );
+            if (eventSourceRef.current) {
+              eventSourceRef.current.close();
+              eventSourceRef.current = null;
+            }
+
+            // Smooth redirect transition to review detail screen
+            setTimeout(() => {
+              routerRef.current.push(`/recordings/${id}`);
+            }, 1200);
+          } else if (recStatus === RecordingStatus.FAILED) {
+            usePipelineStore.getState().setFailure({
+              code: errCode,
+              message: errMsg,
+            });
+            if (eventSourceRef.current) {
+              eventSourceRef.current.close();
+              eventSourceRef.current = null;
+            }
+          } else if (recStatus) {
+            usePipelineStore.getState().updateProgress({
+              status: recStatus,
+              stage: payload.stage || meta.stage,
+              progress: payload.progress !== undefined ? payload.progress : meta.progress,
+              message: payload.message || meta.message,
+            });
+          }
+        } catch {
+          // Ignore parse errors on ping/comments
+        }
+      };
+
+      // Support both default message events and named 'progress' events
+      eventSource.onmessage = handleProgressEvent;
+      if (typeof eventSource.addEventListener === 'function') {
+        eventSource.addEventListener('progress', handleProgressEvent as EventListener);
+      }
+
+      eventSource.onerror = () => {
+        // Handle connection termination
+        if (eventSource.readyState === EventSource.CLOSED) {
+          eventSourceRef.current = null;
+        }
+      };
+    },
+    [locale, getStatusMeta]
+  );
 
   /**
    * Initial mount: fetch recording details & start SSE stream.
@@ -191,24 +293,38 @@ export default function RecordingProcessingPage() {
               sessionStorage.setItem(`pipeline_started_${recordingId}`, res.data.created_at);
             }
           }
-          if (res.data?.status === RecordingStatus.COMPLETED) {
-            usePipelineStore
-              .getState()
-              .setCompleted(
-                locale === 'en' ? 'Recording processing completed.' : 'Rekaman sudah selesai diproses.'
-              );
+
+          const recStatus = res.data?.status;
+          if (!recStatus) return;
+
+          if (recStatus === RecordingStatus.COMPLETED) {
+            const meta = getStatusMeta(RecordingStatus.COMPLETED);
+            usePipelineStore.getState().setCompleted(meta.message);
+            // If already completed on initial mount, redirect promptly
+            const isInitial = !usePipelineStore.getState().isProcessing && usePipelineStore.getState().progress === 0;
+            const redirectDelay = isInitial ? 400 : 1200;
             setTimeout(() => {
               routerRef.current.push(`/recordings/${recordingId}`);
-            }, 800);
+            }, redirectDelay);
             return;
           }
-          if (res.data?.status === RecordingStatus.FAILED) {
+
+          if (recStatus === RecordingStatus.FAILED) {
             usePipelineStore.getState().setFailure({
-              code: res.data.error_code || 'ERR_PIPELINE_FAILED',
-              message: res.data.error_message || t('pipeline.errors.haltedMessage'),
+              code: res.data?.error_code || 'ERR_PIPELINE_FAILED',
+              message: res.data?.error_message || t('pipeline.errors.haltedMessage'),
             });
             return;
           }
+
+          // Advance intermediate pipeline progress (VALIDATING, EXTRACTING, TRANSCRIBING, SUMMARIZING, INDEXING, etc.)
+          const meta = getStatusMeta(recStatus);
+          usePipelineStore.getState().updateProgress({
+            status: recStatus,
+            stage: meta.stage,
+            progress: meta.progress,
+            message: meta.message,
+          });
         })
         .catch(() => {
           if (!isMounted) return;
@@ -238,7 +354,7 @@ export default function RecordingProcessingPage() {
         eventSourceRef.current = null;
       }
     };
-  }, [recordingId, connectSSE, t, locale]);
+  }, [recordingId, connectSSE, getStatusMeta, t, locale]);
 
   /**
    * Handle retry action on failure.

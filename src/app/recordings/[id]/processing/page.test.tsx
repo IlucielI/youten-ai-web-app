@@ -126,7 +126,6 @@ describe('RecordingProcessingPage', () => {
 
     act(() => {
       es.emitMessage({
-
         status: RecordingStatus.TRANSCRIBING,
         stage: 'transcription',
         progress: 60,
@@ -137,6 +136,28 @@ describe('RecordingProcessingPage', () => {
     await waitFor(() => {
       expect(screen.getByTestId('pipeline-current-message')).toHaveTextContent('Mentranskripsi ujaran pembicara...');
       expect(screen.getByTestId('progress-percentage-badge')).toHaveTextContent('60%');
+    });
+  });
+
+  it('updates intermediate progress when polling returns TRANSCRIBING status', async () => {
+    vi.spyOn(apiClient, 'apiFetch').mockResolvedValueOnce({
+      status: 'SUCCESS',
+      code: 'OK',
+      message: 'Success',
+      data: {
+        id: 'rec-123-abc',
+        title: 'Weekly Sync Engineering',
+        status: RecordingStatus.TRANSCRIBING,
+        created_at: new Date().toISOString(),
+      },
+      timestamp: new Date().toISOString(),
+    } as never);
+
+    render(<RecordingProcessingPage />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('progress-percentage-badge')).toHaveTextContent('65%');
+      expect(screen.getByTestId('pipeline-current-message')).toHaveTextContent(/Mentranskripsi ujaran/i);
     });
   });
 
