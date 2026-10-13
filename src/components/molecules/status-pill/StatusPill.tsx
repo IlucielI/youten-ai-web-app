@@ -13,10 +13,10 @@ export const StatusPill: React.FC<StatusPillProps> = ({
   className = '',
 }) => {
   const statusStyles = {
-    online: 'bg-emerald-50/80 border-emerald-200/80 text-emerald-800',
-    busy: 'bg-amber-50/80 border-amber-200/80 text-amber-800',
-    offline: 'bg-slate-100 border-slate-200 text-slate-700',
-    warning: 'bg-rose-50/80 border-rose-200/80 text-rose-800',
+    online: 'bg-emerald-50/80 border-emerald-200/80 text-emerald-800 dark:bg-emerald-950/40 dark:border-emerald-800/60 dark:text-emerald-300',
+    busy: 'bg-amber-50/80 border-amber-200/80 text-amber-800 dark:bg-amber-950/40 dark:border-amber-800/60 dark:text-amber-300',
+    offline: 'bg-slate-100 border-slate-200 text-slate-700 dark:bg-slate-850 dark:border-slate-800 dark:text-slate-300',
+    warning: 'bg-rose-50/80 border-rose-200/80 text-rose-800 dark:bg-rose-950/40 dark:border-rose-800/60 dark:text-rose-300',
   }[status];
 
   return (

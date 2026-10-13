@@ -212,8 +212,8 @@ export default function ResetPasswordPage() {
   return (
     <Suspense
       fallback={
-        <Card className="border border-slate-200/90 shadow-2xl shadow-slate-900/5 bg-white/95 backdrop-blur-md rounded-3xl p-8 flex items-center justify-center">
-          <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+        <Card className="border border-border shadow-2xl bg-card/95 text-card-foreground backdrop-blur-md rounded-3xl p-8 flex items-center justify-center">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
         </Card>
       }
     >

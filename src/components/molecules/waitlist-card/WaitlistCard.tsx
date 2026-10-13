@@ -100,7 +100,7 @@ export const WaitlistCard: React.FC<WaitlistCardProps> = ({
     <Card
       data-testid="waitlist-card"
       className={cn(
-        'border border-slate-200/90 bg-white shadow-xl rounded-3xl overflow-hidden transition-all',
+        'border border-border bg-card text-card-foreground shadow-xl rounded-3xl overflow-hidden transition-all',
         className
       )}
     >
@@ -110,41 +110,41 @@ export const WaitlistCard: React.FC<WaitlistCardProps> = ({
       {successResponse ? (
         /* Success Confirmation View */
         <CardContent className="p-8 sm:p-10 text-center space-y-6">
-          <div className="w-16 h-16 rounded-3xl bg-emerald-50 text-emerald-600 border border-emerald-200/60 mx-auto flex items-center justify-center shadow-xs">
+          <div className="w-16 h-16 rounded-3xl bg-emerald-500/10 text-emerald-500 border border-emerald-500/30 mx-auto flex items-center justify-center shadow-xs">
             <CheckCircle2 className="w-8 h-8" />
           </div>
 
           <div className="space-y-2 max-w-md mx-auto">
             <Badge
               variant="outline"
-              className="bg-emerald-50 text-emerald-700 border-emerald-200 font-semibold px-3 py-1"
+              className="bg-emerald-500/10 text-emerald-500 border-emerald-500/30 font-semibold px-3 py-1"
             >
               Pendaftaran Diterima
             </Badge>
-            <h3 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+            <h3 className="text-2xl font-extrabold text-foreground tracking-tight">
               Anda Masuk ke Antrean Beta!
             </h3>
-            <p className="text-sm text-slate-600 leading-relaxed">
+            <p className="text-sm text-muted-foreground leading-relaxed">
               Terima kasih telah mendaftar. Kami telah mencatat preferensi bot untuk email{' '}
-              <span className="font-semibold text-slate-900">{successResponse.email}</span>.
+              <span className="font-semibold text-foreground">{successResponse.email}</span>.
             </p>
           </div>
 
           {/* Submission Details Recap */}
-          <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 max-w-md mx-auto text-left space-y-2 text-xs">
-            <div className="flex justify-between items-center py-1 border-b border-slate-200/60">
-              <span className="text-slate-500 font-medium">Platform Pilihan</span>
-              <span className="font-bold text-slate-900 capitalize">
+          <div className="bg-muted/50 border border-border rounded-2xl p-4 max-w-md mx-auto text-left space-y-2 text-xs">
+            <div className="flex justify-between items-center py-1 border-b border-border/60">
+              <span className="text-muted-foreground font-medium">Platform Pilihan</span>
+              <span className="font-bold text-foreground capitalize">
                 {successResponse.platform.replace('_', ' ')}
               </span>
             </div>
-            <div className="flex justify-between items-center py-1 border-b border-slate-200/60">
-              <span className="text-slate-500 font-medium">Ukuran Tim</span>
-              <span className="font-bold text-slate-900">{successResponse.company_size} Orang</span>
+            <div className="flex justify-between items-center py-1 border-b border-border/60">
+              <span className="text-muted-foreground font-medium">Ukuran Tim</span>
+              <span className="font-bold text-foreground">{successResponse.company_size} Orang</span>
             </div>
             <div className="flex justify-between items-center py-1">
-              <span className="text-slate-500 font-medium">Status</span>
-              <span className="font-bold text-blue-600">{successResponse.status}</span>
+              <span className="text-muted-foreground font-medium">Status</span>
+              <span className="font-bold text-primary">{successResponse.status}</span>
             </div>
           </div>
 
@@ -163,18 +163,18 @@ export const WaitlistCard: React.FC<WaitlistCardProps> = ({
         <>
           <CardHeader className="p-6 sm:p-8 pb-4 space-y-3">
             <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200/60">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-primary/10 text-primary border border-primary/20">
                 <Sparkles className="w-3.5 h-3.5" />
                 Private Beta Access
               </span>
             </div>
-            <CardTitle className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2.5">
-              <Bot className="w-6 h-6 text-blue-600" />
-              <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
+            <CardTitle className="text-xl sm:text-2xl font-extrabold text-foreground tracking-tight flex items-center gap-2.5">
+              <Bot className="w-6 h-6 text-primary" />
+              <h2 className="text-xl sm:text-2xl font-extrabold text-foreground tracking-tight">
                 Gabung Waitlist Voice Bot
               </h2>
             </CardTitle>
-            <CardDescription className="text-sm text-slate-500 leading-relaxed">
+            <CardDescription className="text-sm text-muted-foreground leading-relaxed">
               Bot cerdas yang otomatis bergabung ke ruang rapat virtual Anda, merekam audio secara
               real-time, dan menyusun ringkasan serta notulen instan.
             </CardDescription>
@@ -186,9 +186,9 @@ export const WaitlistCard: React.FC<WaitlistCardProps> = ({
               <div className="space-y-1.5 text-left">
                 <label
                   htmlFor="waitlist-email"
-                  className="block text-xs font-bold text-slate-700 flex items-center gap-1.5"
+                  className="block text-xs font-bold text-foreground flex items-center gap-1.5"
                 >
-                  <Mail className="w-3.5 h-3.5 text-slate-400" />
+                  <Mail className="w-3.5 h-3.5 text-muted-foreground/70" />
                   <span>Email Kerja atau Pribadi</span>
                 </label>
                 <input
@@ -201,14 +201,14 @@ export const WaitlistCard: React.FC<WaitlistCardProps> = ({
                   }}
                   placeholder="nama@perusahaan.com"
                   disabled={isLoading}
-                  className="w-full px-3.5 py-2.5 rounded-xl text-sm border border-slate-200 bg-slate-50/50 focus:bg-white focus:outline-hidden focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all placeholder:text-slate-400"
+                  className="w-full px-3.5 py-2.5 rounded-xl text-sm border border-border bg-muted/40 text-foreground focus:bg-card focus:outline-hidden focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/60"
                 />
               </div>
 
               {/* Platform Selector */}
               <div className="space-y-1.5 text-left">
-                <label className="block text-xs font-bold text-slate-700 flex items-center gap-1.5">
-                  <Video className="w-3.5 h-3.5 text-slate-400" />
+                <label className="block text-xs font-bold text-foreground flex items-center gap-1.5">
+                  <Video className="w-3.5 h-3.5 text-muted-foreground/70" />
                   <span>Platform Rapat Utama</span>
                 </label>
                 <SearchableSelect
@@ -218,14 +218,14 @@ export const WaitlistCard: React.FC<WaitlistCardProps> = ({
                   disabled={isLoading}
                   placeholder="Pilih platform rapat"
                   searchPlaceholder="Cari platform rapat..."
-                  triggerClassName="w-full h-10 text-sm border-slate-200 bg-white"
+                  triggerClassName="w-full h-10 text-sm border-border bg-card text-foreground"
                 />
               </div>
 
               {/* Company Size Selector */}
               <div className="space-y-1.5 text-left">
-                <label className="block text-xs font-bold text-slate-700 flex items-center gap-1.5">
-                  <Building2 className="w-3.5 h-3.5 text-slate-400" />
+                <label className="block text-xs font-bold text-foreground flex items-center gap-1.5">
+                  <Building2 className="w-3.5 h-3.5 text-muted-foreground/70" />
                   <span>Jumlah Anggota Tim / Perusahaan</span>
                 </label>
                 <SearchableSelect
@@ -235,7 +235,7 @@ export const WaitlistCard: React.FC<WaitlistCardProps> = ({
                   disabled={isLoading}
                   placeholder="Pilih ukuran tim"
                   searchPlaceholder="Cari ukuran tim..."
-                  triggerClassName="w-full h-10 text-sm border-slate-200 bg-white"
+                  triggerClassName="w-full h-10 text-sm border-border bg-card text-foreground"
                 />
               </div>
 
@@ -243,9 +243,9 @@ export const WaitlistCard: React.FC<WaitlistCardProps> = ({
               {clientError && (
                 <div
                   data-testid="waitlist-error-alert"
-                  className="p-3 bg-rose-50 border border-rose-200 rounded-xl flex items-center gap-2.5 text-xs text-rose-700"
+                  className="p-3 bg-destructive/10 border border-destructive/20 rounded-xl flex items-center gap-2.5 text-xs text-destructive"
                 >
-                  <AlertCircle className="w-4 h-4 text-rose-500 shrink-0" />
+                  <AlertCircle className="w-4 h-4 text-destructive shrink-0" />
                   <span>{clientError}</span>
                 </div>
               )}
@@ -254,7 +254,7 @@ export const WaitlistCard: React.FC<WaitlistCardProps> = ({
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm h-11 rounded-xl shadow-sm shadow-blue-500/20 transition-all flex items-center justify-center gap-2"
+                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-sm h-11 rounded-xl shadow-xs transition-all flex items-center justify-center gap-2"
               >
                 {isLoading ? (
                   <>
@@ -270,7 +270,7 @@ export const WaitlistCard: React.FC<WaitlistCardProps> = ({
               </Button>
 
               {/* Security & Privacy Footnote */}
-              <div className="flex items-center justify-center gap-1.5 text-[11px] text-slate-400 pt-1">
+              <div className="flex items-center justify-center gap-1.5 text-[11px] text-muted-foreground/70 pt-1">
                 <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
                 <span>Tanpa komitmen biaya. Data Anda dijamin kerahasiaannya.</span>
               </div>

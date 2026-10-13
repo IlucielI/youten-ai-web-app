@@ -98,27 +98,69 @@
   --accent: #475569;
 }
 
+@custom-variant dark (&:where(.dark, .dark *));
+
+.dark,
+[data-theme="dark"],
+:root[class~="dark"] {
+  --background: #090d16;
+  --foreground: #f8fafc;
+  --surface: #111827;
+  --surface-hover: #1f2937;
+  --surface-subtle: #162032;
+  --border: #232f48;
+  --border-subtle: #1a2236;
+  --input: #2a374f;
+  --muted: #162032;
+  --muted-foreground: #a1b0cb;
+  --popover: #111827;
+  --popover-foreground: #f8fafc;
+  --card: #111827;
+  --card-foreground: #f8fafc;
+  --destructive: #f87171;
+  --destructive-hover: #ef4444;
+  --destructive-foreground: #ffffff;
+  --accent: #162032;
+  --accent-foreground: #f8fafc;
+  --primary: #3b82f6;
+  --primary-hover: #2563eb;
+  --primary-active: #1d4ed8;
+  --primary-subtle: rgba(59, 130, 246, 0.15);
+  --primary-foreground: #ffffff;
+  --secondary: #162032;
+  --secondary-hover: #1f293d;
+  --secondary-foreground: #f8fafc;
+}
+
 @media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0b0f19;
+  :root:not(.light) {
+    --background: #090d16;
     --foreground: #f8fafc;
-    --surface: #131b2e;
-    --surface-hover: #1e293b;
-    --surface-subtle: #1a2236;
+    --surface: #111827;
+    --surface-hover: #1f2937;
+    --surface-subtle: #162032;
     --border: #232f48;
-    --border-subtle: #1e293b;
-    --input: #334155;
-    --muted: #1e293b;
-    --muted-foreground: #94a3b8;
-    --popover: #131b2e;
+    --border-subtle: #1a2236;
+    --input: #2a374f;
+    --muted: #162032;
+    --muted-foreground: #a1b0cb;
+    --popover: #111827;
     --popover-foreground: #f8fafc;
-    --card: #131b2e;
+    --card: #111827;
     --card-foreground: #f8fafc;
     --destructive: #f87171;
     --destructive-hover: #ef4444;
     --destructive-foreground: #ffffff;
-    --accent: #1e293b;
+    --accent: #162032;
     --accent-foreground: #f8fafc;
+    --primary: #3b82f6;
+    --primary-hover: #2563eb;
+    --primary-active: #1d4ed8;
+    --primary-subtle: rgba(59, 130, 246, 0.15);
+    --primary-foreground: #ffffff;
+    --secondary: #162032;
+    --secondary-hover: #1f293d;
+    --secondary-foreground: #f8fafc;
   }
 }
 

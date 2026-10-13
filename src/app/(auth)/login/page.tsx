@@ -294,9 +294,9 @@ export default function LoginPage() {
   return (
     <Suspense
       fallback={
-        <Card className="border border-slate-200/90 shadow-2xl shadow-slate-900/5 bg-white/95 backdrop-blur-md rounded-3xl p-8" data-testid="login-card-loading">
+        <Card className="border border-border shadow-2xl bg-card/95 text-card-foreground backdrop-blur-md rounded-3xl p-8" data-testid="login-card-loading">
           <div className="h-60 flex items-center justify-center">
-            <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
           </div>
         </Card>
       }

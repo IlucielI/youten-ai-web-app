@@ -217,7 +217,7 @@ export function UploadDropzone({
             'group relative flex flex-col items-center justify-center rounded-2xl border-2 border-dashed p-10 text-center transition-all cursor-pointer',
             isDragOver
               ? 'border-primary bg-primary/10 scale-[1.01]'
-              : 'border-border/80 bg-card/40 hover:border-primary/50 hover:bg-card/70'
+              : 'border-border/90 bg-card/60 hover:border-primary/50 hover:bg-card/90 shadow-xs'
           )}
           data-testid="drop-target-area"
           role="button"
@@ -242,14 +242,14 @@ export function UploadDropzone({
             {SupportedMediaExtensions.map((ext) => (
               <span
                 key={ext}
-                className="rounded-md bg-secondary/80 px-2 py-0.5 text-[10px] font-medium text-muted-foreground border border-border/60"
+                className="rounded-md bg-muted px-2 py-0.5 text-[10px] font-semibold text-foreground/80 border border-border/80 shadow-2xs"
               >
                 {ext}
               </span>
             ))}
           </div>
 
-          <p className="text-[11px] text-muted-foreground/70 mt-3">
+          <p className="text-xs text-muted-foreground mt-3 font-medium">
             {t('ingestion.upload.maxSize', { size: maxSizeMB })}
           </p>
         </div>

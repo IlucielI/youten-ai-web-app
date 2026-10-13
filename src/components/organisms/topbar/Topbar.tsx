@@ -5,6 +5,7 @@ import { Breadcrumb } from '@/components/molecules/breadcrumb';
 import { StatusPill } from '@/components/molecules/status-pill';
 import { UserNavDropdown } from '@/components/molecules/user-nav-dropdown';
 import { LanguageSwitcher } from '@/components/molecules/language-switcher';
+import { ThemeToggle } from '@/components/molecules/theme-toggle';
 
 export interface TopbarProps {
   breadcrumbTitle?: string;
@@ -31,7 +32,7 @@ export const Topbar: React.FC<TopbarProps> = ({
 }) => {
   return (
     <header
-      className={`h-[68px] bg-white border-b border-slate-200 px-6 sm:px-8 flex items-center justify-between sticky top-0 z-30 ${className}`}
+      className={`h-[68px] bg-background/95 backdrop-blur-md border-b border-border px-6 sm:px-8 flex items-center justify-between sticky top-0 z-30 ${className}`}
     >
       {/* Left: Breadcrumbs */}
       <div className="flex items-center">
@@ -42,11 +43,12 @@ export const Topbar: React.FC<TopbarProps> = ({
       <div className="flex items-center gap-3.5">
         <StatusPill label={statusText} status="online" />
 
+        <ThemeToggle />
         <LanguageSwitcher />
 
         {actions}
 
-        <div className="pl-2 border-l border-slate-200">
+        <div className="pl-2 border-l border-border">
           <UserNavDropdown
             name={userName}
             email={userRole}
