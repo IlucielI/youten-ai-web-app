@@ -32,6 +32,7 @@ export interface NavbarProps {
   currentPath?: string;
   showStatus?: boolean;
   statusLabel?: string;
+  showCta?: boolean;
   ctaText?: string;
   ctaHref?: string;
   className?: string;
@@ -49,6 +50,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   currentPath = '/',
   showStatus = false,
   statusLabel,
+  showCta = true,
   ctaText,
   ctaHref = '/login',
   className = '',
@@ -117,9 +119,9 @@ export const Navbar: React.FC<NavbarProps> = ({
         </nav>
 
         {/* Right Actions */}
-        <div className="hidden sm:flex items-center gap-3">
+        <div className="flex items-center gap-3">
           {showStatus && (
-            <Link href="/health">
+            <Link href="/health" className="hidden sm:inline-flex">
               <StatusPill label={effectiveStatusLabel} status="online" />
             </Link>
           )}
@@ -135,7 +137,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 showDashboard={true}
               />
             </div>
-          ) : effectiveCtaText ? (
+          ) : showCta && effectiveCtaText ? (
             <Link
               href={ctaHref}
               data-testid="navbar-cta-button"
@@ -144,23 +146,25 @@ export const Navbar: React.FC<NavbarProps> = ({
               {effectiveCtaText}
             </Link>
           ) : null}
-        </div>
 
-        {/* Mobile Hamburger Button */}
-        <button
-          type="button"
-          aria-label="Toggle mobile menu"
-          onClick={() => setMobileMenuOpen((prev) => !prev)}
-          className="md:hidden p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
-        >
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            {mobileMenuOpen ? (
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            ) : (
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-            )}
-          </svg>
-        </button>
+          {/* Mobile Hamburger Button */}
+          {(links.length > 0 || activeUser || (showCta && effectiveCtaText)) ? (
+            <button
+              type="button"
+              aria-label="Toggle mobile menu"
+              onClick={() => setMobileMenuOpen((prev) => !prev)}
+              className="md:hidden p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+            >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                {mobileMenuOpen ? (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                ) : (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                )}
+              </svg>
+            </button>
+          ) : null}
+        </div>
       </div>
 
       {/* Mobile Menu Dropdown */}
@@ -213,7 +217,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   {t('navbar.userMenu.logout')}
                 </button>
               </>
-            ) : effectiveCtaText ? (
+            ) : showCta && effectiveCtaText ? (
               <Link
                 href={ctaHref}
                 onClick={() => setMobileMenuOpen(false)}
