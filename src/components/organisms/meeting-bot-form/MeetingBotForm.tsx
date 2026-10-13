@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useMeetingBotStore } from '@/stores/meeting-bot.store';
 import { BotProvider } from '@/server/constants/recording.constant';
 import { TemplateKey, DefaultTemplateKey } from '@/server/constants/template.constant';
 import { ProviderSelector } from '@/components/molecules/provider-selector';
+import { SearchableSelect, SearchableSelectOption } from '@/components/molecules/searchable-select';
 import { Button } from '@/components/atoms/button';
 import { Input } from '@/components/atoms/input';
 import { Label } from '@/components/atoms/label';
@@ -41,6 +42,24 @@ export function MeetingBotForm({ onSuccess, className }: MeetingBotFormProps) {
   const [template, setTemplate] = useState<TemplateKey>(DefaultTemplateKey);
   const [language, setLanguage] = useState('id');
   const [validationError, setValidationError] = useState<string | null>(null);
+
+  const templateOptions: SearchableSelectOption[] = useMemo(
+    () => [
+      { value: 'MOM', label: 'Minutes of Meeting (MOM)', description: 'Ringkasan formal & poin pembahasan' },
+      { value: 'EXECUTIVE', label: 'Executive Summary', description: 'Ikhtisar tingkat tinggi bagi manajemen' },
+      { value: 'ACTION_ITEMS', label: 'Action Items & Tasks', description: 'Daftar penugasan dan tindak lanjut' },
+      { value: 'STANDUP', label: 'Daily Standup', description: 'Status harian dan hambatan tim' },
+    ],
+    []
+  );
+
+  const languageOptions: SearchableSelectOption[] = useMemo(
+    () => [
+      { value: 'id', label: 'Bahasa Indonesia', description: 'Transkripsi ujaran bahasa Indonesia' },
+      { value: 'en', label: 'English', description: 'English speech transcription' },
+    ],
+    []
+  );
 
   useEffect(() => {
     fetchCapabilities();
@@ -236,36 +255,32 @@ export function MeetingBotForm({ onSuccess, className }: MeetingBotFormProps) {
             <Label htmlFor="meeting-template" className="text-xs font-medium text-foreground">
               Template Notula
             </Label>
-            <select
+            <SearchableSelect
               id="meeting-template"
               data-testid="meeting-template-select"
               value={template}
-              onChange={(e) => setTemplate(e.target.value as TemplateKey)}
+              onValueChange={(val) => setTemplate(val as TemplateKey)}
+              options={templateOptions}
               disabled={isDispatching}
-              className="w-full text-xs h-9 rounded-md border border-input bg-background px-3 py-1 shadow-xs outline-none focus:ring-1 focus:ring-ring"
-            >
-              <option value="MOM">Minutes of Meeting (MOM)</option>
-              <option value="EXECUTIVE">Executive Summary</option>
-              <option value="ACTION_ITEMS">Action Items & Tasks</option>
-              <option value="STANDUP">Daily Standup</option>
-            </select>
+              placeholder="Pilih template..."
+              searchPlaceholder="Cari template notula..."
+            />
           </div>
 
           <div className="space-y-1.5 sm:col-span-1">
             <Label htmlFor="meeting-language" className="text-xs font-medium text-foreground">
               Bahasa Rapat
             </Label>
-            <select
+            <SearchableSelect
               id="meeting-language"
               data-testid="meeting-language-select"
               value={language}
-              onChange={(e) => setLanguage(e.target.value)}
+              onValueChange={setLanguage}
+              options={languageOptions}
               disabled={isDispatching}
-              className="w-full text-xs h-9 rounded-md border border-input bg-background px-3 py-1 shadow-xs outline-none focus:ring-1 focus:ring-ring"
-            >
-              <option value="id">Bahasa Indonesia</option>
-              <option value="en">English</option>
-            </select>
+              placeholder="Pilih bahasa..."
+              searchPlaceholder="Cari bahasa..."
+            />
           </div>
         </div>
       </div>

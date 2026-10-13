@@ -5,6 +5,7 @@ import { formatTime } from '@/lib/time';
 import { Button } from '@/components/atoms/button';
 import { Input } from '@/components/atoms/input';
 import { Label } from '@/components/atoms/label';
+import { SearchableSelect, SearchableSelectOption } from '@/components/molecules/searchable-select';
 import { useTemplates } from '@/hooks';
 import { TemplateKey, DefaultTemplateKey } from '@/server/constants/template.constant';
 import {
@@ -86,6 +87,17 @@ export function BrowserRecorder({
   const [title, setTitle] = useState('');
   const [templateCategory, setTemplateCategory] = useState<TemplateKey>(DefaultTemplateKey);
   const { templates } = useTemplates();
+
+  const templateOptions: SearchableSelectOption[] = useMemo(
+    () =>
+      templates.map((tmpl) => ({
+        value: tmpl.key,
+        label: tmpl.label,
+        description: tmpl.description,
+        icon: tmpl.icon,
+      })),
+    [templates]
+  );
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
@@ -415,20 +427,16 @@ export function BrowserRecorder({
             <Label htmlFor="template-select" className="text-xs font-semibold text-foreground">
               {t('ingestion.recorder.templateLabel')}
             </Label>
-            <select
+            <SearchableSelect
               id="template-select"
-              value={templateCategory}
-              onChange={(e) => setTemplateCategory(e.target.value as TemplateKey)}
-              disabled={isProcessing}
-              className="w-full rounded-md border border-input bg-card px-3 py-2 text-xs shadow-sm cursor-pointer focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-50 disabled:cursor-not-allowed text-foreground"
               data-testid="template-select"
-            >
-              {templates.map((tItem) => (
-                <option key={tItem.key} value={tItem.key} className="bg-popover text-foreground">
-                  {tItem.label}
-                </option>
-              ))}
-            </select>
+              value={templateCategory}
+              onValueChange={(val) => setTemplateCategory(val as TemplateKey)}
+              options={templateOptions}
+              disabled={isProcessing}
+              placeholder={t('ingestion.recorder.templateLabel')}
+              searchPlaceholder="Cari template..."
+            />
           </div>
         </div>
       )}

@@ -43,6 +43,15 @@ export const idPipeline = {
     failedSubtitle: 'Terjadi kendala saat menganalisis rekaman.',
     viewResult: 'Lihat Hasil Transkripsi',
     retryProcess: 'Coba Ulang Pemrosesan',
+    cancelProcess: 'Batalkan & Hapus',
+    cancellingProcess: 'Membatalkan...',
+    cancelModalTitle: 'Batalkan Pemrosesan Rekaman?',
+    cancelModalDescription: 'Rekaman ini akan dibatalkan dan dihapus secara permanen dari sistem untuk membersihkan antrean pemrosesan.',
+    cancelConfirmButton: 'Ya, Batalkan & Hapus',
+    cancelSuccess: 'Sesi rekaman berhasil dibatalkan dan dibersihkan.',
+    cancelFailed: 'Gagal membatalkan rekaman. Silakan coba lagi.',
+    staleWarningTitle: 'Pemrosesan Berjalan Terlalu Lama / Terhenti',
+    staleWarningDescription: 'Pemrosesan telah berjalan lebih dari 10 menit tanpa kemajuan baru. Sesi ini kemungkinan terhenti karena kendala jaringan atau kegagalan pipeline. Anda dapat membatalkan dan membersihkannya sekarang.',
     elapsedTime: 'Waktu Berjalan',
     estimatedRemaining: 'Perkiraan Sisa',
   },
@@ -52,6 +61,7 @@ export const idPipeline = {
     headlineFailed: 'Pemrosesan Terhenti',
     retryButton: 'Coba Lagi',
     retryingButton: 'Memulai Ulang...',
+    cancelButton: 'Batalkan & Bersihkan',
     steps: {
       extraction: {
         title: 'Validasi & Ekstraksi',
@@ -106,6 +116,10 @@ export const idPipeline = {
       ERR_INDEXING_FAILED: {
         title: 'Pengindeksan Vektor Semantik Gagal',
         description: 'Gagal membuat indeks memori untuk fitur pencarian percakapan.',
+      },
+      ERR_PIPELINE_TIMEOUT: {
+        title: 'Pemrosesan Melebihi Batas Waktu (Timeout)',
+        description: 'Pemrosesan rekaman melebihi batas durasi wajar atau aliran pipeline terputus.',
       },
     },
   },

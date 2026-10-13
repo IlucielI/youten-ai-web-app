@@ -24,3 +24,4 @@ export * from './waitlist-card';
 export * from './provider-selector';
 export * from './user-nav-dropdown';
 export * from './language-switcher';
+export * from './searchable-select';

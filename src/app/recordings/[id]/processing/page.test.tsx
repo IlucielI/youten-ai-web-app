@@ -126,7 +126,6 @@ describe('RecordingProcessingPage', () => {
 
     act(() => {
       es.emitMessage({
-
         status: RecordingStatus.TRANSCRIBING,
         stage: 'transcription',
         progress: 60,
@@ -137,6 +136,28 @@ describe('RecordingProcessingPage', () => {
     await waitFor(() => {
       expect(screen.getByTestId('pipeline-current-message')).toHaveTextContent('Mentranskripsi ujaran pembicara...');
       expect(screen.getByTestId('progress-percentage-badge')).toHaveTextContent('60%');
+    });
+  });
+
+  it('updates intermediate progress when polling returns TRANSCRIBING status', async () => {
+    vi.spyOn(apiClient, 'apiFetch').mockResolvedValueOnce({
+      status: 'SUCCESS',
+      code: 'OK',
+      message: 'Success',
+      data: {
+        id: 'rec-123-abc',
+        title: 'Weekly Sync Engineering',
+        status: RecordingStatus.TRANSCRIBING,
+        created_at: new Date().toISOString(),
+      },
+      timestamp: new Date().toISOString(),
+    } as never);
+
+    render(<RecordingProcessingPage />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('progress-percentage-badge')).toHaveTextContent('65%');
+      expect(screen.getByTestId('pipeline-current-message')).toHaveTextContent(/Mentranskripsi ujaran/i);
     });
   });
 
@@ -244,5 +265,59 @@ describe('RecordingProcessingPage', () => {
       },
       { timeout: 1500 }
     );
+  });
+
+  it('opens cancel modal and executes DELETE cleanup on confirmation', async () => {
+    vi.spyOn(apiClient, 'apiFetch').mockImplementation(async (url: string, options?: RequestInit) => {
+      if (options?.method === 'DELETE') {
+        return {
+          status: 'SUCCESS',
+          code: 'OK',
+          message: 'Recording deleted',
+          data: {},
+        } as never;
+      }
+      return {
+        status: 'SUCCESS',
+        code: 'OK',
+        message: 'Success',
+        data: {
+          id: 'rec-123-abc',
+          title: 'Stuck Recording',
+          status: RecordingStatus.PENDING,
+          created_at: new Date().toISOString(),
+        },
+      } as never;
+    });
+
+    render(<RecordingProcessingPage />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('recording-title-display')).toHaveTextContent('Stuck Recording');
+    });
+
+    // Header cancel button should be available
+    const cancelBtn = screen.getByTestId('header-cancel-button');
+    expect(cancelBtn).toBeInTheDocument();
+
+    // Click cancel button to open confirmation dialog
+    fireEvent.click(cancelBtn);
+
+    // Confirm cancel button in dialog
+    const confirmBtn = await screen.findByTestId('confirm-cancel-recording-button');
+    expect(confirmBtn).toBeInTheDocument();
+
+    await act(async () => {
+      fireEvent.click(confirmBtn);
+    });
+
+    // Verify DELETE API was called and user redirected
+    await waitFor(() => {
+      expect(apiClient.apiFetch).toHaveBeenCalledWith(
+        '/api/recordings/rec-123-abc',
+        expect.objectContaining({ method: 'DELETE' })
+      );
+      expect(mockPush).toHaveBeenCalledWith('/dashboard');
+    });
   });
 });

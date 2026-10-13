@@ -3,13 +3,24 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Sparkles, FileAudio, ExternalLink, RefreshCw } from 'lucide-react';
+import { ArrowLeft, Sparkles, FileAudio, ExternalLink, RefreshCw, Trash2 } from 'lucide-react';
 import { Navbar } from '@/components/organisms/navbar';
 import { Footer } from '@/components/organisms/footer';
 import { PipelineStepper } from '@/components/organisms/pipeline-stepper';
 import { Button } from '@/components/atoms/button';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/atoms/badge';
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from '@/components/atoms/alert-dialog';
+import { toast } from 'sonner';
 import { RecordingStatus } from '@/server/constants';
 import { usePipelineStore, PipelineProgressPayload } from '@/stores/pipeline.store';
 import { useTokenStore } from '@/stores/token.store';
@@ -26,6 +37,8 @@ export default function RecordingProcessingPage() {
 
   const [recordingTitle, setRecordingTitle] = useState<string>(() => t('pipeline.header.loadingTitle'));
   const [isRetrying, setIsRetrying] = useState<boolean>(false);
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState<boolean>(false);
+  const [isCancelling, setIsCancelling] = useState<boolean>(false);
   const eventSourceRef = useRef<EventSource | null>(null);
 
   // Persistent elapsed timer state across page refreshes
@@ -62,92 +75,194 @@ export default function RecordingProcessingPage() {
   const lastInitializedIdRef = useRef<string | null>(null);
 
   /**
+   * Helper to derive stage metadata, monotonic progress target, and localized message from recording status.
+   */
+  const getStatusMeta = useCallback(
+    (targetStatus: RecordingStatus | string) => {
+      const isEn = locale === 'en';
+      switch (targetStatus) {
+        case RecordingStatus.PENDING:
+          return {
+            progress: 10,
+            stage: 'extraction',
+            message: isEn
+              ? 'In queue, preparing recording pipeline...'
+              : 'Dalam antrean, menyiapkan pemrosesan...',
+          };
+        case RecordingStatus.QUEUED:
+          return {
+            progress: 15,
+            stage: 'extraction',
+            message: isEn
+              ? 'Allocated to worker pipeline...'
+              : 'Antrean dialokasikan ke pekerja...',
+          };
+        case RecordingStatus.VALIDATING:
+          return {
+            progress: 25,
+            stage: 'extraction',
+            message: isEn
+              ? 'Verifying audio file and stream format...'
+              : 'Memvalidasi berkas audio dan format stream...',
+          };
+        case RecordingStatus.EXTRACTING:
+          return {
+            progress: 40,
+            stage: 'extraction',
+            message: isEn
+              ? 'Extracting and normalizing audio tracks...'
+              : 'Mengekstrak dan menormalisasi trek audio...',
+          };
+        case RecordingStatus.TRANSCRIBING:
+          return {
+            progress: 65,
+            stage: 'transcription',
+            message: isEn
+              ? 'Transcribing speech & detecting speaker segments...'
+              : 'Mentranskripsi ujaran percakapan & mendeteksi pembicara...',
+          };
+        case RecordingStatus.SUMMARIZING:
+          return {
+            progress: 85,
+            stage: 'intelligence',
+            message: isEn
+              ? 'Synthesizing AI minutes summary and action items...'
+              : 'Menyusun ringkasan notula cerdas AI & poin keputusan...',
+          };
+        case RecordingStatus.INDEXING:
+          return {
+            progress: 95,
+            stage: 'intelligence',
+            message: isEn
+              ? 'Indexing semantic vectors & final checks...'
+              : 'Mengindeks vektor semantik & pemeriksaan akhir...',
+          };
+        case RecordingStatus.COMPLETED:
+          return {
+            progress: 100,
+            stage: 'completed',
+            message: isEn
+              ? 'Recording processing completed and ready for review!'
+              : 'Pemrosesan rekaman berhasil selesai!',
+          };
+        case RecordingStatus.FAILED:
+          return {
+            progress: 100,
+            stage: 'failed',
+            message: isEn
+              ? 'Recording processing halted.'
+              : 'Pemrosesan rekaman terhenti.',
+          };
+        default:
+          return {
+            progress: 15,
+            stage: 'extraction',
+            message: isEn
+              ? 'Processing recording pipeline...'
+              : 'Memproses rekaman percakapan...',
+          };
+      }
+    },
+    [locale]
+  );
+
+  /**
    * Connect to real-time Server-Sent Events (SSE) progress stream.
    */
-  const connectSSE = useCallback((id: string) => {
-    if (!id) return;
+  const connectSSE = useCallback(
+    (id: string) => {
+      if (!id) return;
 
-    // Close any existing SSE stream
-    if (eventSourceRef.current) {
-      eventSourceRef.current.close();
-      eventSourceRef.current = null;
-    }
-
-    // Check if EventSource is supported in browser/environment
-    if (typeof window === 'undefined' || !window.EventSource) {
-      return;
-    }
-
-    const guestToken = useTokenStore.getState().getGuestToken(id);
-    const sseUrl = guestToken
-      ? `/api/recordings/${id}/progress?token=${encodeURIComponent(guestToken)}`
-      : `/api/recordings/${id}/progress`;
-
-    const eventSource = new EventSource(sseUrl);
-    eventSourceRef.current = eventSource;
-
-    const handleProgressEvent = (event: MessageEvent) => {
-      try {
-        const payload = JSON.parse(event.data) as PipelineProgressPayload & {
-          recording_id?: string;
-          error_code?: string;
-          error_message?: string;
-          errorCode?: string;
-          errorMessage?: string;
-        };
-
-        const errCode = payload.error_code || payload.errorCode || 'ERR_PIPELINE_FAILED';
-        const errMsg =
-          payload.error_message ||
-          payload.errorMessage ||
-          payload.message ||
-          (locale === 'en' ? 'Recording processing failed.' : 'Pemrosesan rekaman gagal.');
-
-        if (payload.status === RecordingStatus.COMPLETED) {
-          usePipelineStore
-            .getState()
-            .setCompleted(
-              payload.message || (locale === 'en' ? 'Recording processing completed.' : 'Pemrosesan rekaman selesai.')
-            );
-          if (eventSourceRef.current) {
-            eventSourceRef.current.close();
-            eventSourceRef.current = null;
-          }
-
-          // Smooth redirect transition to review detail screen
-          setTimeout(() => {
-            routerRef.current.push(`/recordings/${id}`);
-          }, 1200);
-        } else if (payload.status === RecordingStatus.FAILED) {
-          usePipelineStore.getState().setFailure({
-            code: errCode,
-            message: errMsg,
-          });
-          if (eventSourceRef.current) {
-            eventSourceRef.current.close();
-            eventSourceRef.current = null;
-          }
-        } else {
-          usePipelineStore.getState().updateProgress(payload);
-        }
-      } catch {
-        // Ignore parse errors on ping/comments
-      }
-    };
-
-    // Support both default message events and named 'progress' events
-    eventSource.onmessage = handleProgressEvent;
-    if (typeof eventSource.addEventListener === 'function') {
-      eventSource.addEventListener('progress', handleProgressEvent as EventListener);
-    }
-
-    eventSource.onerror = () => {
-      // Handle connection termination
-      if (eventSource.readyState === EventSource.CLOSED) {
+      // Close any existing SSE stream
+      if (eventSourceRef.current) {
+        eventSourceRef.current.close();
         eventSourceRef.current = null;
       }
-    };
-  }, [locale]);
+
+      // Check if EventSource is supported in browser/environment
+      if (typeof window === 'undefined' || !window.EventSource) {
+        return;
+      }
+
+      const guestToken = useTokenStore.getState().getGuestToken(id);
+      const sseUrl = guestToken
+        ? `/api/recordings/${id}/progress?token=${encodeURIComponent(guestToken)}`
+        : `/api/recordings/${id}/progress`;
+
+      const eventSource = new EventSource(sseUrl);
+      eventSourceRef.current = eventSource;
+
+      const handleProgressEvent = (event: MessageEvent) => {
+        try {
+          const payload = JSON.parse(event.data) as PipelineProgressPayload & {
+            recording_id?: string;
+            error_code?: string;
+            error_message?: string;
+            errorCode?: string;
+            errorMessage?: string;
+          };
+
+          const recStatus = payload.status;
+          const meta = getStatusMeta(recStatus || '');
+          const errCode = payload.error_code || payload.errorCode || 'ERR_PIPELINE_FAILED';
+          const errMsg =
+            payload.error_message ||
+            payload.errorMessage ||
+            payload.message ||
+            (locale === 'en' ? 'Recording processing failed.' : 'Pemrosesan rekaman gagal.');
+
+          if (recStatus === RecordingStatus.COMPLETED) {
+            usePipelineStore
+              .getState()
+              .setCompleted(
+                payload.message || meta.message
+              );
+            if (eventSourceRef.current) {
+              eventSourceRef.current.close();
+              eventSourceRef.current = null;
+            }
+
+            // Smooth redirect transition to review detail screen
+            setTimeout(() => {
+              routerRef.current.push(`/recordings/${id}`);
+            }, 1200);
+          } else if (recStatus === RecordingStatus.FAILED) {
+            usePipelineStore.getState().setFailure({
+              code: errCode,
+              message: errMsg,
+            });
+            if (eventSourceRef.current) {
+              eventSourceRef.current.close();
+              eventSourceRef.current = null;
+            }
+          } else if (recStatus) {
+            usePipelineStore.getState().updateProgress({
+              status: recStatus,
+              stage: payload.stage || meta.stage,
+              progress: payload.progress !== undefined ? payload.progress : meta.progress,
+              message: payload.message || meta.message,
+            });
+          }
+        } catch {
+          // Ignore parse errors on ping/comments
+        }
+      };
+
+      // Support both default message events and named 'progress' events
+      eventSource.onmessage = handleProgressEvent;
+      if (typeof eventSource.addEventListener === 'function') {
+        eventSource.addEventListener('progress', handleProgressEvent as EventListener);
+      }
+
+      eventSource.onerror = () => {
+        // Handle connection termination
+        if (eventSource.readyState === EventSource.CLOSED) {
+          eventSourceRef.current = null;
+        }
+      };
+    },
+    [locale, getStatusMeta]
+  );
 
   /**
    * Initial mount: fetch recording details & start SSE stream.
@@ -178,24 +293,38 @@ export default function RecordingProcessingPage() {
               sessionStorage.setItem(`pipeline_started_${recordingId}`, res.data.created_at);
             }
           }
-          if (res.data?.status === RecordingStatus.COMPLETED) {
-            usePipelineStore
-              .getState()
-              .setCompleted(
-                locale === 'en' ? 'Recording processing completed.' : 'Rekaman sudah selesai diproses.'
-              );
+
+          const recStatus = res.data?.status;
+          if (!recStatus) return;
+
+          if (recStatus === RecordingStatus.COMPLETED) {
+            const meta = getStatusMeta(RecordingStatus.COMPLETED);
+            usePipelineStore.getState().setCompleted(meta.message);
+            // If already completed on initial mount, redirect promptly
+            const isInitial = !usePipelineStore.getState().isProcessing && usePipelineStore.getState().progress === 0;
+            const redirectDelay = isInitial ? 400 : 1200;
             setTimeout(() => {
               routerRef.current.push(`/recordings/${recordingId}`);
-            }, 800);
+            }, redirectDelay);
             return;
           }
-          if (res.data?.status === RecordingStatus.FAILED) {
+
+          if (recStatus === RecordingStatus.FAILED) {
             usePipelineStore.getState().setFailure({
-              code: res.data.error_code || 'ERR_PIPELINE_FAILED',
-              message: res.data.error_message || t('pipeline.errors.haltedMessage'),
+              code: res.data?.error_code || 'ERR_PIPELINE_FAILED',
+              message: res.data?.error_message || t('pipeline.errors.haltedMessage'),
             });
             return;
           }
+
+          // Advance intermediate pipeline progress (VALIDATING, EXTRACTING, TRANSCRIBING, SUMMARIZING, INDEXING, etc.)
+          const meta = getStatusMeta(recStatus);
+          usePipelineStore.getState().updateProgress({
+            status: recStatus,
+            stage: meta.stage,
+            progress: meta.progress,
+            message: meta.message,
+          });
         })
         .catch(() => {
           if (!isMounted) return;
@@ -225,7 +354,7 @@ export default function RecordingProcessingPage() {
         eventSourceRef.current = null;
       }
     };
-  }, [recordingId, connectSSE, t, locale]);
+  }, [recordingId, connectSSE, getStatusMeta, t, locale]);
 
   /**
    * Handle retry action on failure.
@@ -270,6 +399,49 @@ export default function RecordingProcessingPage() {
     }
   };
 
+  /**
+   * Handle cancel and cleanup action for stuck or unwanted recording session.
+   */
+  const handleCancelAndClean = async () => {
+    if (!recordingId || isCancelling) return;
+    setIsCancelling(true);
+
+    try {
+      const guestToken = useTokenStore.getState().getGuestToken(recordingId);
+
+      // Call BFF DELETE endpoint
+      await apiFetch<ApiResponse<{ message?: string }>>(`/api/recordings/${recordingId}`, {
+        method: 'DELETE',
+        headers: guestToken ? { 'x-ownership-token': guestToken } : undefined,
+      });
+
+      // Clear local session storage and store states
+      if (typeof window !== 'undefined') {
+        sessionStorage.removeItem(`pipeline_started_${recordingId}`);
+      }
+      usePipelineStore.getState().resetPipeline();
+      useTokenStore.getState().removeGuestToken(recordingId);
+
+      toast.success(t('pipeline.status.cancelSuccess'));
+      setIsCancelModalOpen(false);
+
+      // Close SSE connection
+      if (eventSourceRef.current) {
+        eventSourceRef.current.close();
+        eventSourceRef.current = null;
+      }
+
+      // Redirect user to home or dashboard
+      const isGuest = !!guestToken;
+      routerRef.current.push(isGuest ? '/' : '/dashboard');
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : t('pipeline.status.cancelFailed');
+      toast.error(msg);
+    } finally {
+      setIsCancelling(false);
+    }
+  };
+
   return (
     <div
       data-testid="processing-page-container"
@@ -297,14 +469,28 @@ export default function RecordingProcessingPage() {
               <span>{t('pipeline.header.backToHome')}</span>
             </Link>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 sm:gap-3">
               <Badge
                 variant="outline"
                 data-testid="recording-id-badge"
-                className="font-mono text-xs px-2.5 py-0.5 border-border/80 bg-background/80 backdrop-blur-sm text-muted-foreground truncate max-w-[200px] sm:max-w-none"
+                className="font-mono text-xs px-2.5 py-0.5 border-border/80 bg-background/80 backdrop-blur-sm text-muted-foreground truncate max-w-[160px] sm:max-w-none"
               >
                 ID: {recordingId}
               </Badge>
+
+              {status !== RecordingStatus.COMPLETED && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => setIsCancelModalOpen(true)}
+                  disabled={isCancelling}
+                  data-testid="header-cancel-button"
+                  className="h-7 text-xs font-medium text-rose-600 dark:text-rose-400 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/40 gap-1.5 cursor-pointer px-2.5"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>{t('pipeline.status.cancelProcess')}</span>
+                </Button>
+              )}
             </div>
           </div>
 
@@ -343,17 +529,30 @@ export default function RecordingProcessingPage() {
 
             {/* Direct Retry button in header if failed */}
             {status === RecordingStatus.FAILED && (
-              <Button
-                size="default"
-                variant="destructive"
-                onClick={handleRetry}
-                disabled={isRetrying}
-                data-testid="page-header-retry-button"
-                className="gap-2 shrink-0 cursor-pointer font-semibold shadow-sm px-5 py-2.5"
-              >
-                <RefreshCw className={cn('w-4 h-4', isRetrying && 'animate-spin')} />
-                <span>{isRetrying ? t('common.actions.processing') : t('pipeline.status.retryProcess')}</span>
-              </Button>
+              <div className="flex items-center gap-2 shrink-0">
+                <Button
+                  size="default"
+                  variant="destructive"
+                  onClick={handleRetry}
+                  disabled={isRetrying}
+                  data-testid="page-header-retry-button"
+                  className="gap-2 cursor-pointer font-semibold shadow-sm px-5 py-2.5"
+                >
+                  <RefreshCw className={cn('w-4 h-4', isRetrying && 'animate-spin')} />
+                  <span>{isRetrying ? t('common.actions.processing') : t('pipeline.status.retryProcess')}</span>
+                </Button>
+                <Button
+                  size="default"
+                  variant="outline"
+                  onClick={() => setIsCancelModalOpen(true)}
+                  disabled={isCancelling}
+                  data-testid="page-header-cancel-button"
+                  className="gap-2 cursor-pointer font-semibold shadow-sm px-4 py-2.5 border-rose-300 dark:border-rose-800 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  <span>{t('pipeline.status.cancelProcess')}</span>
+                </Button>
+              </div>
             )}
           </div>
 
@@ -367,10 +566,47 @@ export default function RecordingProcessingPage() {
               errorMessage={errorMessage}
               onRetry={handleRetry}
               isRetrying={isRetrying}
+              onCancel={() => setIsCancelModalOpen(true)}
+              isCancelling={isCancelling}
               startedAt={startedAt}
             />
           </div>
         </div>
+
+        {/* Cancellation & Cleanup Confirmation Dialog */}
+        <AlertDialog open={isCancelModalOpen} onOpenChange={setIsCancelModalOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>{t('pipeline.status.cancelModalTitle')}</AlertDialogTitle>
+              <AlertDialogDescription>
+                {t('pipeline.status.cancelModalDescription')}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={isCancelling}>
+                {t('common.actions.cancel')}
+              </AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleCancelAndClean}
+                disabled={isCancelling}
+                data-testid="confirm-cancel-recording-button"
+                className="bg-destructive hover:bg-destructive/90 text-destructive-foreground gap-2 cursor-pointer"
+              >
+                {isCancelling ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                    <span>{t('pipeline.status.cancellingProcess')}</span>
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-4 h-4" />
+                    <span>{t('pipeline.status.cancelConfirmButton')}</span>
+                  </>
+                )}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </main>
 
       {/* Global Application Footer */}

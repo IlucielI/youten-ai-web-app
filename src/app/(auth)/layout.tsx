@@ -1,7 +1,7 @@
 import React from 'react';
 import type { Metadata } from 'next';
-import Link from 'next/link';
-import { YoutenLogo } from '@/components/atoms/youten-logo';
+import { Navbar } from '@/components/organisms/navbar';
+import { Footer } from '@/components/organisms/footer';
 
 export const metadata: Metadata = {
   title: 'Autentikasi',
@@ -29,24 +29,13 @@ export default function AuthLayout({
         aria-hidden="true"
       />
 
-      {/* Top Brand Header */}
-      <header className="p-6 sm:px-10 flex items-center justify-between max-w-7xl w-full mx-auto z-10">
-        <Link
-          href="/"
-          className="flex items-center gap-2.5 group transition-opacity hover:opacity-90"
-          data-testid="auth-brand-logo"
-        >
-          <YoutenLogo size="md" className="group-hover:scale-105 transition-transform" />
-          <span className="font-bold text-xl tracking-tight text-slate-900 dark:text-white">Youten AI</span>
-        </Link>
-        <Link
-          href="/"
-          className="text-xs sm:text-sm font-medium text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors"
-          data-testid="auth-back-home-link"
-        >
-          &larr; Kembali ke Beranda
-        </Link>
-      </header>
+      {/* Global Application Navbar (with ID/EN language switcher, without Sign In button) */}
+      <Navbar
+        showCta={false}
+        brandName="Youten AI"
+        brandTag="Beta"
+        links={[]}
+      />
 
       {/* Main Centered Content */}
       <main className="flex-1 flex items-center justify-center px-4 py-8 sm:py-14 z-10 w-full">
@@ -55,10 +44,8 @@ export default function AuthLayout({
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="p-6 text-center text-xs text-muted-foreground z-10 border-t border-border/40">
-        <p>&copy; {new Date().getFullYear()} Youten AI. Hak cipta dilindungi undang-undang.</p>
-      </footer>
+      {/* Global Application Footer */}
+      <Footer />
     </div>
   );
 }

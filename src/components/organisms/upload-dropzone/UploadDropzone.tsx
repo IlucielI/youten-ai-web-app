@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import { SupportedMediaExtensions } from '@/server/constants/recording.constant';
 import { TemplateKey, DefaultTemplateKey } from '@/server/constants/template.constant';
 import { Button } from '@/components/atoms/button';
 import { Input } from '@/components/atoms/input';
 import { Label } from '@/components/atoms/label';
 import { Progress } from '@/components/atoms/progress';
+import { SearchableSelect, SearchableSelectOption } from '@/components/molecules/searchable-select';
 import {
   UploadCloud,
   FileAudio,
@@ -59,6 +60,17 @@ export function UploadDropzone({
   const [uploadProgress, setUploadProgress] = useState(0);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const { templates } = useTemplates();
+
+  const templateOptions: SearchableSelectOption[] = useMemo(
+    () =>
+      templates.map((tmpl) => ({
+        value: tmpl.key,
+        label: tmpl.label,
+        description: tmpl.description,
+        icon: tmpl.icon,
+      })),
+    [templates]
+  );
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -294,20 +306,16 @@ export function UploadDropzone({
             <Label htmlFor="template-select" className="text-xs font-semibold text-foreground">
               {t('ingestion.upload.templateLabel')}
             </Label>
-            <select
+            <SearchableSelect
               id="template-select"
-              value={templateCategory}
-              onChange={(e) => setTemplateCategory(e.target.value as TemplateKey)}
-              disabled={isUploading}
-              className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-xs shadow-sm cursor-pointer focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-50 disabled:cursor-not-allowed"
               data-testid="template-select"
-            >
-              {templates.map((tmpl) => (
-                <option key={tmpl.key} value={tmpl.key} className="bg-popover text-foreground">
-                  {tmpl.label}
-                </option>
-              ))}
-            </select>
+              value={templateCategory}
+              onValueChange={(val) => setTemplateCategory(val as TemplateKey)}
+              options={templateOptions}
+              disabled={isUploading}
+              placeholder={t('ingestion.upload.templateLabel')}
+              searchPlaceholder="Cari template..."
+            />
           </div>
 
           {/* Upload Progress Bar if uploading */}

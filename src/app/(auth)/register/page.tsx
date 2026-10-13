@@ -107,7 +107,7 @@ function RegisterForm() {
       className="border border-slate-200/90 dark:border-slate-800 shadow-2xl shadow-slate-900/5 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md rounded-3xl p-6 sm:p-10 transition-all"
       data-testid="register-card"
     >
-      <CardHeader className="p-0 space-y-2 pb-6">
+      <CardHeader className="p-0 space-y-2 pb-6 text-center flex flex-col items-center">
         <div className="w-14 h-14 rounded-2xl bg-blue-50/90 dark:bg-blue-950/50 border border-blue-200/60 dark:border-blue-800/60 flex items-center justify-center mb-2 text-blue-600 dark:text-blue-400 shadow-xs">
           <YoutenLogo size="md" />
         </div>
@@ -117,7 +117,7 @@ function RegisterForm() {
         >
           {t('auth.register.title')}
         </CardTitle>
-        <CardDescription className="text-sm sm:text-base text-slate-500 dark:text-slate-400 leading-relaxed">
+        <CardDescription className="text-sm sm:text-base text-slate-500 dark:text-slate-400 leading-relaxed max-w-sm">
           {t('auth.register.subtitle')}
         </CardDescription>
       </CardHeader>

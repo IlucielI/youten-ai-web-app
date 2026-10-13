@@ -26,6 +26,7 @@ export const enDashboard: typeof idDashboard = {
     completed: 'Completed',
     queued: 'Queued',
     processing: 'Processing',
+    pending: 'Pending',
     failed: 'Failed',
   },
   table: {

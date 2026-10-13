@@ -83,5 +83,10 @@ describe('Navbar Component', () => {
     expect(screen.getByTestId('navbar-cta-button')).toHaveTextContent('Masuk');
     expect(screen.queryByTestId('navbar-user-section')).not.toBeInTheDocument();
   });
+
+  it('does not render cta button when showCta is false', () => {
+    render(<Navbar brandName="Youten AI" user={null} showCta={false} />);
+    expect(screen.queryByTestId('navbar-cta-button')).not.toBeInTheDocument();
+  });
 });
 
