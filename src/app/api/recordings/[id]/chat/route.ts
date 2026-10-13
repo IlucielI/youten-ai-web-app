@@ -1,6 +1,7 @@
 import { env, isTest } from '@/server/config';
 import { RecordingChatRequestSchema } from '@/server/schemas/chat.schema';
 import { AUTH_COOKIE_NAME, GUEST_COOKIE_NAME } from '@/server/constants';
+import { authRepository } from '@/server/repositories';
 import { cookies } from 'next/headers';
 
 export async function POST(
@@ -67,6 +68,18 @@ export async function POST(
       }
     } catch {
       // Ignore cookie parsing error outside request context
+    }
+
+    // Attach gateway anonymous token if still missing authorization header
+    if (!headers['authorization']) {
+      try {
+        const anonToken = await authRepository.getGatewayAnonToken();
+        if (anonToken) {
+          headers['authorization'] = `Bearer ${anonToken}`;
+        }
+      } catch {
+        // Ignore fallback error
+      }
     }
 
     try {
