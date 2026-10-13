@@ -21,8 +21,6 @@ import {
   User,
   Shield,
   KeyRound,
-  LayoutDashboard,
-  Users,
   Save,
   CheckCircle2,
   AlertCircle,
@@ -213,7 +211,7 @@ export default function SettingsPage() {
       {/* Top Navigation */}
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/90 shadow-2xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          {/* Brand Logo & Navigation Links */}
+          {/* Brand Logo */}
           <div className="flex items-center gap-6">
             <Link href="/" className="flex items-center gap-2.5 group">
               <YoutenLogo size="sm" className="group-hover:scale-105 transition-transform" />
@@ -221,29 +219,6 @@ export default function SettingsPage() {
                 Youten AI
               </span>
             </Link>
-
-            <nav className="hidden md:flex items-center gap-1 text-xs font-semibold">
-              <Link href="/dashboard">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-slate-600 hover:text-blue-600 hover:bg-slate-100 gap-1.5 h-8 text-xs font-medium"
-                >
-                  <LayoutDashboard className="w-3.5 h-3.5" />
-                  <span>{t('navbar.links.dashboard')}</span>
-                </Button>
-              </Link>
-              <Link href="/speakers">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-slate-600 hover:text-blue-600 hover:bg-slate-100 gap-1.5 h-8 text-xs font-medium"
-                >
-                  <Users className="w-3.5 h-3.5" />
-                  <span>{t('navbar.links.speakers')}</span>
-                </Button>
-              </Link>
-            </nav>
           </div>
 
           {/* Right Header Controls */}
