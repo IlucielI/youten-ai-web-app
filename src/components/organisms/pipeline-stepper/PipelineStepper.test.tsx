@@ -117,4 +117,28 @@ describe('PipelineStepper Component', () => {
     expect(screen.getByText('AI Intelligence & Indexing')).toBeInTheDocument();
     expect(screen.getByText('Ready for Review')).toBeInTheDocument();
   });
+
+  it('displays stale warning banner when elapsed time exceeds 10 minutes and triggers onCancel', () => {
+    const onCancel = vi.fn();
+    const onRetry = vi.fn();
+    // 700 seconds in the past (> 10 mins)
+    const startedAt = new Date(Date.now() - 700 * 1000).toISOString();
+
+    render(
+      <PipelineStepper
+        status={RecordingStatus.EXTRACTING}
+        progress={5}
+        startedAt={startedAt}
+        onCancel={onCancel}
+        onRetry={onRetry}
+      />
+    );
+
+    const warningBanner = screen.getByTestId('pipeline-stale-warning');
+    expect(warningBanner).toBeDefined();
+
+    const cancelBtn = screen.getByTestId('stale-cancel-button');
+    fireEvent.click(cancelBtn);
+    expect(onCancel).toHaveBeenCalledTimes(1);
+  });
 });

@@ -24,6 +24,7 @@ export const idDashboard = {
     completed: 'Selesai',
     queued: 'Dalam Antrean',
     processing: 'Sedang Diproses',
+    pending: 'Tertunda',
     failed: 'Gagal',
   },
   table: {

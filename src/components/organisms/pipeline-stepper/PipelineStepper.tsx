@@ -10,6 +10,7 @@ import {
   AlertCircle,
   Loader2,
   RefreshCw,
+  Trash2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { RecordingStatus } from '@/server/constants';
@@ -26,6 +27,8 @@ export interface PipelineStepperProps {
   errorMessage?: string | null;
   onRetry?: () => Promise<void> | void;
   isRetrying?: boolean;
+  onCancel?: () => void;
+  isCancelling?: boolean;
   className?: string;
   startedAt?: string | number | Date | null;
 }
@@ -47,6 +50,8 @@ export const PipelineStepper: React.FC<PipelineStepperProps> = ({
   errorMessage: propErrorMessage,
   onRetry,
   isRetrying = false,
+  onCancel,
+  isCancelling = false,
   className,
   startedAt,
 }) => {
@@ -253,6 +258,56 @@ export const PipelineStepper: React.FC<PipelineStepperProps> = ({
           />
         </div>
       </div>
+
+      {/* Stale / Long-Running Warning Alert */}
+      {elapsedSeconds >= 600 && !isCompleted && !isFailed && (
+        <div
+          data-testid="pipeline-stale-warning"
+          className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-amber-900 dark:text-amber-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 animate-in fade-in duration-300"
+        >
+          <div className="flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+            <div>
+              <h4 className="text-sm font-semibold text-amber-900 dark:text-amber-100">
+                {t('pipeline.status.staleWarningTitle')}
+              </h4>
+              <p className="text-xs text-amber-700 dark:text-amber-300 mt-0.5 leading-relaxed">
+                {t('pipeline.status.staleWarningDescription')}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
+            {onRetry && (
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={onRetry}
+                disabled={isRetrying}
+                data-testid="stale-retry-button"
+                className="h-8 text-xs font-semibold cursor-pointer border-amber-500/40 hover:bg-amber-500/15"
+              >
+                <RefreshCw className={cn('w-3.5 h-3.5 mr-1.5', isRetrying && 'animate-spin')} />
+                <span>{isRetrying ? t('pipeline.stepper.retryingButton') : t('pipeline.stepper.retryButton')}</span>
+              </Button>
+            )}
+            {onCancel && (
+              <Button
+                type="button"
+                size="sm"
+                variant="destructive"
+                onClick={onCancel}
+                disabled={isCancelling}
+                data-testid="stale-cancel-button"
+                className="h-8 text-xs font-semibold cursor-pointer shadow-sm"
+              >
+                <Trash2 className="w-3.5 h-3.5 mr-1.5" />
+                <span>{isCancelling ? t('pipeline.status.cancellingProcess') : t('pipeline.stepper.cancelButton')}</span>
+              </Button>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* 4-Stage Stepper Cards Grid */}
       <div

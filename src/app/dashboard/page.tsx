@@ -91,6 +91,7 @@ export default function DashboardPage() {
     { value: RecordingStatus.COMPLETED, label: t('dashboard.statusLabels.completed') },
     { value: RecordingStatus.QUEUED, label: t('dashboard.statusLabels.queued') },
     { value: 'TRANSCRIBING', label: t('dashboard.statusLabels.processing') },
+    { value: RecordingStatus.PENDING, label: t('dashboard.statusLabels.pending') },
     { value: RecordingStatus.FAILED, label: t('dashboard.statusLabels.failed') },
   ];
 

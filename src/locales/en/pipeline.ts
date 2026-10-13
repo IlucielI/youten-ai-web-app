@@ -45,6 +45,15 @@ export const enPipeline: typeof idPipeline = {
     failedSubtitle: 'An issue occurred while analyzing the recording.',
     viewResult: 'View Transcription Results',
     retryProcess: 'Retry Processing',
+    cancelProcess: 'Cancel & Clean Up',
+    cancellingProcess: 'Cancelling...',
+    cancelModalTitle: 'Cancel Recording Processing?',
+    cancelModalDescription: 'This recording session will be cancelled and permanently deleted from the system to clean up the processing pipeline.',
+    cancelConfirmButton: 'Yes, Cancel & Clean Up',
+    cancelSuccess: 'Recording session successfully cancelled and cleaned up.',
+    cancelFailed: 'Failed to cancel recording. Please try again.',
+    staleWarningTitle: 'Processing Taking Unusually Long / Stuck',
+    staleWarningDescription: 'Processing has been running for over 10 minutes without new progress. This session might be stuck due to network or pipeline failure. You can cancel and clean it up now.',
     elapsedTime: 'Elapsed Time',
     estimatedRemaining: 'Estimated Remaining',
   },
@@ -54,6 +63,7 @@ export const enPipeline: typeof idPipeline = {
     headlineFailed: 'Processing Halted',
     retryButton: 'Try Again',
     retryingButton: 'Restarting...',
+    cancelButton: 'Cancel & Clean Up',
     steps: {
       extraction: {
         title: 'Validation & Extraction',
@@ -108,6 +118,10 @@ export const enPipeline: typeof idPipeline = {
       ERR_INDEXING_FAILED: {
         title: 'Semantic Vector Indexing Failed',
         description: 'Failed to generate the semantic vector index for conversation search.',
+      },
+      ERR_PIPELINE_TIMEOUT: {
+        title: 'Pipeline Processing Timed Out',
+        description: 'Recording processing exceeded the reasonable duration limit or connection was lost.',
       },
     },
   },
