@@ -16,6 +16,7 @@ import { Label } from '@/components/atoms/label';
 import { Progress } from '@/components/atoms/progress';
 import { UserNavDropdown } from '@/components/molecules/user-nav-dropdown';
 import { LanguageSwitcher } from '@/components/molecules/language-switcher';
+import { Footer } from '@/components/organisms/footer';
 import { toast } from 'sonner';
 import { useTranslation } from '@/locales';
 import {
@@ -214,7 +215,7 @@ export default function SettingsPage() {
     quotaUsed > 0 ? Math.max(1, Math.min(100, Math.round(rawPercent))) : 0;
 
   return (
-    <div data-testid="settings-page" className="min-h-screen bg-slate-50/60 font-sans">
+    <div data-testid="settings-page" className="min-h-screen bg-slate-50/60 font-sans flex flex-col">
       {/* Top Navigation */}
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/90 shadow-2xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
@@ -237,7 +238,7 @@ export default function SettingsPage() {
       </header>
 
       {/* Main Container */}
-      <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+      <main className="max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 flex-1">
         {/* Page Title & Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 pb-6">
           <div>
@@ -557,6 +558,9 @@ export default function SettingsPage() {
           </div>
         )}
       </main>
+
+      {/* Global Application Footer */}
+      <Footer className="mt-auto" />
     </div>
   );
 }
