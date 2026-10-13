@@ -61,9 +61,8 @@ export async function POST(
         headers['authorization'] = `Bearer ${authCookie.value}`;
       } else {
         const guestCookie = cookieStore.get(GUEST_COOKIE_NAME);
-        if (guestCookie?.value && !headers['authorization'] && !headers['x-ownership-token']) {
+        if (guestCookie?.value && !headers['authorization']) {
           headers['authorization'] = `Bearer ${guestCookie.value}`;
-          headers['x-ownership-token'] = guestCookie.value;
         }
       }
     } catch {
