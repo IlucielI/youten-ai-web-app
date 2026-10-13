@@ -269,7 +269,6 @@ export default function LandingPage() {
       {/* Navbar */}
       <Navbar
         brandName="Youten AI"
-        brandTag="Beta"
         ctaText={t('navbar.ctaText')}
         ctaHref="/login"
         links={[]}

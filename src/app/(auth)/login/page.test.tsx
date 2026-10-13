@@ -23,6 +23,7 @@ vi.mock('next/navigation', () => ({
       return null;
     },
   }),
+  usePathname: () => '/login',
 }));
 
 describe('LoginPage', () => {

@@ -9,6 +9,7 @@ import { useLocaleStore } from '@/stores/locale.store';
 
 vi.mock('next/navigation', () => ({
   useRouter: vi.fn(),
+  usePathname: () => '/settings',
 }));
 
 vi.mock('sonner', () => ({
@@ -105,6 +106,33 @@ describe('SettingsPage', () => {
     expect(screen.getByRole('heading', { level: 1, name: 'Account Settings' })).toBeInTheDocument();
     expect(screen.getByText('Remaining Quota Today')).toBeInTheDocument();
     expect(screen.getByText('Used: 2 meetings')).toBeInTheDocument();
+    expect(screen.getByText('40% used')).toBeInTheDocument();
+  });
+
+  it('correctly calculates sub-1% quota usage and displays < 1% instead of 0%', async () => {
+    useLocaleStore.setState({ locale: 'en' });
+    vi.spyOn(apiClient, 'apiFetch').mockResolvedValue({
+      status: 'SUCCESS',
+      code: 'SUCCESS',
+      message: 'OK',
+      data: {
+        ...mockUser,
+        daily_quota: 9999,
+        quota_remaining: 9994,
+        quota_used_today: 5,
+      },
+      timestamp: new Date().toISOString(),
+    });
+
+    render(<SettingsPage />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('settings-page')).toBeInTheDocument();
+    });
+
+    expect(screen.getByText('9994')).toBeInTheDocument();
+    expect(screen.getByText('Used: 5 meetings')).toBeInTheDocument();
+    expect(screen.getByText('< 1% used')).toBeInTheDocument();
   });
 
   it('allows user to edit and save full_name', async () => {

@@ -10,6 +10,7 @@ vi.mock('next/navigation', () => ({
   useSearchParams: () => ({
     get: (key: string) => (key === 'token' ? mockTokenParam : null),
   }),
+  usePathname: () => '/reset-password',
 }));
 
 describe('ResetPasswordPage', () => {

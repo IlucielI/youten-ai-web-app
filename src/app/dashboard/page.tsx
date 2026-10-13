@@ -42,6 +42,7 @@ import { StatusPill } from '@/components/molecules/status-pill';
 import { EmptyState } from '@/components/molecules/empty-state';
 import { ShareDialog } from '@/components/molecules/share-dialog';
 import { UserNavDropdown } from '@/components/molecules/user-nav-dropdown';
+import { LanguageSwitcher } from '@/components/molecules/language-switcher';
 import { Footer } from '@/components/organisms/footer';
 import { toast } from 'sonner';
 import { useTemplates } from '@/hooks';
@@ -340,7 +341,8 @@ export default function DashboardPage() {
 
           {/* Right Header Controls */}
           <div className="flex items-center gap-3">
-            <UserNavDropdown user={user} onLogout={handleLogout} showDashboard={false} />
+            <LanguageSwitcher />
+            <UserNavDropdown user={user} onLogout={handleLogout} />
           </div>
         </div>
       </header>

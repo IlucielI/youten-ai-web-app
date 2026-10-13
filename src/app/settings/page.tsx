@@ -15,6 +15,7 @@ import { Input } from '@/components/atoms/input';
 import { Label } from '@/components/atoms/label';
 import { Progress } from '@/components/atoms/progress';
 import { UserNavDropdown } from '@/components/molecules/user-nav-dropdown';
+import { LanguageSwitcher } from '@/components/molecules/language-switcher';
 import { toast } from 'sonner';
 import { useTranslation } from '@/locales';
 import {
@@ -204,7 +205,13 @@ export default function SettingsPage() {
   const quotaTotal = user?.daily_quota ?? 5;
   const quotaUsed = user?.quota_used_today ?? 0;
   const quotaRemaining = user?.quota_remaining ?? 0;
-  const quotaPercent = Math.min(100, Math.round((quotaUsed / (quotaTotal || 1)) * 100));
+  const rawPercent = (quotaUsed / (quotaTotal || 1)) * 100;
+  const quotaDisplayPercent =
+    quotaUsed > 0 && rawPercent < 1
+      ? '< 1'
+      : Math.min(100, Math.round(rawPercent)).toString();
+  const quotaProgressValue =
+    quotaUsed > 0 ? Math.max(1, Math.min(100, Math.round(rawPercent))) : 0;
 
   return (
     <div data-testid="settings-page" className="min-h-screen bg-slate-50/60 font-sans">
@@ -223,6 +230,7 @@ export default function SettingsPage() {
 
           {/* Right Header Controls */}
           <div className="flex items-center gap-3">
+            <LanguageSwitcher />
             <UserNavDropdown user={user} onLogout={handleLogout} />
           </div>
         </div>
@@ -370,10 +378,10 @@ export default function SettingsPage() {
                         {quotaRemaining} <span className="text-xs font-medium text-slate-500">/ {quotaTotal}</span>
                       </span>
                     </div>
-                    <Progress value={quotaPercent} className="h-2 bg-slate-200" />
+                    <Progress value={quotaProgressValue} className="h-2 bg-slate-200" />
                     <div className="flex items-center justify-between text-[11px] text-slate-500 mt-2">
                       <span>{t('settings.quota.usedRatio', { used: quotaUsed })}</span>
-                      <span>{t('settings.quota.percentUsed', { percent: quotaPercent })}</span>
+                      <span>{t('settings.quota.percentUsed', { percent: quotaDisplayPercent })}</span>
                     </div>
                   </div>
 

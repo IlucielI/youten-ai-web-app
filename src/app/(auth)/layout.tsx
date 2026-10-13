@@ -33,7 +33,6 @@ export default function AuthLayout({
       <Navbar
         showCta={false}
         brandName="Youten AI"
-        brandTag="Beta"
         links={[]}
       />
 

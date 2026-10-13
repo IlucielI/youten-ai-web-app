@@ -14,6 +14,7 @@ vi.mock('next/navigation', () => ({
   useSearchParams: () => ({
     get: (key: string) => (key === 'claim' ? mockClaimParam : null),
   }),
+  usePathname: () => '/register',
 }));
 
 describe('RegisterPage', () => {
