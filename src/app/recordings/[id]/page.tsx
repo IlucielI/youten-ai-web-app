@@ -31,12 +31,13 @@ import { RecordingHeader } from '@/components/organisms/recording-header';
 import { RecordingTabs } from '@/components/molecules/recording-tabs';
 import { formatTime, parseTimestamp } from '@/lib/time';
 import { cn } from '@/lib/utils';
-import { RecordingStatus } from '@/server/constants';
+import { RecordingStatus, ChatRole } from '@/server/constants';
 import { TemplateKey } from '@/server/constants/template.constant';
 import { ExportFormat } from '@/server/constants/recording.constant';
 import { toast } from 'sonner';
 import { usePermissions } from '@/hooks';
 import type { UserProfileResponse } from '@/server/dtos/auth.dto';
+import type { ChatMessageResponseDto } from '@/server/schemas/chat.schema';
 import { usePlayerStore } from '@/stores/player.store';
 import { useChatStore } from '@/stores/chat.store';
 import { useTokenStore } from '@/stores/token.store';
@@ -105,6 +106,9 @@ export default function RecordingDetailPage() {
   const seek = usePlayerStore((state) => state.seek);
   const setAudioUrl = usePlayerStore((state) => state.setAudioUrl);
   const setRecordingIdChat = useChatStore((state) => state.setRecordingId);
+  const sessionId = useChatStore((state) => state.sessionId);
+  const setSessionId = useChatStore((state) => state.setSessionId);
+  const setMessages = useChatStore((state) => state.setMessages);
   const addUserMessage = useChatStore((state) => state.addUserMessage);
   const startAssistantStream = useChatStore((state) => state.startAssistantStream);
   const appendStreamChunk = useChatStore((state) => state.appendStreamChunk);
@@ -176,8 +180,41 @@ export default function RecordingDetailPage() {
           setAudioUrl(data.audio_url || data.playback_url || null);
         }
 
-        // Initialize AI Chat context
+        // Initialize AI Chat context & restore previous session
         setRecordingIdChat(recordingId);
+        const savedSessionId =
+          typeof window !== 'undefined'
+            ? localStorage.getItem(`youten_chat_session_${recordingId}`)
+            : null;
+        if (savedSessionId) {
+          setSessionId(savedSessionId);
+          const ownershipToken =
+            useTokenStore.getState().getGuestToken(recordingId) ||
+            (typeof window !== 'undefined'
+              ? new URLSearchParams(window.location.search).get('token') || undefined
+              : undefined);
+          const chatHeaders: Record<string, string> = {};
+          if (ownershipToken) chatHeaders['x-ownership-token'] = ownershipToken;
+          apiFetch<ApiResponse<ChatMessageResponseDto[]>>(
+            `/api/recordings/${recordingId}/chat?session_id=${savedSessionId}`,
+            { headers: chatHeaders }
+          )
+            .then((res) => {
+              if (res && res.data && Array.isArray(res.data) && res.data.length > 0) {
+                setMessages(
+                  res.data.map((m) => ({
+                    id: m.id,
+                    role: m.role as ChatRole,
+                    content: m.content,
+                    timestamp: m.created_at,
+                  }))
+                );
+              }
+            })
+            .catch(() => {
+              // Ignore failure restoring chat history
+            });
+        }
 
         // Initialize active summary & version list
         if (data.active_summary) {
@@ -294,7 +331,7 @@ export default function RecordingDetailPage() {
     return () => {
       isMounted = false;
     };
-  }, [recordingId, setAudioUrl, setRecordingIdChat, locale]);
+  }, [recordingId, setAudioUrl, setRecordingIdChat, setSessionId, setMessages, locale]);
 
   /**
    * Handle speaker rename save.
@@ -494,6 +531,7 @@ export default function RecordingDetailPage() {
         body: JSON.stringify({
           message: text,
           ownership_token: ownershipToken,
+          session_id: sessionId || undefined,
         }),
       });
 
@@ -530,10 +568,21 @@ export default function RecordingDetailPage() {
 
               try {
                 const data = JSON.parse(rawData);
-                if (eventType === 'token' && data.token) {
+                if (eventType === 'session' && data.session_id) {
+                  setSessionId(data.session_id);
+                  if (typeof window !== 'undefined') {
+                    localStorage.setItem(`youten_chat_session_${recordingId}`, data.session_id);
+                  }
+                } else if (eventType === 'token' && data.token) {
                   fullContent += data.token;
                   appendStreamChunk(data.token);
                 } else if (eventType === 'done') {
+                  if (data.session_id) {
+                    setSessionId(data.session_id);
+                    if (typeof window !== 'undefined') {
+                      localStorage.setItem(`youten_chat_session_${recordingId}`, data.session_id);
+                    }
+                  }
                   if (data.content && !fullContent) {
                     fullContent = data.content;
                   }

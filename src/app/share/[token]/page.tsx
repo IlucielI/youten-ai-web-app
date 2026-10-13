@@ -27,12 +27,19 @@ import { HighlightsGrid } from '@/components/organisms/highlights-grid';
 import { AudioPlayer } from '@/components/organisms/audio-player';
 import { Footer } from '@/components/organisms/footer';
 import { ThemeToggle } from '@/components/molecules/theme-toggle';
+import { ChatPanel } from '@/components/organisms/chat-panel';
 import { usePlayerStore } from '@/stores/player.store';
+import { useChatStore } from '@/stores/chat.store';
 import { apiFetch } from '@/lib/api-client';
 import { ApiResponse } from '@/server/dtos/response.dto';
 import type { SharedRecordingResponse } from '@/server/dtos/recording.dto';
 import type { RecordingAnalyticsDTO } from '@/server/dtos/analytics.dto';
+import type { MeetingSourceCitationDTO } from '@/server/dtos/workspace.dto';
+import type { ChatMessageResponseDto } from '@/server/schemas/chat.schema';
+import { ChatRole } from '@/server/constants';
 import { ExportFormat } from '@/server/constants/recording.constant';
+import { parseTimestamp } from '@/lib/time';
+import { cn } from '@/lib/utils';
 import { useTranslation } from '@/locales';
 
 /**
@@ -52,6 +59,7 @@ export default function SharedRecordingPage() {
   // Active Main Tab: summary, transcript, chapters, analytics
   const [activeTab, setActiveTab] = useState<RecordingTabKey>('summary');
   const [isExportOpen, setIsExportOpen] = useState<boolean>(false);
+  const [isChatOpen, setIsChatOpen] = useState<boolean>(false);
 
   // Search filter for transcript
   const [transcriptSearch, setTranscriptSearch] = useState<string>('');
@@ -60,6 +68,16 @@ export default function SharedRecordingPage() {
   const currentTime = usePlayerStore((state) => state.currentTime);
   const seek = usePlayerStore((state) => state.seek);
   const setAudioUrl = usePlayerStore((state) => state.setAudioUrl);
+
+  const setRecordingIdChat = useChatStore((state) => state.setRecordingId);
+  const sessionId = useChatStore((state) => state.sessionId);
+  const setSessionId = useChatStore((state) => state.setSessionId);
+  const setMessages = useChatStore((state) => state.setMessages);
+  const addUserMessage = useChatStore((state) => state.addUserMessage);
+  const startAssistantStream = useChatStore((state) => state.startAssistantStream);
+  const appendStreamChunk = useChatStore((state) => state.appendStreamChunk);
+  const finalizeAssistantMessage = useChatStore((state) => state.finalizeAssistantMessage);
+  const setChatError = useChatStore((state) => state.setChatError);
 
   /**
    * Fetch shared recording details by public token.
@@ -100,6 +118,41 @@ export default function SharedRecordingPage() {
       isMounted = false;
     };
   }, [token, setAudioUrl, t]);
+
+  /**
+   * Initialize isolated Ask AI session and restore chat history for share link visitor.
+   */
+  useEffect(() => {
+    if (!token || !recording?.id) return;
+    setRecordingIdChat(recording.id);
+
+    const savedSessionId =
+      typeof window !== 'undefined'
+        ? localStorage.getItem(`youten_share_chat_session_${token}`)
+        : null;
+
+    if (savedSessionId) {
+      setSessionId(savedSessionId);
+      apiFetch<ApiResponse<ChatMessageResponseDto[]>>(
+        `/api/recordings/${recording.id}/chat?session_id=${savedSessionId}&share_token=${token}`
+      )
+        .then((res) => {
+          if (res && res.data && Array.isArray(res.data) && res.data.length > 0) {
+            setMessages(
+              res.data.map((m) => ({
+                id: m.id,
+                role: m.role as ChatRole,
+                content: m.content,
+                timestamp: m.created_at,
+              }))
+            );
+          }
+        })
+        .catch(() => {
+          // Ignore failure restoring chat history
+        });
+    }
+  }, [token, recording?.id, setRecordingIdChat, setSessionId, setMessages]);
 
   // Transform active summary for SummaryViewer component
   const summaryData: SummaryData | null = useMemo(() => {
@@ -175,6 +228,114 @@ export default function SharedRecordingPage() {
       URL.revokeObjectURL(url);
     } catch (err) {
       console.error('Failed to export shared recording:', err);
+    }
+  };
+
+  /**
+   * Handle sending message in AI Chat panel with real-time SSE streaming for share viewers.
+   */
+  const handleSendMessage = async (text: string) => {
+    if (!recording) return;
+
+    const assistantMsgId = startAssistantStream();
+    let fullContent = '';
+    let rawCitations: string[] = [];
+
+    try {
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        'x-share-token': token,
+      };
+
+      const res = await fetch(`/api/recordings/${recording.id}/chat`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          message: text,
+          share_token: token,
+          session_id: sessionId || undefined,
+        }),
+      });
+
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        throw new Error(errJson.error || errJson.message || 'Gagal menghubungi asisten AI');
+      }
+
+      if (!res.body) {
+        throw new Error('Respon tidak memiliki data streaming');
+      }
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+
+        for (let i = 0; i < lines.length; i++) {
+          const line = lines[i]?.trim() || '';
+          if (line.startsWith('event:')) {
+            const eventType = line.slice(6).trim();
+            const nextLine = lines[i + 1]?.trim() || '';
+            if (nextLine.startsWith('data:')) {
+              i++;
+              const rawData = nextLine.slice(5).trim();
+              if (!rawData) continue;
+
+              try {
+                const data = JSON.parse(rawData);
+                if (eventType === 'session' && data.session_id) {
+                  setSessionId(data.session_id);
+                  if (typeof window !== 'undefined') {
+                    localStorage.setItem(`youten_share_chat_session_${token}`, data.session_id);
+                  }
+                } else if (eventType === 'token' && data.token) {
+                  fullContent += data.token;
+                  appendStreamChunk(data.token);
+                } else if (eventType === 'done') {
+                  if (data.session_id) {
+                    setSessionId(data.session_id);
+                    if (typeof window !== 'undefined') {
+                      localStorage.setItem(`youten_share_chat_session_${token}`, data.session_id);
+                    }
+                  }
+                  if (data.content && !fullContent) {
+                    fullContent = data.content;
+                  }
+                  if (Array.isArray(data.citations)) {
+                    rawCitations = data.citations;
+                  }
+                } else if (eventType === 'error') {
+                  throw new Error(data.error || 'Terjadi kesalahan pada respon AI');
+                }
+              } catch (parseErr) {
+                if (eventType === 'error') throw parseErr;
+              }
+            }
+          }
+        }
+      }
+
+      const mappedCitations: MeetingSourceCitationDTO[] = rawCitations.map((c, idx) => ({
+        recording_id: recording.id,
+        recording_title: recording.title || '',
+        chunk_index: idx,
+        snippet: c,
+        start_time: parseTimestamp(c),
+        end_time: parseTimestamp(c),
+      }));
+
+      finalizeAssistantMessage(assistantMsgId, fullContent, mappedCitations);
+    } catch (err: unknown) {
+      const errMsg = err instanceof Error ? err.message : 'Terjadi kesalahan koneksi AI';
+      setChatError(errMsg);
+      finalizeAssistantMessage(assistantMsgId, fullContent || `Maaf, terjadi kesalahan: ${errMsg}`);
     }
   };
 
@@ -292,7 +453,9 @@ export default function SharedRecordingPage() {
         createdAt={recording.created_at}
         backHref="/"
         showShare={false}
-        showAskAi={false}
+        showAskAi={true}
+        isChatOpen={isChatOpen}
+        onToggleChat={() => setIsChatOpen((prev) => !prev)}
         showExport={true}
         onExport={handleExport}
         isExportOpen={isExportOpen}
@@ -302,115 +465,143 @@ export default function SharedRecordingPage() {
       />
 
       {/* 3. Main Read-Only Content Canvas */}
-      <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-6">
-        <Tabs
-          value={activeTab}
-          onValueChange={(val) => setActiveTab(val as RecordingTabKey)}
-          className="space-y-6"
-        >
-          {/* Reusable Tab Navigation Component */}
-          <RecordingTabs
-            activeTab={activeTab}
-            onTabChange={setActiveTab}
-            segmentsCount={recording.segments?.length}
-            chaptersCount={recording.chapters?.length}
-            className="mb-6"
-          />
-
-          {/* TAB 1: SUMMARY */}
-          <TabsContent value="summary" data-testid="summary-tab-content" className="outline-none">
-            {summaryData ? (
-              <div className="rounded-2xl border border-border/70 bg-card p-6 shadow-xs">
-                <SummaryViewer summary={summaryData} />
-              </div>
-            ) : (
-              <div className="text-center py-12 border border-dashed rounded-xl bg-card/40 text-muted-foreground text-sm">
-                {t('share.emptySummary')}
-              </div>
-            )}
-          </TabsContent>
-
-          {/* TAB 2: TRANSCRIPT */}
-          <TabsContent value="transcript" data-testid="transcript-tab-content" className="outline-none space-y-4">
-            {/* Search Filter Bar */}
-            <div className="relative max-w-md">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                type="text"
-                placeholder={t('recording.transcript.searchPlaceholder')}
-                value={transcriptSearch}
-                onChange={(e) => setTranscriptSearch(e.target.value)}
-                data-testid="shared-transcript-search"
-                className="pl-9 text-xs"
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6">
+        <div className="flex flex-col lg:flex-row gap-6 items-start">
+          {/* Left Review Canvas */}
+          <div className={cn('flex-1 w-full min-w-0 space-y-6', isChatOpen && 'lg:max-w-[calc(100%-400px)]')}>
+            <Tabs
+              value={activeTab}
+              onValueChange={(val) => setActiveTab(val as RecordingTabKey)}
+              className="space-y-6"
+            >
+              {/* Reusable Tab Navigation Component */}
+              <RecordingTabs
+                activeTab={activeTab}
+                onTabChange={setActiveTab}
+                segmentsCount={recording.segments?.length}
+                chaptersCount={recording.chapters?.length}
+                className="mb-6"
               />
-            </div>
 
-            {/* Transcript Segments List */}
-            <div data-testid="shared-transcript-list" className="space-y-3.5">
-              {filteredSegments.length === 0 ? (
-                <div className="text-center py-12 border border-dashed rounded-xl bg-card/40 text-muted-foreground text-xs">
-                  {t('recording.transcript.emptySearch')}
+              {/* TAB 1: SUMMARY */}
+              <TabsContent value="summary" data-testid="summary-tab-content" className="outline-none">
+                {summaryData ? (
+                  <div className="rounded-2xl border border-border/70 bg-card p-6 shadow-xs">
+                    <SummaryViewer summary={summaryData} />
+                  </div>
+                ) : (
+                  <div className="text-center py-12 border border-dashed rounded-xl bg-card/40 text-muted-foreground text-sm">
+                    {t('share.emptySummary')}
+                  </div>
+                )}
+              </TabsContent>
+
+              {/* TAB 2: TRANSCRIPT */}
+              <TabsContent value="transcript" data-testid="transcript-tab-content" className="outline-none space-y-4">
+                {/* Search Filter Bar */}
+                <div className="relative max-w-md">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    type="text"
+                    placeholder={t('recording.transcript.searchPlaceholder')}
+                    value={transcriptSearch}
+                    onChange={(e) => setTranscriptSearch(e.target.value)}
+                    data-testid="shared-transcript-search"
+                    className="pl-9 text-xs"
+                  />
                 </div>
-              ) : (
-                filteredSegments.map((segment) => {
-                  const isActive =
-                    currentTime >= segment.start_time && currentTime <= segment.end_time;
 
-                  return (
-                    <TranscriptSegment
-                      key={segment.id}
-                      segment={segment}
-                      speakerName={segment.speaker_name || segment.speaker_label}
+                {/* Transcript Segments List */}
+                <div data-testid="shared-transcript-list" className="space-y-3.5">
+                  {filteredSegments.length === 0 ? (
+                    <div className="text-center py-12 border border-dashed rounded-xl bg-card/40 text-muted-foreground text-xs">
+                      {t('recording.transcript.emptySearch')}
+                    </div>
+                  ) : (
+                    filteredSegments.map((segment) => {
+                      const isActive =
+                        currentTime >= segment.start_time && currentTime <= segment.end_time;
+
+                      return (
+                        <TranscriptSegment
+                          key={segment.id}
+                          segment={segment}
+                          speakerName={segment.speaker_name || segment.speaker_label}
+                          currentTime={currentTime}
+                          isActive={isActive}
+                          onSeek={(time) => seek(time)}
+                          onAskAI={(seg) => {
+                            setIsChatOpen(true);
+                            const prompt = t('recording.transcript.askAiPrompt', { text: seg.text });
+                            addUserMessage(prompt);
+                            void handleSendMessage(prompt);
+                          }}
+                        />
+                      );
+                    })
+                  )}
+                </div>
+              </TabsContent>
+
+              {/* TAB 3: CHAPTERS & HIGHLIGHTS */}
+              <TabsContent value="chapters" data-testid="chapters-tab-content" className="outline-none space-y-8">
+                {/* Chapters Section */}
+                <div className="rounded-2xl border border-border/70 bg-card p-6 shadow-xs">
+                  <h3 className="text-base font-bold mb-4 flex items-center gap-2">
+                    <Bookmark className="w-4 h-4 text-primary" />
+                    {t('recording.chapters.sectionTitle')}
+                  </h3>
+                  <ChapterList
+                    chapters={recording.chapters || []}
+                    currentTime={currentTime}
+                    onSeek={(time) => seek(time)}
+                  />
+                </div>
+
+                {/* Highlights Grid Section */}
+                {recording.highlights && recording.highlights.length > 0 && (
+                  <div className="rounded-2xl border border-border/70 bg-card p-6 shadow-xs">
+                    <h3 className="text-base font-bold mb-4 flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-amber-500" />
+                      {t('recording.highlights.sectionTitle')}
+                    </h3>
+                    <HighlightsGrid
+                      highlights={recording.highlights}
                       currentTime={currentTime}
-                      isActive={isActive}
                       onSeek={(time) => seek(time)}
-                      // Notice: onRenameSpeaker, onAddComment, onAskAI are NOT passed here (strictly read-only)
                     />
-                  );
-                })
-              )}
-            </div>
-          </TabsContent>
+                  </div>
+                )}
+              </TabsContent>
 
-          {/* TAB 3: CHAPTERS & HIGHLIGHTS */}
-          <TabsContent value="chapters" data-testid="chapters-tab-content" className="outline-none space-y-8">
-            {/* Chapters Section */}
-            <div className="rounded-2xl border border-border/70 bg-card p-6 shadow-xs">
-              <h3 className="text-base font-bold mb-4 flex items-center gap-2">
-                <Bookmark className="w-4 h-4 text-primary" />
-                {t('recording.chapters.sectionTitle')}
-              </h3>
-              <ChapterList
-                chapters={recording.chapters || []}
-                currentTime={currentTime}
-                onSeek={(time) => seek(time)}
+              {/* TAB 4: ANALYTICS */}
+              <TabsContent value="analytics" data-testid="analytics-tab-content" className="outline-none">
+                <AnalyticsCards
+                  analytics={recording.analytics_data as unknown as RecordingAnalyticsDTO}
+                  speakerLabels={speakerLabels}
+                />
+              </TabsContent>
+            </Tabs>
+          </div>
+
+          {/* Right Collapsible AI Chat Panel */}
+          {isChatOpen && (
+            <div
+              data-testid="shared-chat-panel"
+              className="w-full lg:w-[380px] shrink-0 sticky top-[140px] max-h-[calc(100vh-160px)] flex flex-col animate-in slide-in-from-right duration-300 z-20"
+            >
+              <ChatPanel
+                recordingId={recording.id}
+                template={recording.selected_template}
+                isOpen={isChatOpen}
+                onClose={() => setIsChatOpen(false)}
+                onSendMessage={handleSendMessage}
+                onSeekAudio={(timestamp) => seek(timestamp)}
+                className="h-full max-w-none shadow-lg"
               />
             </div>
-
-            {/* Highlights Grid Section */}
-            {recording.highlights && recording.highlights.length > 0 && (
-              <div className="rounded-2xl border border-border/70 bg-card p-6 shadow-xs">
-                <h3 className="text-base font-bold mb-4 flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-amber-500" />
-                  {t('recording.highlights.sectionTitle')}
-                </h3>
-                <HighlightsGrid
-                  highlights={recording.highlights}
-                  currentTime={currentTime}
-                  onSeek={(time) => seek(time)}
-                />
-              </div>
-            )}
-          </TabsContent>
-
-          {/* TAB 4: ANALYTICS */}
-          <TabsContent value="analytics" data-testid="analytics-tab-content" className="outline-none">
-            <AnalyticsCards
-              analytics={recording.analytics_data as unknown as RecordingAnalyticsDTO}
-              speakerLabels={speakerLabels}
-            />
-          </TabsContent>
-        </Tabs>
+          )}
+        </div>
       </main>
 
       {/* 4. Bottom Audio Player */}

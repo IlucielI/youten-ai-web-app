@@ -181,7 +181,7 @@ describe('SharedRecordingPage', () => {
     expect(screen.queryByText(/Selamat pagi rekan-rekan sekalian/i)).not.toBeInTheDocument();
   });
 
-  it('ensures mutation controls are strictly absent (read-only enforcement)', async () => {
+  it('ensures mutation controls (speaker rename and comments) are strictly absent while Ask AI chat is available', async () => {
     render(<SharedRecordingPage />);
 
     await waitFor(() => {
@@ -196,12 +196,14 @@ describe('SharedRecordingPage', () => {
     // Add comment buttons must NOT exist
     expect(screen.queryByTestId('add-comment-button')).not.toBeInTheDocument();
 
-    // Ask AI buttons must NOT exist
-    expect(screen.queryByTestId('ask-ai-button')).not.toBeInTheDocument();
+    // Ask AI buttons in transcript and header ARE available for visitors in isolated session
+    expect(screen.getAllByTestId('ask-ai-button').length).toBeGreaterThan(0);
+    const chatToggle = screen.getByTestId('toggle-chat-panel-btn');
+    expect(chatToggle).toBeInTheDocument();
 
-    // Chat panel and toggle must NOT exist
-    expect(screen.queryByTestId('toggle-chat-panel-btn')).not.toBeInTheDocument();
-    expect(screen.queryByTestId('recording-chat-panel')).not.toBeInTheDocument();
+    // Clicking toggle opens the shared chat panel
+    fireEvent.click(chatToggle);
+    expect(screen.getByTestId('shared-chat-panel')).toBeInTheDocument();
   });
 
   it('seeks audio player when a timestamp button is clicked', async () => {

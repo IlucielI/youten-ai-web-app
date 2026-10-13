@@ -14,6 +14,7 @@ export interface ChatMessage {
 
 export interface ChatState {
   recordingId: string | null;
+  sessionId: string | null;
   messages: ChatMessage[];
   isStreaming: boolean;
   streamingContent: string;
@@ -23,6 +24,8 @@ export interface ChatState {
 
 export interface ChatActions {
   setRecordingId: (id: string | null) => void;
+  setSessionId: (sessionId: string | null) => void;
+  setMessages: (messages: ChatMessage[]) => void;
   addUserMessage: (content: string) => string;
   startAssistantStream: (id?: string) => string;
   appendStreamChunk: (chunk: string) => void;
@@ -40,6 +43,7 @@ export type ChatStore = ChatState & ChatActions;
 
 const initialChatState: ChatState = {
   recordingId: null,
+  sessionId: null,
   messages: [],
   isStreaming: false,
   streamingContent: '',
@@ -54,8 +58,16 @@ export const useChatStore = create<ChatStore>()(
 
       setRecordingId: (id: string | null) => {
         if (get().recordingId !== id) {
-          set({ recordingId: id, messages: [], error: null }, false, 'chat/setRecordingId');
+          set({ recordingId: id, sessionId: null, messages: [], error: null }, false, 'chat/setRecordingId');
         }
+      },
+
+      setSessionId: (sessionId: string | null) => {
+        set({ sessionId }, false, 'chat/setSessionId');
+      },
+
+      setMessages: (messages: ChatMessage[]) => {
+        set({ messages }, false, 'chat/setMessages');
       },
 
       addUserMessage: (content: string) => {
@@ -178,7 +190,7 @@ export const useChatStore = create<ChatStore>()(
       },
 
       clearChat: () => {
-        set({ ...initialChatState, recordingId: get().recordingId }, false, 'chat/clearChat');
+        set({ ...initialChatState, recordingId: get().recordingId, sessionId: null }, false, 'chat/clearChat');
       },
     }),
     { name: 'ChatStore' }

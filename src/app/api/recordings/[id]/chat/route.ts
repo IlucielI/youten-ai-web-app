@@ -37,6 +37,12 @@ export async function POST(
     parsed.data.ownership_token ||
     undefined;
 
+  const shareToken =
+    req.headers.get('x-share-token') ||
+    new URL(req.url).searchParams.get('share_token') ||
+    parsed.data.share_token ||
+    undefined;
+
   // Upstream Core API real-time SSE streaming (when not in mock/test mode and CORE_API_URL is configured)
   if (!isTest && !env.MOCK_CORE_API && env.CORE_API_URL) {
     const upstreamUrl = `${env.CORE_API_URL.replace(/\/$/, '')}/v1/recordings/${id}/chat`;
@@ -47,6 +53,9 @@ export async function POST(
     };
     if (token) {
       headers['x-ownership-token'] = token;
+    }
+    if (shareToken) {
+      headers['x-share-token'] = shareToken;
     }
     const reqId = req.headers.get('x-request-id');
     if (reqId) headers['x-request-id'] = reqId;
@@ -90,6 +99,8 @@ export async function POST(
           message: parsed.data.message,
           conversation_history: parsed.data.conversation_history,
           ownership_token: token,
+          session_id: parsed.data.session_id,
+          share_token: shareToken,
         }),
         signal: req.signal,
       });
@@ -133,6 +144,11 @@ export async function POST(
 
   const stream = new ReadableStream({
     async start(controller) {
+      const sessionId = parsed.data.session_id || '00000000-0000-0000-0000-000000000001';
+      controller.enqueue(
+        encoder.encode(`event: session\ndata: ${JSON.stringify({ session_id: sessionId })}\n\n`)
+      );
+
       for (const tokenStr of mockTokens) {
         controller.enqueue(
           encoder.encode(`event: token\ndata: ${JSON.stringify({ token: tokenStr })}\n\n`)
@@ -141,6 +157,7 @@ export async function POST(
 
       const donePayload = {
         message_id: '00000000-0000-0000-0000-000000000001',
+        session_id: sessionId,
         content: mockTokens.join(''),
         citations: ['00:15'],
         retrieved_chunk_ids: ['chunk-1'],
@@ -161,4 +178,117 @@ export async function POST(
       'X-Accel-Buffering': 'no',
     },
   });
+}
+
+export async function GET(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
+  const url = new URL(req.url);
+  const sessionId = url.searchParams.get('session_id');
+
+  if (!sessionId) {
+    return new Response(
+      JSON.stringify({ error: 'Parameter session_id wajib disertakan' }),
+      {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      }
+    );
+  }
+
+  const token =
+    req.headers.get('x-ownership-token') ||
+    url.searchParams.get('token') ||
+    url.searchParams.get('ownership_token') ||
+    undefined;
+
+  const shareToken =
+    req.headers.get('x-share-token') ||
+    url.searchParams.get('share_token') ||
+    undefined;
+
+  if (!isTest && !env.MOCK_CORE_API && env.CORE_API_URL) {
+    const upstreamUrl = new URL(
+      `${env.CORE_API_URL.replace(/\/$/, '')}/v1/recordings/${id}/chat`
+    );
+    upstreamUrl.searchParams.set('session_id', sessionId);
+    if (shareToken) {
+      upstreamUrl.searchParams.set('share_token', shareToken);
+    }
+
+    const headers: Record<string, string> = {
+      Accept: 'application/json',
+    };
+    if (token) headers['x-ownership-token'] = token;
+    if (shareToken) headers['x-share-token'] = shareToken;
+    const reqId = req.headers.get('x-request-id');
+    if (reqId) headers['x-request-id'] = reqId;
+    const authHeader = req.headers.get('authorization');
+    if (authHeader) headers['authorization'] = authHeader;
+    const cookieHeader = req.headers.get('cookie');
+    if (cookieHeader) headers['cookie'] = cookieHeader;
+
+    try {
+      const cookieStore = await cookies();
+      const authCookie = cookieStore.get(AUTH_COOKIE_NAME);
+      if (authCookie?.value && !headers['authorization']) {
+        headers['authorization'] = `Bearer ${authCookie.value}`;
+      } else {
+        const guestCookie = cookieStore.get(GUEST_COOKIE_NAME);
+        if (guestCookie?.value && !headers['authorization']) {
+          headers['authorization'] = `Bearer ${guestCookie.value}`;
+        }
+      }
+    } catch {
+      // Ignore cookie parsing error outside request context
+    }
+
+    if (!headers['authorization']) {
+      try {
+        const anonToken = await authRepository.getGatewayAnonToken();
+        if (anonToken) {
+          headers['authorization'] = `Bearer ${anonToken}`;
+        }
+      } catch {
+        // Ignore fallback error
+      }
+    }
+
+    try {
+      const upstreamRes = await fetch(upstreamUrl.toString(), {
+        method: 'GET',
+        headers,
+        signal: req.signal,
+      });
+
+      const bodyText = await upstreamRes.text();
+      return new Response(bodyText, {
+        status: upstreamRes.status,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : 'Upstream error';
+      return new Response(JSON.stringify({ error: errorMsg }), {
+        status: 502,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+  }
+
+  // Simulated mock response for test/mock mode
+  return new Response(
+    JSON.stringify({
+      status: 'success',
+      code: 'SUCCESS',
+      message: 'chat history retrieved successfully',
+      data: [],
+      timestamp: new Date().toISOString(),
+    }),
+    {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    }
+  );
 }
