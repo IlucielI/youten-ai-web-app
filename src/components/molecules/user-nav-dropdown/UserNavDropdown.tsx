@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import {
   DropdownMenu,
@@ -28,6 +29,7 @@ export interface UserNavDropdownProps {
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
   showDashboard?: boolean;
+  pathname?: string;
 }
 
 export const UserNavDropdown: React.FC<UserNavDropdownProps> = ({
@@ -41,11 +43,19 @@ export const UserNavDropdown: React.FC<UserNavDropdownProps> = ({
   open,
   onOpenChange,
   showDashboard = true,
+  pathname: pathnameProp,
 }) => {
   const { t } = useTranslation();
   const [internalOpen, setInternalOpen] = useState(false);
   const isControlled = open !== undefined;
   const isMenuOpen = isControlled ? open : internalOpen;
+
+  // Resolve active pathname using Next.js App Router usePathname hook
+  const routerPathname = usePathname();
+  const currentPath = pathnameProp ?? routerPathname ?? '';
+
+  const isDashboardActive = currentPath === '/dashboard' || currentPath.startsWith('/dashboard/');
+  const isSettingsActive = currentPath === '/settings' || currentPath.startsWith('/settings/');
 
   const handleOpenChange = (nextOpen: boolean) => {
     if (!isControlled) {
@@ -120,11 +130,32 @@ export const UserNavDropdown: React.FC<UserNavDropdownProps> = ({
           <DropdownMenuItem asChild className="cursor-pointer">
             <Link
               href="/dashboard"
-              className="flex items-center gap-2 px-2.5 py-2 text-xs font-medium text-slate-700 hover:text-blue-600 hover:bg-blue-50/80 rounded-md transition-colors"
+              aria-current={isDashboardActive ? 'page' : undefined}
+              data-active={isDashboardActive}
+              className={cn(
+                'flex items-center justify-between w-full px-2.5 py-2 text-xs rounded-md transition-colors',
+                isDashboardActive
+                  ? 'bg-blue-50/90 text-blue-600 font-semibold'
+                  : 'text-slate-700 hover:text-blue-600 hover:bg-blue-50/80 font-medium'
+              )}
               data-testid="dashboard-nav-item"
             >
-              <LayoutDashboard className="w-4 h-4 text-slate-400 group-hover:text-blue-500" />
-              <span>{t('navbar.userMenu.dashboard')}</span>
+              <div className="flex items-center gap-2">
+                <LayoutDashboard
+                  className={cn(
+                    'w-4 h-4 transition-colors',
+                    isDashboardActive ? 'text-blue-600' : 'text-slate-400 group-hover:text-blue-500'
+                  )}
+                />
+                <span>{t('navbar.userMenu.dashboard')}</span>
+              </div>
+              {isDashboardActive && (
+                <span
+                  className="w-1.5 h-1.5 rounded-full bg-blue-600 shrink-0"
+                  aria-hidden="true"
+                  data-testid="dashboard-active-indicator"
+                />
+              )}
             </Link>
           </DropdownMenuItem>
         )}
@@ -133,11 +164,32 @@ export const UserNavDropdown: React.FC<UserNavDropdownProps> = ({
         <DropdownMenuItem asChild className="cursor-pointer">
           <Link
             href="/settings"
-            className="flex items-center gap-2 px-2.5 py-2 text-xs font-medium text-slate-700 hover:text-blue-600 hover:bg-blue-50/80 rounded-md transition-colors"
+            aria-current={isSettingsActive ? 'page' : undefined}
+            data-active={isSettingsActive}
+            className={cn(
+              'flex items-center justify-between w-full px-2.5 py-2 text-xs rounded-md transition-colors',
+              isSettingsActive
+                ? 'bg-blue-50/90 text-blue-600 font-semibold'
+                : 'text-slate-700 hover:text-blue-600 hover:bg-blue-50/80 font-medium'
+            )}
             data-testid="settings-nav-item"
           >
-            <Settings className="w-4 h-4 text-slate-400 group-hover:text-blue-500" />
-            <span>{t('navbar.userMenu.settings')}</span>
+            <div className="flex items-center gap-2">
+              <Settings
+                className={cn(
+                  'w-4 h-4 transition-colors',
+                  isSettingsActive ? 'text-blue-600' : 'text-slate-400 group-hover:text-blue-500'
+                )}
+              />
+              <span>{t('navbar.userMenu.settings')}</span>
+            </div>
+            {isSettingsActive && (
+              <span
+                className="w-1.5 h-1.5 rounded-full bg-blue-600 shrink-0"
+                aria-hidden="true"
+                data-testid="settings-active-indicator"
+              />
+            )}
           </Link>
         </DropdownMenuItem>
 

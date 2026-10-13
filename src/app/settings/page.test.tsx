@@ -9,6 +9,7 @@ import { useLocaleStore } from '@/stores/locale.store';
 
 vi.mock('next/navigation', () => ({
   useRouter: vi.fn(),
+  usePathname: () => '/settings',
 }));
 
 vi.mock('sonner', () => ({

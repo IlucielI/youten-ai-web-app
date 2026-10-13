@@ -121,4 +121,48 @@ describe('UserNavDropdown', () => {
       expect(screen.getByTestId('logout-btn')).toBeInTheDocument();
     });
   });
+
+  it('renders dashboard link by default and marks it active when on /dashboard', () => {
+    render(
+      <UserNavDropdown
+        open={true}
+        pathname="/dashboard"
+        user={{ full_name: 'Bayu', email: 'bayu@youten.ai' }}
+      />
+    );
+
+    const dashboardLink = screen.getByTestId('dashboard-nav-item');
+    const settingsLink = screen.getByTestId('settings-nav-item');
+
+    expect(dashboardLink).toHaveAttribute('href', '/dashboard');
+    expect(dashboardLink).toHaveAttribute('data-active', 'true');
+    expect(dashboardLink).toHaveAttribute('aria-current', 'page');
+    expect(screen.getByTestId('dashboard-active-indicator')).toBeInTheDocument();
+
+    expect(settingsLink).toHaveAttribute('data-active', 'false');
+    expect(settingsLink).not.toHaveAttribute('aria-current');
+    expect(screen.queryByTestId('settings-active-indicator')).not.toBeInTheDocument();
+  });
+
+  it('marks settings as active when on /settings', () => {
+    render(
+      <UserNavDropdown
+        open={true}
+        pathname="/settings"
+        user={{ full_name: 'Bayu', email: 'bayu@youten.ai' }}
+      />
+    );
+
+    const dashboardLink = screen.getByTestId('dashboard-nav-item');
+    const settingsLink = screen.getByTestId('settings-nav-item');
+
+    expect(settingsLink).toHaveAttribute('href', '/settings');
+    expect(settingsLink).toHaveAttribute('data-active', 'true');
+    expect(settingsLink).toHaveAttribute('aria-current', 'page');
+    expect(screen.getByTestId('settings-active-indicator')).toBeInTheDocument();
+
+    expect(dashboardLink).toHaveAttribute('data-active', 'false');
+    expect(dashboardLink).not.toHaveAttribute('aria-current');
+    expect(screen.queryByTestId('dashboard-active-indicator')).not.toBeInTheDocument();
+  });
 });

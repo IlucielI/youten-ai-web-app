@@ -15,6 +15,7 @@ import { Input } from '@/components/atoms/input';
 import { Label } from '@/components/atoms/label';
 import { Progress } from '@/components/atoms/progress';
 import { UserNavDropdown } from '@/components/molecules/user-nav-dropdown';
+import { LanguageSwitcher } from '@/components/molecules/language-switcher';
 import { toast } from 'sonner';
 import { useTranslation } from '@/locales';
 import {
@@ -223,6 +224,7 @@ export default function SettingsPage() {
 
           {/* Right Header Controls */}
           <div className="flex items-center gap-3">
+            <LanguageSwitcher />
             <UserNavDropdown user={user} onLogout={handleLogout} />
           </div>
         </div>

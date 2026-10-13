@@ -14,6 +14,7 @@ vi.mock('next/navigation', () => ({
   useRouter: () => ({
     push: mockPush,
   }),
+  usePathname: () => '/dashboard',
 }));
 
 vi.mock('sonner', () => ({

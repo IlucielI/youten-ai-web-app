@@ -15,6 +15,7 @@ const mockRouter = { push: mockPush };
 vi.mock('next/navigation', () => ({
   useRouter: () => mockRouter,
   useParams: () => mockParams,
+  usePathname: () => '/recordings/rec-detail-123',
 }));
 
 const mockRecordingData = {

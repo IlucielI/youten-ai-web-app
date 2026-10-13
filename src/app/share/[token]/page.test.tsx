@@ -13,6 +13,7 @@ const mockParams = { token: 'token-shared-xyz' };
 vi.mock('next/navigation', () => ({
   useParams: () => mockParams,
   useRouter: () => ({ push: vi.fn() }),
+  usePathname: () => '/share/token-shared-xyz',
 }));
 
 const mockSharedData: SharedRecordingResponse = {
