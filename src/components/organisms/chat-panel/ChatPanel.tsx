@@ -178,7 +178,7 @@ export function ChatPanel({
 }: ChatPanelProps) {
   const { t } = useTranslation();
   const [inputValue, setInputValue] = useState('');
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messageContainerRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Zustand Chat Store
@@ -194,10 +194,20 @@ export function ChatPanel({
 
   const seek = onSeekAudio || ((sec: number) => usePlayerStore.getState().seek(sec));
 
-  // Auto-scroll to bottom on messages change or stream update
+  // Auto-scroll ONLY the internal message container, never scrolling the main page window or left column
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, streamingContent]);
+    const container = messageContainerRef.current;
+    if (!container) return;
+
+    if (typeof container.scrollTo === 'function') {
+      container.scrollTo({
+        top: container.scrollHeight,
+        behavior: isStreaming ? 'auto' : 'smooth',
+      });
+    } else {
+      container.scrollTop = container.scrollHeight;
+    }
+  }, [messages, streamingContent, isStreaming]);
 
   if (!isOpen) return null;
 
@@ -278,6 +288,7 @@ export function ChatPanel({
 
       {/* Message Stream */}
       <div
+        ref={messageContainerRef}
         className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin"
         data-testid="chat-message-list"
       >
@@ -414,8 +425,6 @@ export function ChatPanel({
             )}
           </>
         )}
-
-        <div ref={messagesEndRef} />
       </div>
 
       {/* Error Banner */}
