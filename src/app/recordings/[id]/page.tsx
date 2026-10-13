@@ -4,26 +4,16 @@ import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
-  ArrowLeft,
-  Calendar,
-  Clock,
-  Sparkles,
-  Share2,
-  Bot,
   AlertTriangle,
-  UserCheck,
-  FileText,
   ListOrdered,
   Bookmark,
-  BarChart3,
   Loader2,
   Search,
 } from 'lucide-react';
 import { Navbar } from '@/components/organisms/navbar';
 import { Footer } from '@/components/organisms/footer';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/atoms/tabs';
+import { Tabs, TabsContent } from '@/components/atoms/tabs';
 import { Button } from '@/components/atoms/button';
-import { Badge } from '@/components/atoms/badge';
 import { Input } from '@/components/atoms/input';
 import { SummaryViewer, SummaryData } from '@/components/organisms/summary-viewer';
 import { SummaryVersionTabs, SummaryVersionItem } from '@/components/molecules/summary-version-tabs';
@@ -37,7 +27,8 @@ import { AnalyticsCards } from '@/components/organisms/analytics-cards';
 import { AudioPlayer } from '@/components/organisms/audio-player';
 import { ChatPanel } from '@/components/organisms/chat-panel';
 import { ShareDialog } from '@/components/molecules/share-dialog';
-import { ExportMenu } from '@/components/molecules/export-menu';
+import { RecordingHeader } from '@/components/organisms/recording-header';
+import { RecordingTabs } from '@/components/molecules/recording-tabs';
 import { formatTime, parseTimestamp } from '@/lib/time';
 import { cn } from '@/lib/utils';
 import { RecordingStatus } from '@/server/constants';
@@ -846,94 +837,26 @@ export default function RecordingDetailPage() {
       <Navbar />
 
       {/* Main Page Header */}
-      <header className="border-b border-border/80 bg-background/80 backdrop-blur-md sticky top-16 z-30">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-col md:flex-row md:items-center justify-between gap-4">
-          {/* Left Title, Date, Badges & Breadcrumb */}
-          <div className="space-y-1.5 min-w-0">
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <Link
-                href="/"
-                data-testid="back-to-home-link"
-                className="inline-flex items-center gap-1 hover:text-foreground transition-colors font-medium"
-              >
-                <ArrowLeft className="w-3.5 h-3.5" />
-                <span>{t('recording.header.backToHome')}</span>
-              </Link>
-              <span>•</span>
-              <span className="font-mono text-[11px] truncate max-w-[140px]">
-                ID: {recording.id}
-              </span>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2.5">
-              <h1
-                data-testid="recording-title"
-                className="text-lg sm:text-xl md:text-2xl font-bold text-foreground tracking-tight truncate max-w-xl"
-              >
-                {recording.title}
-              </h1>
-
-              <Badge variant="outline" className="text-xs font-medium uppercase tracking-wider">
-                {recording.selected_template}
-              </Badge>
-
-              <Badge variant="secondary" className="text-xs font-mono flex items-center gap-1">
-                <Clock className="w-3 h-3 text-muted-foreground" />
-                <span>{formatTime(recording.duration_seconds)}</span>
-              </Badge>
-
-              <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                <Calendar className="w-3.5 h-3.5" />
-                <span>
-                  {new Date(recording.created_at).toLocaleDateString(locale === 'en' ? 'en-US' : 'id-ID', {
-                    day: 'numeric',
-                    month: 'short',
-                    year: 'numeric',
-                  })}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Right Action Toolbar */}
-          <div className="flex items-center gap-2 self-start md:self-auto shrink-0">
-            {/* Share Button */}
-            <Button
-              variant="outline"
-              size="sm"
-              data-testid="open-share-dialog-btn"
-              onClick={() => setIsShareOpen(true)}
-              className="gap-1.5 text-xs font-medium"
-            >
-              <Share2 className="w-3.5 h-3.5" />
-              <span>{t('recording.header.share')}</span>
-            </Button>
-
-            {/* Export Menu */}
-            <ExportMenu
-              recordingId={recording.id}
-              currentVersion={activeSummaryData?.version}
-              onExport={handleExport}
-              open={isExportOpen}
-              onOpenChange={setIsExportOpen}
-              isPro={isLoggedIn ? canExportPdf : false}
-            />
-
-            {/* AI Assistant Chat Panel Toggle */}
-            <Button
-              variant={isChatOpen ? 'default' : 'secondary'}
-              size="sm"
-              data-testid="toggle-chat-panel-btn"
-              onClick={() => setIsChatOpen((prev) => !prev)}
-              className="gap-1.5 text-xs font-medium"
-            >
-              <Bot className="w-3.5 h-3.5" />
-              <span>{t('recording.header.askAi')}</span>
-              <Sparkles className="w-3 h-3 text-primary-foreground/80" />
-            </Button>
-          </div>
-        </div>
-      </header>
+      <RecordingHeader
+        id={recording.id}
+        title={recording.title}
+        selectedTemplate={recording.selected_template}
+        durationSeconds={recording.duration_seconds}
+        createdAt={recording.created_at}
+        backHref="/"
+        showShare={true}
+        onOpenShare={() => setIsShareOpen(true)}
+        showExport={true}
+        onExport={handleExport}
+        isExportOpen={isExportOpen}
+        onExportOpenChange={setIsExportOpen}
+        isPro={isLoggedIn ? canExportPdf : false}
+        exportVersion={activeSummaryData?.version}
+        showAskAi={true}
+        isChatOpen={isChatOpen}
+        onToggleChat={() => setIsChatOpen((prev) => !prev)}
+        className="sticky top-16 z-30"
+      />
 
       {/* Guest Session Warning Banner */}
       {recording.is_guest && (
@@ -986,47 +909,13 @@ export default function RecordingDetailPage() {
               onValueChange={(val) => setActiveTab(val as typeof activeTab)}
               className="w-full"
             >
-              <TabsList className="inline-flex w-fit max-w-full h-auto items-center gap-1 p-1 rounded-xl mb-6 overflow-x-auto bg-muted/70">
-                <TabsTrigger
-                  value="summary"
-                  data-testid="tab-trigger-summary"
-                  onClick={() => setActiveTab('summary')}
-                  className="flex items-center gap-2 text-xs font-semibold px-3.5 py-1.5 shrink-0"
-                >
-                  <FileText className="w-3.5 h-3.5" />
-                  <span>{t('recording.tabs.summary')}</span>
-                </TabsTrigger>
-
-                <TabsTrigger
-                  value="transcript"
-                  data-testid="tab-trigger-transcript"
-                  onClick={() => setActiveTab('transcript')}
-                  className="flex items-center gap-2 text-xs font-semibold px-3.5 py-1.5 shrink-0"
-                >
-                  <UserCheck className="w-3.5 h-3.5" />
-                  <span>{t('recording.tabs.transcript')}</span>
-                </TabsTrigger>
-
-                <TabsTrigger
-                  value="chapters"
-                  data-testid="tab-trigger-chapters"
-                  onClick={() => setActiveTab('chapters')}
-                  className="flex items-center gap-2 text-xs font-semibold px-3.5 py-1.5 shrink-0"
-                >
-                  <ListOrdered className="w-3.5 h-3.5" />
-                  <span>{t('recording.tabs.chapters')}</span>
-                </TabsTrigger>
-
-                <TabsTrigger
-                  value="analytics"
-                  data-testid="tab-trigger-analytics"
-                  onClick={() => setActiveTab('analytics')}
-                  className="flex items-center gap-2 text-xs font-semibold px-3.5 py-1.5 shrink-0"
-                >
-                  <BarChart3 className="w-3.5 h-3.5" />
-                  <span>{t('recording.tabs.analytics')}</span>
-                </TabsTrigger>
-              </TabsList>
+              <RecordingTabs
+                activeTab={activeTab}
+                onTabChange={setActiveTab}
+                segmentsCount={recording.segments?.length}
+                chaptersCount={recording.chapters?.length}
+                className="mb-6"
+              />
 
               {/* Tab 1: Summary Canvas */}
               <TabsContent value="summary" data-testid="summary-tab-content" className="space-y-6 mt-0">

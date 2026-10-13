@@ -4,11 +4,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import {
-  Calendar,
-  Clock,
   Sparkles,
-  FileText,
-  ListOrdered,
   Bookmark,
   Loader2,
   Search,
@@ -17,11 +13,13 @@ import {
   AlertCircle,
   ArrowRight,
 } from 'lucide-react';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/atoms/tabs';
+import { Tabs, TabsContent } from '@/components/atoms/tabs';
 import { Button } from '@/components/atoms/button';
-import { Badge } from '@/components/atoms/badge';
 import { YoutenLogo } from '@/components/atoms/youten-logo';
 import { Input } from '@/components/atoms/input';
+import { RecordingHeader } from '@/components/organisms/recording-header';
+import { RecordingTabs, RecordingTabKey } from '@/components/molecules/recording-tabs';
+import { AnalyticsCards } from '@/components/organisms/analytics-cards';
 import { SummaryViewer, SummaryData } from '@/components/organisms/summary-viewer';
 import { TranscriptSegment } from '@/components/molecules/transcript-segment';
 import { ChapterList } from '@/components/organisms/chapters-list';
@@ -29,11 +27,12 @@ import { HighlightsGrid } from '@/components/organisms/highlights-grid';
 import { AudioPlayer } from '@/components/organisms/audio-player';
 import { Footer } from '@/components/organisms/footer';
 import { ThemeToggle } from '@/components/molecules/theme-toggle';
-import { formatTime } from '@/lib/time';
 import { usePlayerStore } from '@/stores/player.store';
 import { apiFetch } from '@/lib/api-client';
 import { ApiResponse } from '@/server/dtos/response.dto';
 import type { SharedRecordingResponse } from '@/server/dtos/recording.dto';
+import type { RecordingAnalyticsDTO } from '@/server/dtos/analytics.dto';
+import { ExportFormat } from '@/server/constants/recording.constant';
 import { useTranslation } from '@/locales';
 
 /**
@@ -44,14 +43,15 @@ import { useTranslation } from '@/locales';
 export default function SharedRecordingPage() {
   const params = useParams();
   const token = typeof params?.token === 'string' ? params.token : '';
-  const { t, locale } = useTranslation();
+  const { t } = useTranslation();
 
   const [recording, setRecording] = useState<SharedRecordingResponse | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // Active Main Tab: summary, transcript, chapters
-  const [activeTab, setActiveTab] = useState<'summary' | 'transcript' | 'chapters'>('summary');
+  // Active Main Tab: summary, transcript, chapters, analytics
+  const [activeTab, setActiveTab] = useState<RecordingTabKey>('summary');
+  const [isExportOpen, setIsExportOpen] = useState<boolean>(false);
 
   // Search filter for transcript
   const [transcriptSearch, setTranscriptSearch] = useState<string>('');
@@ -127,7 +127,56 @@ export default function SharedRecordingPage() {
         s.text.toLowerCase().includes(query) ||
         (s.speaker_name || s.speaker_label || '').toLowerCase().includes(query)
     );
-  }, [recording?.segments, transcriptSearch]);
+  }, [recording, transcriptSearch]);
+
+  // Memoized speaker labels map for AnalyticsCards and Transcript
+  const speakerLabels = useMemo(() => {
+    const map: Record<string, string> = {};
+    if (recording?.segments) {
+      for (const s of recording.segments) {
+        if (s.speaker_label && (s.speaker_name || !map[s.speaker_label])) {
+          map[s.speaker_label] = s.speaker_name || s.speaker_label;
+        }
+      }
+    }
+    return map;
+  }, [recording]);
+
+  const handleExport = async (format: ExportFormat) => {
+    if (!recording) return;
+
+    try {
+      const params = new URLSearchParams({ format });
+      const res = await fetch(`/api/recordings/${recording.id}/export?${params.toString()}`, {
+        method: 'GET',
+      });
+
+      if (!res.ok) {
+        throw new Error(`Export request failed with status ${res.status}`);
+      }
+
+      const blob = await res.blob();
+      const disposition = res.headers.get('content-disposition');
+      let filename = `${recording.title.replace(/[^a-zA-Z0-9_-]/g, '_')}.${format === ExportFormat.MARKDOWN ? 'md' : format}`;
+      if (disposition && disposition.includes('filename=')) {
+        const match = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+        if (match && match[1]) {
+          filename = match[1].replace(/['"]/g, '');
+        }
+      }
+
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Failed to export shared recording:', err);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -234,87 +283,39 @@ export default function SharedRecordingPage() {
         </div>
       </header>
 
-      {/* 2. Recording Metadata Bar */}
-      <section className="border-b border-border/60 bg-background/60 backdrop-blur-xs py-5">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div className="space-y-1.5 min-w-0">
-              <h1
-                data-testid="shared-recording-title"
-                className="text-xl sm:text-2xl font-bold tracking-tight text-foreground truncate"
-              >
-                {recording.title}
-              </h1>
-
-              <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                <span
-                  data-testid="shared-duration-badge"
-                  className="inline-flex items-center gap-1 font-mono font-medium bg-secondary/80 px-2 py-0.5 rounded-md text-foreground"
-                >
-                  <Clock className="w-3 h-3 text-primary" />
-                  {formatTime(recording.duration_seconds)}
-                </span>
-
-                <span className="inline-flex items-center gap-1 text-muted-foreground">
-                  <Calendar className="w-3 h-3" />
-                  {new Date(recording.created_at).toLocaleDateString(locale === 'id' ? 'id-ID' : 'en-US', {
-                    day: 'numeric',
-                    month: 'short',
-                    year: 'numeric',
-                  })}
-                </span>
-
-                <Badge variant="outline" className="text-[11px] font-medium capitalize">
-                  <Sparkles className="w-3 h-3 mr-1 text-primary" />
-                  {t('share.formatLabel', { template: recording.selected_template })}
-                </Badge>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* 2. Recording Page Header (Shared component with /recordings/[id]) */}
+      <RecordingHeader
+        id={recording.id}
+        title={recording.title}
+        selectedTemplate={recording.selected_template}
+        durationSeconds={recording.duration_seconds}
+        createdAt={recording.created_at}
+        backHref="/"
+        showShare={false}
+        showAskAi={false}
+        showExport={true}
+        onExport={handleExport}
+        isExportOpen={isExportOpen}
+        onExportOpenChange={setIsExportOpen}
+        exportVersion={recording.active_summary?.version}
+        className="sticky top-14 z-20"
+      />
 
       {/* 3. Main Read-Only Content Canvas */}
       <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-6">
         <Tabs
           value={activeTab}
-          onValueChange={(val) => setActiveTab(val as 'summary' | 'transcript' | 'chapters')}
+          onValueChange={(val) => setActiveTab(val as RecordingTabKey)}
           className="space-y-6"
         >
-          {/* Tab Selection Header */}
-          <div className="border-b border-border/80 pb-px">
-            <TabsList className="bg-muted/70 p-1 rounded-xl h-auto gap-1 max-w-full overflow-x-auto">
-              <TabsTrigger
-                value="summary"
-                data-testid="tab-trigger-summary"
-                onClick={() => setActiveTab('summary')}
-                className="flex items-center gap-2 text-xs font-semibold px-4 py-2 shrink-0"
-              >
-                <FileText className="w-3.5 h-3.5" />
-                {t('recording.tabs.summary')}
-              </TabsTrigger>
-
-              <TabsTrigger
-                value="transcript"
-                data-testid="tab-trigger-transcript"
-                onClick={() => setActiveTab('transcript')}
-                className="flex items-center gap-2 text-xs font-semibold px-4 py-2 shrink-0"
-              >
-                <ListOrdered className="w-3.5 h-3.5" />
-                {t('recording.tabs.transcript')} ({recording.segments?.length || 0})
-              </TabsTrigger>
-
-              <TabsTrigger
-                value="chapters"
-                data-testid="tab-trigger-chapters"
-                onClick={() => setActiveTab('chapters')}
-                className="flex items-center gap-2 text-xs font-semibold px-4 py-2 shrink-0"
-              >
-                <Bookmark className="w-3.5 h-3.5" />
-                {t('recording.tabs.chapters')} ({recording.chapters?.length || 0})
-              </TabsTrigger>
-            </TabsList>
-          </div>
+          {/* Reusable Tab Navigation Component */}
+          <RecordingTabs
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+            segmentsCount={recording.segments?.length}
+            chaptersCount={recording.chapters?.length}
+            className="mb-6"
+          />
 
           {/* TAB 1: SUMMARY */}
           <TabsContent value="summary" data-testid="summary-tab-content" className="outline-none">
@@ -400,6 +401,14 @@ export default function SharedRecordingPage() {
                 />
               </div>
             )}
+          </TabsContent>
+
+          {/* TAB 4: ANALYTICS */}
+          <TabsContent value="analytics" data-testid="analytics-tab-content" className="outline-none">
+            <AnalyticsCards
+              analytics={recording.analytics_data as unknown as RecordingAnalyticsDTO}
+              speakerLabels={speakerLabels}
+            />
           </TabsContent>
         </Tabs>
       </main>

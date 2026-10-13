@@ -278,6 +278,7 @@ export const SharedRecordingResponseSchema = z.object({
   active_summary: SummaryDtoSchema.nullable().optional(),
   chapters: z.array(ChapterSchema),
   highlights: z.array(HighlightSchema),
+  analytics_data: z.record(z.string(), z.unknown()).nullable().optional(),
   created_at: z.string(),
 });
 export type SharedRecordingResponseDto = z.infer<typeof SharedRecordingResponseSchema>;

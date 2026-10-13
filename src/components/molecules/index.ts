@@ -26,3 +26,4 @@ export * from './user-nav-dropdown';
 export * from './language-switcher';
 export * from './searchable-select';
 export * from './theme-toggle';
+export * from './recording-tabs';

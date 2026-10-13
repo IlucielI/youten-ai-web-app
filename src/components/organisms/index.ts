@@ -15,3 +15,4 @@ export * from './analytics-cards';
 export * from './meeting-bot-form';
 export * from './live-bot-tracker';
 export * from './footer';
+export * from './recording-header';

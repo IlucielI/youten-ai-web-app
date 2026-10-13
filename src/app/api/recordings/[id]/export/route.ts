@@ -1,5 +1,5 @@
 import { env, isTest } from '@/server/config';
-import { AUTH_COOKIE_NAME } from '@/server/constants';
+import { AUTH_COOKIE_NAME, GUEST_COOKIE_NAME } from '@/server/constants';
 import { cookies } from 'next/headers';
 
 /**
@@ -76,8 +76,10 @@ export async function GET(
     try {
       const cookieStore = await cookies();
       const authCookie = cookieStore.get(AUTH_COOKIE_NAME);
-      if (authCookie?.value && !headers['authorization']) {
-        headers['authorization'] = `Bearer ${authCookie.value}`;
+      const guestCookie = cookieStore.get(GUEST_COOKIE_NAME);
+      const tokenVal = authCookie?.value || guestCookie?.value;
+      if (tokenVal && !headers['authorization']) {
+        headers['authorization'] = `Bearer ${tokenVal}`;
       }
     } catch {
       // Ignore cookie parsing failure
