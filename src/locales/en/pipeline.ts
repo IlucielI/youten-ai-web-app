@@ -47,7 +47,7 @@ export const enPipeline: typeof idPipeline = {
     retryProcess: 'Retry Processing',
     cancelProcess: 'Cancel & Clean Up',
     cancellingProcess: 'Cancelling...',
-    cancelModalTitle: 'Cancel Recording Processing?',
+    cancelModalTitle: 'Cancel Processing of This Recording?',
     cancelModalDescription: 'This recording session will be cancelled and permanently deleted from the system to clean up the processing pipeline.',
     cancelConfirmButton: 'Yes, Cancel & Clean Up',
     cancelSuccess: 'Recording session successfully cancelled and cleaned up.',

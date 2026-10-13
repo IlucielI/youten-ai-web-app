@@ -199,6 +199,12 @@ export function ChatPanel({
     const container = messageContainerRef.current;
     if (!container) return;
 
+    // If streaming, only auto-scroll if user is already near the bottom (prevents jumping when reading history)
+    if (isStreaming) {
+      const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 120;
+      if (!isNearBottom) return;
+    }
+
     if (typeof container.scrollTo === 'function') {
       container.scrollTo({
         top: container.scrollHeight,
