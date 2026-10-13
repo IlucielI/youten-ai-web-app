@@ -1141,8 +1141,8 @@ export default function RecordingDetailPage() {
         </div>
       </main>
 
-      {/* Sticky Bottom Audio Player Bar */}
-      <div data-testid="sticky-audio-player-container" className="sticky bottom-4 z-40 px-4 my-2">
+      {/* Bottom Audio Player Bar */}
+      <div data-testid="sticky-audio-player-container" className="w-full max-w-4xl mx-auto px-4 my-6">
         <AudioPlayer
           src={recording.audio_url || recording.playback_url || undefined}
           title={recording.title}

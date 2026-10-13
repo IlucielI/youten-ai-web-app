@@ -39,7 +39,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
   title,
   waveformPeaks,
   className,
-  sticky = true,
+  sticky = false,
 }) => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const scrubberRef = useRef<HTMLDivElement | null>(null);

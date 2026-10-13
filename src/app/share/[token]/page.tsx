@@ -398,8 +398,8 @@ export default function SharedRecordingPage() {
         </Tabs>
       </main>
 
-      {/* 4. Sticky Bottom Audio Player */}
-      <div className="sticky bottom-4 z-40 px-4 my-2">
+      {/* 4. Bottom Audio Player */}
+      <div className="w-full max-w-4xl mx-auto px-4 my-6">
         <AudioPlayer
           src={recording.audio_url || recording.playback_url || undefined}
           title={recording.title}
