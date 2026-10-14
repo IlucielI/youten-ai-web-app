@@ -77,5 +77,39 @@ describe('ExportMenu', () => {
     expect(handleUpgradePrompt).toHaveBeenCalledTimes(1);
     expect(handleExport).not.toHaveBeenCalled();
   });
+
+  it('triggers onExport with PDF format when isPro is false but onUpgradePrompt is not provided', async () => {
+    const handleExport = vi.fn();
+
+    render(
+      <ExportMenu
+        open={true}
+        isPro={false}
+        onExport={handleExport}
+      />
+    );
+
+    const pdfOption = screen.getByTestId(`export-option-${ExportFormat.PDF}`);
+    fireEvent.click(pdfOption);
+
+    expect(handleExport).toHaveBeenCalledWith(ExportFormat.PDF);
+  });
+
+  it('triggers onExport with PDF format when isPro is omitted', async () => {
+    const handleExport = vi.fn();
+
+    render(
+      <ExportMenu
+        open={true}
+        onExport={handleExport}
+      />
+    );
+
+    const pdfOption = screen.getByTestId(`export-option-${ExportFormat.PDF}`);
+    fireEvent.click(pdfOption);
+
+    expect(handleExport).toHaveBeenCalledWith(ExportFormat.PDF);
+  });
 });
+
 
