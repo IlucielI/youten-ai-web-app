@@ -1,12 +1,13 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor, fireEvent } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent, act } from '@testing-library/react';
 import SharedRecordingPage from './page';
 import * as apiClient from '@/lib/api-client';
 import { usePlayerStore } from '@/stores/player.store';
 import type { SharedRecordingResponse } from '@/server/dtos/recording.dto';
 import { ResponseStatus, ResponseCode } from '@/server/constants';
 import { useLocaleStore } from '@/stores/locale.store';
+import { useAuthStore } from '@/stores/auth.store';
 
 // Stable next/navigation mocks
 const mockParams = { token: 'token-shared-xyz' };
@@ -94,6 +95,7 @@ describe('SharedRecordingPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     useLocaleStore.setState({ locale: 'id' });
+    useAuthStore.getState().reset();
     usePlayerStore.getState().resetPlayer();
 
     vi.spyOn(apiClient, 'apiFetch').mockResolvedValue({
@@ -235,5 +237,47 @@ describe('SharedRecordingPage', () => {
     });
 
     expect(screen.getByTestId('back-to-home-btn')).toBeInTheDocument();
+  });
+
+  it('renders user dropdown and hides promotional CTA when user is authenticated', async () => {
+    useAuthStore.getState().setUser({
+      id: 'usr-1',
+      full_name: 'Bayu Anugerah',
+      email: 'bayu@youten.ai',
+      status: 'active',
+      role_code: 'USER',
+      role_name: 'Member',
+      daily_quota: 10,
+      quota_used_today: 0,
+      quota_remaining: 10,
+      email_verified: true,
+      created_at: new Date().toISOString(),
+    });
+
+    render(<SharedRecordingPage />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('recording-title')).toBeInTheDocument();
+    });
+
+    expect(screen.getByTestId('navbar-user-section')).toBeInTheDocument();
+    expect(screen.getByTestId('user-nav-dropdown-trigger')).toBeInTheDocument();
+    expect(screen.queryByTestId('try-free-cta-btn')).not.toBeInTheDocument();
+  });
+
+  it('renders language switcher in navbar and switches language', async () => {
+    render(<SharedRecordingPage />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('recording-title')).toBeInTheDocument();
+    });
+
+    expect(screen.getByTestId('language-switcher')).toBeInTheDocument();
+    const enButton = screen.getByTestId('lang-btn-en');
+    act(() => {
+      fireEvent.click(enButton);
+    });
+
+    expect(useLocaleStore.getState().locale).toBe('en');
   });
 });

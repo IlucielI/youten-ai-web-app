@@ -27,7 +27,10 @@ import { HighlightsGrid } from '@/components/organisms/highlights-grid';
 import { AudioPlayer } from '@/components/organisms/audio-player';
 import { Footer } from '@/components/organisms/footer';
 import { ThemeToggle } from '@/components/molecules/theme-toggle';
+import { LanguageSwitcher } from '@/components/molecules/language-switcher';
+import { UserNavDropdown } from '@/components/molecules/user-nav-dropdown';
 import { ChatPanel } from '@/components/organisms/chat-panel';
+import { useAuthStore } from '@/stores/auth.store';
 import { usePlayerStore } from '@/stores/player.store';
 import { useChatStore } from '@/stores/chat.store';
 import { apiFetch } from '@/lib/api-client';
@@ -50,11 +53,15 @@ import { useTranslation } from '@/locales';
 export default function SharedRecordingPage() {
   const params = useParams();
   const token = typeof params?.token === 'string' ? params.token : '';
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
 
   const [recording, setRecording] = useState<SharedRecordingResponse | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // User Auth State
+  const currentUser = useAuthStore((state) => state.user);
+  const handleLogout = useAuthStore((state) => state.logout);
 
   // Active Main Tab: summary, transcript, chapters, analytics
   const [activeTab, setActiveTab] = useState<RecordingTabKey>('summary');
@@ -331,6 +338,13 @@ export default function SharedRecordingPage() {
         end_time: parseTimestamp(c),
       }));
 
+      if (!fullContent.trim()) {
+        fullContent =
+          locale === 'id'
+            ? 'Maaf, asisten AI tidak dapat menghasilkan jawaban saat ini. Silakan coba kirim ulang pertanyaan.'
+            : 'Sorry, the AI assistant was unable to generate a response at this time. Please try asking again.';
+      }
+
       finalizeAssistantMessage(assistantMsgId, fullContent, mappedCitations);
     } catch (err: unknown) {
       const errMsg = err instanceof Error ? err.message : 'Terjadi kesalahan koneksi AI';
@@ -346,12 +360,17 @@ export default function SharedRecordingPage() {
         className="min-h-screen flex flex-col bg-background text-foreground"
       >
         {/* Distraction-free Top Banner */}
-        <header className="border-b border-border/60 bg-background/90 backdrop-blur-md px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <YoutenLogo size="sm" />
-            <span className="font-bold text-sm tracking-tight text-foreground">Youten AI</span>
+        <header className="border-b border-border/60 bg-background/90 backdrop-blur-md sticky top-0 z-40">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+            <div className="flex items-center gap-2">
+              <YoutenLogo size="sm" />
+              <span className="font-bold text-sm tracking-tight text-foreground">Youten AI</span>
+            </div>
+            <div className="flex items-center gap-2.5 sm:gap-3">
+              <LanguageSwitcher />
+              <ThemeToggle />
+            </div>
           </div>
-          <ThemeToggle />
         </header>
 
         <div className="flex-1 flex flex-col items-center justify-center gap-3">
@@ -369,21 +388,35 @@ export default function SharedRecordingPage() {
         className="min-h-screen flex flex-col bg-background text-foreground"
       >
         {/* Distraction-free Top Banner */}
-        <header className="border-b border-border/60 bg-background/90 backdrop-blur-md px-4 sm:px-6 py-3 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 group">
-            <YoutenLogo size="sm" className="group-hover:scale-105 transition-transform" />
-            <span className="font-bold text-sm tracking-tight text-foreground group-hover:text-primary transition-colors">
-              Youten AI
-            </span>
-          </Link>
-          <div className="flex items-center gap-3">
-            <ThemeToggle />
-            <Button asChild size="sm" variant="default" className="text-xs">
-              <Link href="/">
-                {t('share.tryFree')}
-                <ArrowRight className="w-3.5 h-3.5 ml-1" />
-              </Link>
-            </Button>
+        <header className="border-b border-border/60 bg-background/90 backdrop-blur-md sticky top-0 z-40">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+            <Link href="/" className="flex items-center gap-2 group">
+              <YoutenLogo size="sm" className="group-hover:scale-105 transition-transform" />
+              <span className="font-bold text-sm tracking-tight text-foreground group-hover:text-primary transition-colors">
+                Youten AI
+              </span>
+            </Link>
+            <div className="flex items-center gap-2.5 sm:gap-3">
+              <LanguageSwitcher />
+              <ThemeToggle />
+              {currentUser ? (
+                <div className="flex items-center" data-testid="navbar-user-section">
+                  <UserNavDropdown
+                    name={currentUser.full_name || currentUser.email}
+                    email={currentUser.email}
+                    onLogout={handleLogout}
+                    showDashboard={true}
+                  />
+                </div>
+              ) : (
+                <Button asChild size="sm" variant="default" className="text-xs">
+                  <Link href="/">
+                    {t('share.tryFree')}
+                    <ArrowRight className="w-3.5 h-3.5 ml-1" />
+                  </Link>
+                </Button>
+              )}
+            </div>
           </div>
         </header>
 
@@ -412,7 +445,7 @@ export default function SharedRecordingPage() {
     >
       {/* 1. Distraction-Free Powered-by Header Banner */}
       <header className="border-b border-border/60 bg-background/90 backdrop-blur-md sticky top-0 z-40">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
           {/* Left: Branding & Read-Only Badge */}
           <div className="flex items-center gap-3">
             <Link href="/" className="flex items-center gap-2 group">
@@ -428,18 +461,33 @@ export default function SharedRecordingPage() {
             </span>
           </div>
 
-          {/* Right: Promotional CTA & ThemeToggle */}
-          <div className="flex items-center gap-2.5">
-            <span className="hidden md:inline-block text-xs text-muted-foreground">
-              {t('share.poweredBy')}
-            </span>
+          {/* Right: LanguageSwitcher, ThemeToggle & Profile or Promotional CTA */}
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            <LanguageSwitcher />
             <ThemeToggle />
-            <Button asChild size="sm" className="text-xs font-semibold shadow-xs">
-              <Link href="/" data-testid="try-free-cta-btn">
-                {t('share.tryFree')}
-                <ExternalLink className="w-3.5 h-3.5 ml-1.5" />
-              </Link>
-            </Button>
+
+            {currentUser ? (
+              <div className="flex items-center" data-testid="navbar-user-section">
+                <UserNavDropdown
+                  name={currentUser.full_name || currentUser.email}
+                  email={currentUser.email}
+                  onLogout={handleLogout}
+                  showDashboard={true}
+                />
+              </div>
+            ) : (
+              <>
+                <span className="hidden md:inline-block text-xs text-muted-foreground">
+                  {t('share.poweredBy')}
+                </span>
+                <Button asChild size="sm" className="text-xs font-semibold shadow-xs">
+                  <Link href="/" data-testid="try-free-cta-btn">
+                    {t('share.tryFree')}
+                    <ExternalLink className="w-3.5 h-3.5 ml-1.5" />
+                  </Link>
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </header>
@@ -451,7 +499,7 @@ export default function SharedRecordingPage() {
         selectedTemplate={recording.selected_template}
         durationSeconds={recording.duration_seconds}
         createdAt={recording.created_at}
-        backHref="/"
+        backHref={currentUser ? '/dashboard' : '/'}
         showShare={false}
         showAskAi={true}
         isChatOpen={isChatOpen}
@@ -461,11 +509,11 @@ export default function SharedRecordingPage() {
         isExportOpen={isExportOpen}
         onExportOpenChange={setIsExportOpen}
         exportVersion={recording.active_summary?.version}
-        className="sticky top-14 z-20"
+        className="sticky top-16 z-20"
       />
 
       {/* 3. Main Read-Only Content Canvas */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="flex flex-col lg:flex-row gap-6 items-start">
           {/* Left Review Canvas */}
           <div className={cn('flex-1 w-full min-w-0 space-y-6', isChatOpen && 'lg:max-w-[calc(100%-400px)]')}>
