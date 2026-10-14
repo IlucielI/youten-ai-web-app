@@ -369,7 +369,7 @@ export function ChatPanel({
                             type="button"
                             variant="outline"
                             size="sm"
-                            onClick={() => void onSendMessage(lastUserPrompt)}
+                            onClick={() => void handleSend(lastUserPrompt)}
                             className="h-7 px-2.5 text-[11px] gap-1 border-destructive/30 hover:bg-destructive/10 cursor-pointer"
                             data-testid="retry-chat-btn"
                           >
