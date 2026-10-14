@@ -32,6 +32,7 @@ export interface RecordingHeaderProps {
   onToggleChat?: () => void;
   rightSlot?: React.ReactNode;
   className?: string;
+  onUpgradePrompt?: () => void;
 }
 
 export function RecordingHeader({
@@ -55,6 +56,7 @@ export function RecordingHeader({
   onToggleChat,
   rightSlot,
   className,
+  onUpgradePrompt,
 }: RecordingHeaderProps) {
   const { t, locale } = useTranslation();
 
@@ -139,6 +141,7 @@ export function RecordingHeader({
               open={isExportOpen}
               onOpenChange={onExportOpenChange}
               isPro={isPro}
+              onUpgradePrompt={onUpgradePrompt}
             />
           )}
 
