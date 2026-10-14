@@ -129,6 +129,10 @@ export const enRecording: typeof idRecording = {
     copyError: 'Failed to copy link to clipboard.',
     readOnlyTitle: 'Limited Access:',
     readOnlyDesc: 'Visitors with this link can only read transcripts, summaries, and listen to audio. Actions such as renaming speakers, deleting comments, or asking AI are disabled.',
+    guestNoticeTitle: 'Sign In Required to Share',
+    guestNoticeDesc: 'Guest recordings cannot be shared publicly. Please sign in or claim this recording to your account to enable public link sharing.',
+    guestClaimButton: 'Claim to Account',
+    guestToggleDisabledHelp: 'Claim this recording to your account to enable public link sharing.',
   },
   regenerateModal: {
     title: 'Generate New Summary Version',

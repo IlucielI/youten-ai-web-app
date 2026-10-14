@@ -22,7 +22,9 @@ import {
   Loader2,
   Globe,
   Lock,
+  AlertTriangle,
 } from 'lucide-react';
+import Link from 'next/link';
 import { useTranslation } from '@/locales';
 
 export interface ShareDialogProps {
@@ -31,6 +33,10 @@ export interface ShareDialogProps {
   isShared: boolean;
   shareToken?: string | null;
   onToggleShare: (enable: boolean) => Promise<void> | void;
+  isGuest?: boolean;
+  onClaim?: () => void;
+  claimUrl?: string;
+  isClaiming?: boolean;
   className?: string;
 }
 
@@ -40,6 +46,10 @@ export function ShareDialog({
   isShared,
   shareToken,
   onToggleShare,
+  isGuest = false,
+  onClaim,
+  claimUrl,
+  isClaiming = false,
   className,
 }: ShareDialogProps) {
   const { t } = useTranslation();
@@ -55,7 +65,7 @@ export function ShareDialog({
   const shareUrl = shareToken ? `${origin}/share/${shareToken}` : '';
 
   const handleToggle = async (checked: boolean) => {
-    if (isToggling) return;
+    if (isGuest || isToggling) return;
     setIsToggling(true);
     setErrorMessage(null);
 
@@ -109,12 +119,68 @@ export function ShareDialog({
         </DialogHeader>
 
         <div className="space-y-4 py-2">
+          {/* Guest Warning Notice */}
+          {isGuest && (
+            <div
+              data-testid="guest-share-banner"
+              className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3.5 text-amber-900 dark:text-amber-200 space-y-2.5"
+            >
+              <div className="flex items-start gap-2.5">
+                <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5 text-amber-600 dark:text-amber-400" />
+                <div className="space-y-1">
+                  <h4 className="text-xs font-semibold leading-tight">
+                    {t('recording.shareDialog.guestNoticeTitle')}
+                  </h4>
+                  <p className="text-[11px] leading-relaxed text-amber-700/90 dark:text-amber-300/90">
+                    {t('recording.shareDialog.guestNoticeDesc')}
+                  </p>
+                </div>
+              </div>
+
+              {(onClaim || claimUrl) && (
+                <div className="pl-6.5">
+                  {onClaim ? (
+                    <Button
+                      type="button"
+                      size="sm"
+                      disabled={isClaiming}
+                      onClick={onClaim}
+                      data-testid="guest-claim-btn"
+                      className="h-7 text-xs px-3 bg-amber-600 hover:bg-amber-700 text-white dark:bg-amber-500 dark:hover:bg-amber-600 dark:text-amber-950 font-medium transition-colors"
+                    >
+                      {isClaiming && <Loader2 className="h-3 w-3 animate-spin mr-1.5" />}
+                      {t('recording.shareDialog.guestClaimButton')}
+                    </Button>
+                  ) : claimUrl ? (
+                    <Button
+                      type="button"
+                      size="sm"
+                      asChild
+                      data-testid="guest-claim-btn"
+                      className="h-7 text-xs px-3 bg-amber-600 hover:bg-amber-700 text-white dark:bg-amber-500 dark:hover:bg-amber-600 dark:text-amber-950 font-medium transition-colors"
+                    >
+                      <Link href={claimUrl}>{t('recording.shareDialog.guestClaimButton')}</Link>
+                    </Button>
+                  ) : null}
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Toggle Section */}
-          <div className="flex items-center justify-between rounded-xl border border-border/60 bg-card/60 p-3.5">
+          <div
+            className={cn(
+              'flex items-center justify-between rounded-xl border border-border/60 bg-card/60 p-3.5 transition-colors',
+              isGuest && 'opacity-70 bg-muted/30 cursor-not-allowed'
+            )}
+          >
             <div className="space-y-0.5 pr-4">
               <Label
                 htmlFor="share-toggle"
-                className="text-xs font-semibold text-foreground flex items-center gap-1.5 cursor-pointer"
+                className={cn(
+                  'text-xs font-semibold flex items-center gap-1.5',
+                  isGuest ? 'text-muted-foreground cursor-not-allowed' : 'text-foreground cursor-pointer'
+                )}
               >
                 {isShared ? (
                   <Globe className="h-3.5 w-3.5 text-primary" />
@@ -124,9 +190,11 @@ export function ShareDialog({
                 {t('recording.shareDialog.publicLinkLabel')}
               </Label>
               <p className="text-[11px] text-muted-foreground">
-                {isShared
-                  ? t('recording.shareDialog.publicLinkActiveDesc')
-                  : t('recording.shareDialog.publicLinkInactiveDesc')}
+                {isGuest
+                  ? t('recording.shareDialog.guestToggleDisabledHelp')
+                  : isShared
+                    ? t('recording.shareDialog.publicLinkActiveDesc')
+                    : t('recording.shareDialog.publicLinkInactiveDesc')}
               </p>
             </div>
 
@@ -139,7 +207,7 @@ export function ShareDialog({
                 data-testid="share-toggle-switch"
                 checked={isShared}
                 onCheckedChange={handleToggle}
-                disabled={isToggling}
+                disabled={isGuest || isToggling}
               />
             </div>
           </div>

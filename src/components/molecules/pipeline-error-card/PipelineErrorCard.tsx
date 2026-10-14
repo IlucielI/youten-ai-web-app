@@ -28,6 +28,22 @@ const RETRY_CAPABILITY: Record<string, boolean> = {
   [PipelineErrorCode.ERR_NO_SPEECH_DETECTED]: false,
   [PipelineErrorCode.ERR_SUMMARIZATION_FAILED]: true,
   [PipelineErrorCode.ERR_INDEXING_FAILED]: true,
+  [PipelineErrorCode.ERR_IMPORT_FETCH_FAILED]: true,
+  [PipelineErrorCode.ERR_GDRIVE_ACCESS_DENIED]: false,
+  [PipelineErrorCode.ERR_UNSUPPORTED_MEDIA_TYPE]: false,
+  [PipelineErrorCode.ERR_PIPELINE_TIMEOUT]: true,
+};
+
+const sanitizeErrorMessage = (msg?: string | null): string | null => {
+  if (!msg) return null;
+  const lower = msg.toLowerCase();
+  if (lower.includes('could not process file') || (lower.includes('valid media file') && lower.includes('400'))) {
+    return 'The media file could not be processed. Please ensure it is a valid, uncorrupted audio or video file.';
+  }
+  if (lower.includes('{"error"') || lower.includes('stt api returned status') || lower.includes('primary stt') || lower.includes('whisper')) {
+    return 'Speech-to-text audio processing encountered an error.';
+  }
+  return msg;
 };
 
 export const PipelineErrorCard: React.FC<PipelineErrorCardProps> = ({
@@ -42,6 +58,8 @@ export const PipelineErrorCard: React.FC<PipelineErrorCardProps> = ({
   const [internalLoading, setInternalLoading] = useState(false);
   const [retryConflictError, setRetryConflictError] = useState<string | null>(null);
 
+  const displayErrorMessage = React.useMemo(() => sanitizeErrorMessage(errorMessage), [errorMessage]);
+
   const errorInfo = React.useMemo(() => {
     if (errorCode && errorCode in RETRY_CAPABILITY) {
       const taxonomyKey = `pipeline.errors.taxonomy.${errorCode}` as const;
@@ -53,10 +71,10 @@ export const PipelineErrorCard: React.FC<PipelineErrorCardProps> = ({
     }
     return {
       title: t('pipeline.errors.defaultTitle'),
-      description: errorMessage || t('pipeline.errors.defaultDescription'),
+      description: displayErrorMessage || t('pipeline.errors.defaultDescription'),
       canRetry: true,
     };
-  }, [errorCode, errorMessage, t]);
+  }, [errorCode, displayErrorMessage, t]);
 
   const handleRetryClick = async () => {
     if (isRetrying || internalLoading) return;
@@ -137,9 +155,9 @@ export const PipelineErrorCard: React.FC<PipelineErrorCardProps> = ({
             {errorInfo.description}
           </p>
 
-          {errorMessage && errorMessage !== errorInfo.description && (
+          {displayErrorMessage && displayErrorMessage !== errorInfo.description && (
             <div className="mt-2 text-xs font-mono bg-background/80 border border-border/60 rounded p-2 text-muted-foreground">
-              {errorMessage}
+              {displayErrorMessage}
             </div>
           )}
 

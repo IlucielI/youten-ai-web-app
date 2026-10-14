@@ -82,4 +82,30 @@ describe('PipelineErrorCard Component', () => {
     expect(screen.getByTestId('error-card-title').textContent).toBe('Speech-to-Text Transcription Issue');
     expect(screen.getByTestId('retry-stage-button').textContent).toContain('Retry from Last Stage');
   });
+
+  it('renders taxonomy details for ERR_GDRIVE_ACCESS_DENIED and disables retry', () => {
+    render(
+      <PipelineErrorCard
+        errorCode={PipelineErrorCode.ERR_GDRIVE_ACCESS_DENIED}
+        onRetry={vi.fn()}
+      />
+    );
+
+    expect(screen.getByTestId('error-code-badge').textContent).toBe(PipelineErrorCode.ERR_GDRIVE_ACCESS_DENIED);
+    expect(screen.getByTestId('error-card-title').textContent).toBe('Akses Google Drive Ditolak / Berkas Privat');
+    expect(screen.getByTestId('error-card-description').textContent).toContain('Siapa saja yang memiliki link');
+    expect(screen.queryByTestId('retry-stage-button')).toBeNull();
+  });
+
+  it('sanitizes raw vendor error messages from appearing in technical block', () => {
+    render(
+      <PipelineErrorCard
+        errorMessage='stt transcription failed: primary STT (groq/whisper-large-v3) failed: stt api returned status 400: {"error":{"message":"could not process file - is it a valid media file?","code":400}}'
+      />
+    );
+
+    expect(screen.getByTestId('error-card-description').textContent).not.toContain('groq');
+    expect(screen.getByTestId('error-card-description').textContent).not.toContain('whisper-large-v3');
+    expect(screen.getByTestId('error-card-description').textContent).toContain('The media file could not be processed');
+  });
 });

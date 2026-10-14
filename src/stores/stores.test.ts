@@ -273,5 +273,28 @@ describe('Client State Stores (Zustand)', () => {
       expect(useChatStore.getState().error).toBe('Streaming connection timed out');
       expect(useChatStore.getState().isStreaming).toBe(false);
     });
+
+    it('should manage isolated session ID and hydrate messages', () => {
+      useChatStore.getState().setRecordingId('rec-1');
+      expect(useChatStore.getState().sessionId).toBeNull();
+
+      useChatStore.getState().setSessionId('sess-123');
+      expect(useChatStore.getState().sessionId).toBe('sess-123');
+
+      useChatStore.getState().setMessages([
+        {
+          id: 'msg-1',
+          role: ChatRole.USER,
+          content: 'Hello AI',
+          timestamp: new Date().toISOString(),
+        },
+      ]);
+      expect(useChatStore.getState().messages.length).toBe(1);
+
+      // Switching recording clears session ID and messages
+      useChatStore.getState().setRecordingId('rec-2');
+      expect(useChatStore.getState().sessionId).toBeNull();
+      expect(useChatStore.getState().messages.length).toBe(0);
+    });
   });
 });

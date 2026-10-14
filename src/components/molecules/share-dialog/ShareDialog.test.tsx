@@ -106,4 +106,75 @@ describe('ShareDialog', () => {
     fireEvent.click(screen.getByTestId('close-share-dialog-btn'));
     expect(handleClose).toHaveBeenCalled();
   });
+
+  it('renders guest warning banner and disables switch when isGuest is true', () => {
+    const handleToggle = vi.fn();
+    render(
+      <ShareDialog
+        {...defaultProps}
+        isGuest={true}
+        onToggleShare={handleToggle}
+      />
+    );
+
+    expect(screen.getByTestId('guest-share-banner')).toBeInTheDocument();
+    expect(screen.getByText('Masuk Diperlukan untuk Berbagi')).toBeInTheDocument();
+    expect(screen.getByText('Klaim rekaman ini ke akun Anda untuk mengaktifkan fitur berbagi tautan publik.')).toBeInTheDocument();
+
+    const switchEl = screen.getByTestId('share-toggle-switch');
+    expect(switchEl).toBeDisabled();
+
+    fireEvent.click(switchEl);
+    expect(handleToggle).not.toHaveBeenCalled();
+  });
+
+  it('renders claim button and calls onClaim when clicked in guest mode', () => {
+    const handleClaim = vi.fn();
+    render(
+      <ShareDialog
+        {...defaultProps}
+        isGuest={true}
+        onClaim={handleClaim}
+      />
+    );
+
+    const claimBtn = screen.getByTestId('guest-claim-btn');
+    expect(claimBtn).toBeInTheDocument();
+    expect(claimBtn).toHaveTextContent('Klaim ke Akun');
+
+    fireEvent.click(claimBtn);
+    expect(handleClaim).toHaveBeenCalledTimes(1);
+  });
+
+  it('renders claim link when claimUrl is provided without onClaim', () => {
+    render(
+      <ShareDialog
+        {...defaultProps}
+        isGuest={true}
+        claimUrl="/login?claim=rec-123"
+      />
+    );
+
+    const claimBtn = screen.getByTestId('guest-claim-btn');
+    expect(claimBtn.closest('a')).toHaveAttribute('href', '/login?claim=rec-123');
+  });
+
+  it('displays inline error message when onToggleShare rejects', async () => {
+    const handleToggle = vi.fn().mockRejectedValue(new Error('Koneksi terputus'));
+    render(
+      <ShareDialog
+        {...defaultProps}
+        isShared={false}
+        onToggleShare={handleToggle}
+      />
+    );
+
+    const toggle = screen.getByTestId('share-toggle-switch');
+    fireEvent.click(toggle);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('share-error-message')).toBeInTheDocument();
+      expect(screen.getByText('Koneksi terputus')).toBeInTheDocument();
+    });
+  });
 });

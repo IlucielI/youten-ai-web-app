@@ -13,7 +13,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { RecordingStatus } from '@/server/constants';
+import { RecordingStatus, PipelineErrorCode } from '@/server/constants';
 import { usePipelineStore } from '@/stores/pipeline.store';
 import { PipelineErrorCard } from '@/components/molecules/pipeline-error-card';
 import { Button } from '@/components/atoms/button';
@@ -145,6 +145,27 @@ export const PipelineStepper: React.FC<PipelineStepperProps> = ({
   const currentStepIndex = useMemo(() => {
     if (isCompleted) return 3;
     if (isFailed) {
+      if (
+        errorCode === PipelineErrorCode.ERR_AUDIO_CORRUPT ||
+        errorCode === PipelineErrorCode.ERR_EXTRACTION_FAILED ||
+        errorCode === PipelineErrorCode.ERR_IMPORT_FETCH_FAILED ||
+        errorCode === PipelineErrorCode.ERR_GDRIVE_ACCESS_DENIED ||
+        errorCode === PipelineErrorCode.ERR_UNSUPPORTED_MEDIA_TYPE
+      ) {
+        return 0;
+      }
+      if (
+        errorCode === PipelineErrorCode.ERR_TRANSCRIPTION_FAILED ||
+        errorCode === PipelineErrorCode.ERR_NO_SPEECH_DETECTED
+      ) {
+        return 1;
+      }
+      if (errorCode === PipelineErrorCode.ERR_SUMMARIZATION_FAILED) {
+        return 2;
+      }
+      if (errorCode === PipelineErrorCode.ERR_INDEXING_FAILED) {
+        return 3;
+      }
       // Find step based on progress fallback
       if (progress >= 85) return 2;
       if (progress >= 55) return 1;
@@ -154,7 +175,20 @@ export const PipelineStepper: React.FC<PipelineStepperProps> = ({
       step.matchedStatuses.includes(status)
     );
     return idx !== -1 ? idx : 0;
-  }, [status, isCompleted, isFailed, progress, pipelineSteps]);
+  }, [status, isCompleted, isFailed, progress, pipelineSteps, errorCode]);
+
+  const currentDisplayMessage = useMemo(() => {
+    if (!isFailed) return message;
+    if (!message) return t('pipeline.errors.haltedMessage');
+    const lower = message.toLowerCase();
+    if (lower.includes('could not process file') || (lower.includes('valid media file') && lower.includes('400'))) {
+      return 'The media file could not be processed or is in an unsupported format.';
+    }
+    if (lower.includes('{"error"') || lower.includes('primary stt') || lower.includes('whisper') || lower.includes('stt api returned status')) {
+      return t('pipeline.errors.haltedMessage');
+    }
+    return message;
+  }, [isFailed, message, t]);
 
   // Format timer mm:ss
   const formattedTimer = useMemo(() => {
@@ -193,7 +227,7 @@ export const PipelineStepper: React.FC<PipelineStepperProps> = ({
             data-testid="pipeline-current-message"
             className="text-xs sm:text-sm text-muted-foreground mt-1 truncate max-w-xl"
           >
-            {message}
+            {currentDisplayMessage}
           </p>
         </div>
 

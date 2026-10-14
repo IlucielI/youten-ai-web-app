@@ -127,6 +127,10 @@ export const idRecording = {
     copyError: 'Gagal menyalin tautan ke papan klip.',
     readOnlyTitle: 'Izin Terbatas:',
     readOnlyDesc: 'Pengunjung tautan ini hanya dapat membaca transkrip, ringkasan, dan mendengarkan audio. Aksi seperti mengganti nama pembicara, hapus komentar, atau tanya AI dinonaktifkan.',
+    guestNoticeTitle: 'Masuk Diperlukan untuk Berbagi',
+    guestNoticeDesc: 'Rekaman sesi tamu tidak dapat dibagikan secara publik. Silakan masuk atau klaim rekaman ini ke akun Anda untuk mengaktifkan tautan publik.',
+    guestClaimButton: 'Klaim ke Akun',
+    guestToggleDisabledHelp: 'Klaim rekaman ini ke akun Anda untuk mengaktifkan fitur berbagi tautan publik.',
   },
   regenerateModal: {
     title: 'Generate Versi Ringkasan Baru',

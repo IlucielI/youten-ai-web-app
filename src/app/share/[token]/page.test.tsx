@@ -80,6 +80,14 @@ const mockSharedData: SharedRecordingResponse = {
       created_at: '2026-10-06T10:00:00Z',
     },
   ],
+  analytics_data: {
+    total_duration_seconds: 360,
+    total_words: 180,
+    speakers: [
+      { name: 'speaker_0', total_seconds: 198, word_count: 99, share_percent: 55 },
+      { name: 'speaker_1', total_seconds: 162, word_count: 81, share_percent: 45 },
+    ],
+  },
 };
 
 describe('SharedRecordingPage', () => {
@@ -97,15 +105,22 @@ describe('SharedRecordingPage', () => {
     });
   });
 
-  it('renders title, metadata badges, and powered by banner with CTA', async () => {
+  it('renders title, metadata badges, export trigger, and powered by banner with CTA', async () => {
     render(<SharedRecordingPage />);
 
     await waitFor(() => {
-      expect(screen.getByTestId('shared-recording-title')).toHaveTextContent('All-Hands Meeting Q4 2026');
+      expect(screen.getByTestId('recording-title')).toHaveTextContent('All-Hands Meeting Q4 2026');
     });
 
-    // Check Duration badge
-    expect(screen.getByTestId('shared-duration-badge')).toBeInTheDocument();
+    // Check Duration in header
+    expect(screen.getByText('06:00')).toBeInTheDocument();
+
+    // Check Export button is present in shared view
+    expect(screen.getByTestId('export-menu-trigger')).toBeInTheDocument();
+
+    // Check Share and Regenerate buttons are strictly absent
+    expect(screen.queryByTestId('open-share-dialog-btn')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('open-regenerate-dialog-btn')).not.toBeInTheDocument();
 
     // Check promotional CTA
     expect(screen.getByTestId('try-free-cta-btn')).toBeInTheDocument();
@@ -117,7 +132,7 @@ describe('SharedRecordingPage', () => {
     render(<SharedRecordingPage />);
 
     await waitFor(() => {
-      expect(screen.getByTestId('shared-recording-title')).toHaveTextContent('All-Hands Meeting Q4 2026');
+      expect(screen.getByTestId('recording-title')).toHaveTextContent('All-Hands Meeting Q4 2026');
     });
 
     expect(screen.getByText(/Public Share Link \(Read-Only\)/i)).toBeInTheDocument();
@@ -125,7 +140,7 @@ describe('SharedRecordingPage', () => {
     expect(screen.getByText(/Try for Free/i)).toBeInTheDocument();
   });
 
-  it('renders summary tab by default and allows switching between tabs', async () => {
+  it('renders summary tab by default and allows switching across all tabs including analytics', async () => {
     render(<SharedRecordingPage />);
 
     await waitFor(() => {
@@ -143,13 +158,17 @@ describe('SharedRecordingPage', () => {
     fireEvent.click(screen.getByTestId('tab-trigger-chapters'));
     expect(screen.getByTestId('chapters-tab-content')).toBeInTheDocument();
     expect(screen.getByText('Pembukaan & Absensi')).toBeInTheDocument();
+
+    // Switch to Analytics Tab
+    fireEvent.click(screen.getByTestId('tab-trigger-analytics'));
+    expect(screen.getByTestId('analytics-tab-content')).toBeInTheDocument();
   });
 
   it('filters transcript segments by search query', async () => {
     render(<SharedRecordingPage />);
 
     await waitFor(() => {
-      expect(screen.getByTestId('shared-recording-title')).toBeInTheDocument();
+      expect(screen.getByTestId('recording-title')).toBeInTheDocument();
     });
 
     fireEvent.click(screen.getByTestId('tab-trigger-transcript'));
@@ -162,11 +181,11 @@ describe('SharedRecordingPage', () => {
     expect(screen.queryByText(/Selamat pagi rekan-rekan sekalian/i)).not.toBeInTheDocument();
   });
 
-  it('ensures mutation controls are strictly absent (read-only enforcement)', async () => {
+  it('ensures mutation controls (speaker rename and comments) are strictly absent while Ask AI chat is available', async () => {
     render(<SharedRecordingPage />);
 
     await waitFor(() => {
-      expect(screen.getByTestId('shared-recording-title')).toBeInTheDocument();
+      expect(screen.getByTestId('recording-title')).toBeInTheDocument();
     });
 
     fireEvent.click(screen.getByTestId('tab-trigger-transcript'));
@@ -177,11 +196,14 @@ describe('SharedRecordingPage', () => {
     // Add comment buttons must NOT exist
     expect(screen.queryByTestId('add-comment-button')).not.toBeInTheDocument();
 
-    // Ask AI buttons must NOT exist
-    expect(screen.queryByTestId('ask-ai-button')).not.toBeInTheDocument();
+    // Ask AI buttons in transcript and header ARE available for visitors in isolated session
+    expect(screen.getAllByTestId('ask-ai-button').length).toBeGreaterThan(0);
+    const chatToggle = screen.getByTestId('toggle-chat-panel-btn');
+    expect(chatToggle).toBeInTheDocument();
 
-    // Chat panel must NOT exist
-    expect(screen.queryByTestId('recording-chat-panel')).not.toBeInTheDocument();
+    // Clicking toggle opens the shared chat panel
+    fireEvent.click(chatToggle);
+    expect(screen.getByTestId('shared-chat-panel')).toBeInTheDocument();
   });
 
   it('seeks audio player when a timestamp button is clicked', async () => {
@@ -190,7 +212,7 @@ describe('SharedRecordingPage', () => {
     render(<SharedRecordingPage />);
 
     await waitFor(() => {
-      expect(screen.getByTestId('shared-recording-title')).toBeInTheDocument();
+      expect(screen.getByTestId('recording-title')).toBeInTheDocument();
     });
 
     fireEvent.click(screen.getByTestId('tab-trigger-transcript'));

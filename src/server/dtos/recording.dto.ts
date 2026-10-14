@@ -5,6 +5,7 @@
 
 import { SummaryDTO } from './summary.dto';
 import { PaginationMeta } from './response.dto';
+import { RecordingAnalyticsDTO } from './analytics.dto';
 
 export interface PresignUploadRequest {
   filename: string;
@@ -180,6 +181,7 @@ export interface SharedRecordingResponse {
   active_summary?: SummaryDTO | null;
   chapters: ChapterDTO[];
   highlights: HighlightDTO[];
+  analytics_data?: RecordingAnalyticsDTO | null;
   created_at: string;
 }
 
