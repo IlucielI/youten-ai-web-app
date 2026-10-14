@@ -613,7 +613,7 @@ export default function RecordingDetailPage() {
     } catch (err: unknown) {
       const errMsg = err instanceof Error ? err.message : 'Terjadi kesalahan koneksi AI';
       setChatError(errMsg);
-      finalizeAssistantMessage(assistantMsgId, fullContent || `Maaf, terjadi kesalahan: ${errMsg}`);
+      finalizeAssistantMessage(assistantMsgId, fullContent);
     }
   };
 

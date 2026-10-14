@@ -19,6 +19,7 @@ import {
   X,
   Loader2,
   AlertCircle,
+  RefreshCw,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTranslation } from '@/locales';
@@ -194,6 +195,10 @@ export function ChatPanel({
 
   const seek = onSeekAudio || ((sec: number) => usePlayerStore.getState().seek(sec));
 
+  // Find the most recent user prompt in messages for retry
+  const lastUserPrompt =
+    messages.slice().reverse().find((m) => m?.role === 'user' && m?.content?.trim())?.content?.trim() || '';
+
   // Auto-scroll ONLY the internal message container, never scrolling the main page window or left column
   useEffect(() => {
     const container = messageContainerRef.current;
@@ -325,9 +330,10 @@ export function ChatPanel({
         ) : (
           <>
             {messages
-              .filter((msg) => !msg.isStreaming && Boolean(msg.content?.trim()))
+              .filter((msg) => !msg.isStreaming && (msg.role === 'user' ? Boolean(msg.content?.trim()) : true))
               .map((msg) => {
               const isUser = msg.role === 'user';
+              const isEmptyAssistant = !isUser && !msg.content?.trim();
               return (
                 <div
                   key={msg.id}
@@ -345,17 +351,39 @@ export function ChatPanel({
                       'max-w-[85%] rounded-2xl px-3.5 py-2.5 leading-relaxed space-y-1.5 shadow-sm',
                       isUser
                         ? 'bg-primary text-primary-foreground rounded-tr-sm'
-                        : 'bg-secondary/70 text-foreground border border-border/50 rounded-tl-sm'
+                        : isEmptyAssistant
+                          ? 'bg-destructive/10 text-destructive border border-destructive/30 rounded-tl-sm'
+                          : 'bg-secondary/70 text-foreground border border-border/50 rounded-tl-sm'
                     )}
                   >
                     {isUser ? (
                       <div className="whitespace-pre-wrap break-words">{msg.content}</div>
+                    ) : isEmptyAssistant ? (
+                      <div className="space-y-2" data-testid="chat-empty-response-error">
+                        <div className="flex items-center gap-1.5 font-medium">
+                          <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                          <span>{t('recording.chat.emptyResponseError')}</span>
+                        </div>
+                        {onSendMessage && lastUserPrompt && (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => void handleSend(lastUserPrompt)}
+                            className="h-7 px-2.5 text-[11px] gap-1 border-destructive/30 hover:bg-destructive/10 cursor-pointer"
+                            data-testid="retry-chat-btn"
+                          >
+                            <RefreshCw className="w-3 h-3" />
+                            {t('recording.chat.retryButton')}
+                          </Button>
+                        )}
+                      </div>
                     ) : (
                       renderMessageContent(msg.content, seek)
                     )}
 
                     {/* Attached Citations if any */}
-                    {!isUser && msg.citations && msg.citations.length > 0 && (
+                    {!isUser && !isEmptyAssistant && msg.citations && msg.citations.length > 0 && (
                       <div className="flex flex-wrap gap-1 pt-1.5 border-t border-border/30">
                         <span className="text-[10px] text-muted-foreground mr-1">
                           {t('recording.chat.sourceLabel')}

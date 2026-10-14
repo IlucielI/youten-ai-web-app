@@ -3,12 +3,12 @@ set -eu
 
 APP_VERSION="${APP_VERSION:-0.1.0}"
 GIT_HASH="${GIT_HASH:-$(git rev-parse --short HEAD 2>/dev/null || printf dev)}"
-IMAGE_TAG="${IMAGE_TAG:-code-base-nextjs:latest}"
+IMAGE_TAG="${IMAGE_TAG:-youten-ai-web:latest}"
 PLATFORMS="${PLATFORMS:-linux/amd64,linux/arm64}"
 ACTION="${ACTION:---load}"
 BUILDER="${BUILDER:-default}"
 REBUILD_BASE="${REBUILD_BASE:-false}"
-BASE_IMAGE="code-base-nextjs-base:latest"
+BASE_IMAGE="${BASE_IMAGE:-youten-ai-web-base:latest}"
 
 # 1. Build multi-arch base image if missing or forced
 if [ "$REBUILD_BASE" = "true" ] || ! docker image inspect "$BASE_IMAGE" >/dev/null 2>&1; then
@@ -19,6 +19,7 @@ if [ "$REBUILD_BASE" = "true" ] || ! docker image inspect "$BASE_IMAGE" >/dev/nu
     $ACTION \
     -f deployment/Dockerfile.base \
     -t "$BASE_IMAGE" \
+    -t "code-base-nextjs-base:latest" \
     .
 else
   echo "==> Base image '$BASE_IMAGE' already exists. Skipping base build."
@@ -30,11 +31,13 @@ echo "==> Building multi-arch application image (${PLATFORMS}) with tag: ${IMAGE
 docker buildx build \
   --builder "$BUILDER" \
   --platform "$PLATFORMS" \
+  --build-arg BASE_IMAGE="$BASE_IMAGE" \
   --build-arg APP_VERSION="$APP_VERSION" \
   --build-arg GIT_HASH="$GIT_HASH" \
   $ACTION \
   -f deployment/Dockerfile \
   -t "$IMAGE_TAG" \
+  -t "code-base-nextjs:latest" \
   .
 
 echo "==> Successfully built ${IMAGE_TAG} for ${PLATFORMS}"

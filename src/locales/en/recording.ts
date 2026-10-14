@@ -171,6 +171,8 @@ export const enRecording: typeof idRecording = {
     quickQuestions: 'Quick Questions:',
     sourceLabel: 'Source:',
     thinking: 'Thinking...',
+    emptyResponseError: 'The AI model produced an empty response. Please try again.',
+    retryButton: 'Try Again',
     inputPlaceholder: 'Ask something about the meeting... (Enter to send)',
     sendTitle: 'Send Message',
     defaultPrompts: {

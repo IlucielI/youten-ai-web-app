@@ -144,30 +144,37 @@ describe('ChatPanel Organism', () => {
     expect(screen.getByText('Sedang berpikir...')).toBeInTheDocument();
   });
 
-  it('does not render blank bubbles for messages with empty content', () => {
+  it('renders error card and retry button for assistant message with empty content', () => {
+    const handleSend = vi.fn();
     act(() => {
       useChatStore.setState({
         messages: [
           {
-            id: 'empty-msg-1',
-            role: 'assistant',
-            content: '',
+            id: 'user-msg-1',
+            role: 'user',
+            content: 'Pertanyaan saya',
             timestamp: new Date().toISOString(),
           },
           {
-            id: 'valid-msg-2',
+            id: 'empty-asst-2',
             role: 'assistant',
-            content: 'Pesan valid.',
+            content: '',
             timestamp: new Date().toISOString(),
           },
         ],
       });
     });
 
-    render(<ChatPanel isOpen={true} />);
+    render(<ChatPanel isOpen={true} onSendMessage={handleSend} />);
 
-    expect(screen.queryByTestId('chat-message-empty-msg-1')).not.toBeInTheDocument();
-    expect(screen.getByTestId('chat-message-valid-msg-2')).toBeInTheDocument();
+    expect(screen.getByTestId('chat-empty-response-error')).toBeInTheDocument();
+    expect(screen.getByText('Model AI tidak menghasilkan respon. Silakan coba lagi.')).toBeInTheDocument();
+
+    const retryBtn = screen.getByTestId('retry-chat-btn');
+    expect(retryBtn).toBeInTheDocument();
+    fireEvent.click(retryBtn);
+
+    expect(handleSend).toHaveBeenCalledWith('Pertanyaan saya');
   });
 
   it('forwards template prop to ChatChips and renders template-specific questions', () => {
