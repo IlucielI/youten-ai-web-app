@@ -268,10 +268,29 @@ describe('Client State Stores (Zustand)', () => {
       expect(finalState.messages[0].isStreaming).toBe(false);
     });
 
-    it('should record chat errors', () => {
+    it('should retain empty assistant message on zero tokens so UI can show retry action', () => {
+      useChatStore.getState().clearChat();
+      useChatStore.getState().addUserMessage('Bagaimana ringkasannya?');
+      const emptyAsstId = useChatStore.getState().startAssistantStream();
+
+      // Finalize with 0 tokens (empty content)
+      useChatStore.getState().finalizeAssistantMessage(emptyAsstId, '');
+
+      const state = useChatStore.getState();
+      expect(state.isStreaming).toBe(false);
+      expect(state.messages).toHaveLength(2);
+      expect(state.messages[1].id).toBe(emptyAsstId);
+      expect(state.messages[1].content).toBe('');
+      expect(state.messages[1].isStreaming).toBe(false);
+    });
+
+    it('should record chat errors and preserve assistant message with isStreaming false', () => {
+      useChatStore.getState().clearChat();
+      const asstId = useChatStore.getState().startAssistantStream();
       useChatStore.getState().setChatError('Streaming connection timed out');
       expect(useChatStore.getState().error).toBe('Streaming connection timed out');
       expect(useChatStore.getState().isStreaming).toBe(false);
+      expect(useChatStore.getState().messages.find((m) => m.id === asstId)?.isStreaming).toBe(false);
     });
 
     it('should manage isolated session ID and hydrate messages', () => {

@@ -169,6 +169,8 @@ export const idRecording = {
     quickQuestions: 'Pertanyaan Cepat:',
     sourceLabel: 'Sumber:',
     thinking: 'Sedang berpikir...',
+    emptyResponseError: 'Model AI tidak menghasilkan respon. Silakan coba lagi.',
+    retryButton: 'Coba Lagi',
     inputPlaceholder: 'Tanyakan sesuatu tentang rapat... (Enter untuk kirim)',
     sendTitle: 'Kirim Pesan',
     defaultPrompts: {

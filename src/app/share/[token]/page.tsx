@@ -53,7 +53,7 @@ import { useTranslation } from '@/locales';
 export default function SharedRecordingPage() {
   const params = useParams();
   const token = typeof params?.token === 'string' ? params.token : '';
-  const { t, locale } = useTranslation();
+  const { t } = useTranslation();
 
   const [recording, setRecording] = useState<SharedRecordingResponse | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -338,18 +338,11 @@ export default function SharedRecordingPage() {
         end_time: parseTimestamp(c),
       }));
 
-      if (!fullContent.trim()) {
-        fullContent =
-          locale === 'id'
-            ? 'Maaf, asisten AI tidak dapat menghasilkan jawaban saat ini. Silakan coba kirim ulang pertanyaan.'
-            : 'Sorry, the AI assistant was unable to generate a response at this time. Please try asking again.';
-      }
-
       finalizeAssistantMessage(assistantMsgId, fullContent, mappedCitations);
     } catch (err: unknown) {
       const errMsg = err instanceof Error ? err.message : 'Terjadi kesalahan koneksi AI';
       setChatError(errMsg);
-      finalizeAssistantMessage(assistantMsgId, fullContent || `Maaf, terjadi kesalahan: ${errMsg}`);
+      finalizeAssistantMessage(assistantMsgId, fullContent);
     }
   };
 

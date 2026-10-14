@@ -168,7 +168,7 @@ export const useChatStore = create<ChatStore>()(
                     }
                   : msg
               )
-              .filter((msg) => msg.content.trim().length > 0),
+              .filter((msg) => msg.role === ChatRole.ASSISTANT || msg.content.trim().length > 0),
           }),
           false,
           'chat/finalizeAssistantMessage'
@@ -182,7 +182,9 @@ export const useChatStore = create<ChatStore>()(
             isStreaming: false,
             streamingContent: '',
             streamingCitations: [],
-            messages: state.messages.filter((msg) => msg.content.trim().length > 0),
+            messages: state.messages
+              .map((msg) => (msg.isStreaming ? { ...msg, isStreaming: false } : msg))
+              .filter((msg) => msg.role === ChatRole.ASSISTANT || msg.content.trim().length > 0),
           }),
           false,
           'chat/setChatError'
