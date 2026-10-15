@@ -24,7 +24,11 @@ import { useTranslation } from '@/locales';
 export interface UploadDropzoneProps {
   onUploadFile?: (
     file: File,
-    options: { title: string; templateCategory: TemplateKey }
+    options: {
+      title: string;
+      templateCategory: TemplateKey;
+      onProgress?: (percent: number) => void;
+    }
   ) => Promise<{ id: string; ownershipToken?: string }>;
   onUploadComplete?: (recordingId: string, ownershipToken?: string) => void;
   maxSizeMB?: number;
@@ -162,10 +166,13 @@ export function UploadDropzone({
       setErrorMessage(null);
 
       if (onUploadFile) {
-        setUploadProgress(50);
+        setUploadProgress(10);
         const res = await onUploadFile(selectedFile, {
           title: title.trim() || selectedFile.name,
           templateCategory,
+          onProgress: (percent: number) => {
+            setUploadProgress(Math.min(100, Math.max(0, Math.round(percent))));
+          },
         });
         setUploadProgress(100);
         uploadResult = res;

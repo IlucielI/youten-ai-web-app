@@ -16,7 +16,7 @@ import { useMeetingBotStore } from '@/stores/meeting-bot.store';
 import { TemplateKey, DefaultTemplateKey } from '@/server/constants/template.constant';
 import { useTokenStore } from '@/stores/token.store';
 import { useAuthStore } from '@/stores/auth.store';
-import { apiFetch, ApiClientError } from '@/lib/api-client';
+import { apiFetch, ApiClientError, uploadToStorageWithProgress } from '@/lib';
 import { useTranslation } from '@/locales';
 import { ApiResponse } from '@/server/dtos/response.dto';
 import {
@@ -53,7 +53,11 @@ export default function LandingPage() {
    */
   const handleUploadFile = async (
     file: File,
-    options: { title: string; templateCategory: TemplateKey }
+    options: {
+      title: string;
+      templateCategory: TemplateKey;
+      onProgress?: (percent: number) => void;
+    }
   ): Promise<{ id: string; ownershipToken?: string }> => {
     setErrorMessage(null);
     setQuotaExhausted(false);
@@ -61,6 +65,7 @@ export default function LandingPage() {
     try {
       // Step 0: Ensure anonymous handshake session
       await ensureAnonSession();
+      options.onProgress?.(10);
 
       // Step 1: Request presigned upload URL from BFF
       const presignRes = await apiFetch<ApiResponse<PresignUploadResponseDto>>(
@@ -80,36 +85,15 @@ export default function LandingPage() {
 
       const { upload_url, object_key } = presignRes.data;
 
-      // Step 2: Upload binary file directly to S3
-      try {
-        const s3Res = await fetch(upload_url, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': file.type || 'audio/mpeg',
-          },
-          body: file,
-        });
+      // Step 2: Upload binary file directly to S3 with real-time progress & timeout
+      await uploadToStorageWithProgress(upload_url, file, {
+        contentType: file.type || 'audio/mpeg',
+        onProgress: (pct) => {
+          options.onProgress?.(Math.round(15 + pct * 0.75));
+        },
+      });
 
-        if (!s3Res.ok && s3Res.status !== 0) {
-          // If S3 upload fails and is not local mock, throw error
-          if (!upload_url.includes('localhost') && !upload_url.includes('127.0.0.1')) {
-            throw new Error(
-              locale === 'en'
-                ? `Failed to upload file to storage (${s3Res.status})`
-                : `Gagal mengunggah berkas ke penyimpanan (${s3Res.status})`
-            );
-          }
-        }
-      } catch (err: unknown) {
-        // If simulated in test/mock environment, allow proceeding
-        const isMockUrl =
-          upload_url.includes('mock') ||
-          upload_url.includes('localhost') ||
-          upload_url.includes('test');
-        if (!isMockUrl) {
-          throw err;
-        }
-      }
+      options.onProgress?.(95);
 
       // Step 3: Confirm upload with BFF
       const uploadRes = await apiFetch<ApiResponse<RecordingUploadResponseDto>>(
