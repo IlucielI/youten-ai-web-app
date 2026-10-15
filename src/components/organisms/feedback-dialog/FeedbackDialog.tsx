@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -26,6 +26,10 @@ import {
   User,
   ShieldCheck,
   Sparkles,
+  Paperclip,
+  UploadCloud,
+  X,
+  Image as ImageIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -33,7 +37,12 @@ import { useAuthStore } from '@/stores/auth.store';
 import { useUiStore } from '@/stores/ui.store';
 import { useTranslation } from '@/locales';
 import { apiFetch, ApiClientError } from '@/lib/api-client';
-import { FeedbackCategory } from '@/server/dtos/feedback.dto';
+import {
+  FeedbackCategory,
+  FeedbackAttachment,
+  FeedbackPresignResponse,
+} from '@/server/dtos/feedback.dto';
+import { ApiResponse } from '@/server/dtos/response.dto';
 
 export interface FeedbackDialogProps {
   open?: boolean;
@@ -93,6 +102,28 @@ const CATEGORY_OPTIONS: CategoryOption[] = [
   },
 ];
 
+interface UploadingAttachment {
+  id: string;
+  filename: string;
+  content_type: string;
+  file_size_bytes: number;
+  previewUrl: string;
+  isUploading: boolean;
+  url?: string;
+}
+
+const ALLOWED_MIME_TYPES = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp', 'image/gif'];
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+const MAX_ATTACHMENTS = 5;
+
+function formatBytes(bytes: number): string {
+  if (bytes === 0) return '0 B';
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
+}
+
 function generateIdempotencyKey(): string {
   return typeof crypto !== 'undefined' && crypto.randomUUID
     ? crypto.randomUUID()
@@ -123,6 +154,21 @@ export const FeedbackDialog: React.FC<FeedbackDialogProps> = ({
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [idempotencyKey, setIdempotencyKey] = useState<string>(generateIdempotencyKey);
+  const [attachments, setAttachments] = useState<UploadingAttachment[]>([]);
+  const [isDragOver, setIsDragOver] = useState(false);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Clean up object URLs on unmount
+  useEffect(() => {
+    return () => {
+      attachments.forEach((att) => {
+        if (att.previewUrl.startsWith('blob:')) {
+          URL.revokeObjectURL(att.previewUrl);
+        }
+      });
+    };
+  }, [attachments]);
 
   const handleOpenChange = (nextOpen: boolean) => {
     if (nextOpen) {
@@ -156,9 +202,128 @@ export const FeedbackDialog: React.FC<FeedbackDialogProps> = ({
     }
   };
 
+  const uploadFile = async (file: File) => {
+    if (!ALLOWED_MIME_TYPES.includes(file.type.toLowerCase())) {
+      toast.error(t('feedback.attachments.invalidType'));
+      return;
+    }
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error(t('feedback.attachments.tooLarge'));
+      return;
+    }
+    if (attachments.length >= MAX_ATTACHMENTS) {
+      toast.error(t('feedback.attachments.maxCount'));
+      return;
+    }
+
+    const tempId = typeof crypto !== 'undefined' && crypto.randomUUID
+      ? crypto.randomUUID()
+      : 'att-' + Date.now() + '-' + Math.random().toString(36).substring(2, 7);
+
+    const previewUrl = typeof URL !== 'undefined' && URL.createObjectURL
+      ? URL.createObjectURL(file)
+      : '';
+
+    const newAttachment: UploadingAttachment = {
+      id: tempId,
+      filename: file.name,
+      content_type: file.type,
+      file_size_bytes: file.size,
+      previewUrl,
+      isUploading: true,
+    };
+
+    setAttachments((prev) => [...prev, newAttachment]);
+
+    try {
+      // 1. Request presigned URL from BFF
+      const presignRes = await apiFetch<ApiResponse<FeedbackPresignResponse>>(
+        '/api/feedback/presign',
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            filename: file.name,
+            content_type: file.type,
+            file_size_bytes: file.size,
+          }),
+        }
+      );
+
+      const presignData = presignRes.data;
+      if (!presignData?.upload_url) {
+        throw new Error('Upload URL missing from presign response');
+      }
+      const uploadUrl = presignData.upload_url;
+      const finalUrl = presignData.download_url || uploadUrl.split('?')[0];
+
+      // 2. Direct PUT to S3
+      const s3Res = await fetch(uploadUrl, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': file.type,
+        },
+        body: file,
+      });
+
+      if (!s3Res.ok) {
+        throw new Error(`S3 upload error: ${s3Res.status}`);
+      }
+
+      // 3. Mark as uploaded
+      setAttachments((prev) =>
+        prev.map((att) =>
+          att.id === tempId ? { ...att, isUploading: false, url: finalUrl } : att
+        )
+      );
+    } catch {
+      setAttachments((prev) => prev.filter((att) => att.id !== tempId));
+      toast.error(t('feedback.attachments.uploadFailed'));
+    }
+  };
+
+  const handleFilesSelected = (files: FileList | File[] | null) => {
+    if (!files) return;
+    const fileArray = Array.from(files);
+    fileArray.slice(0, MAX_ATTACHMENTS - attachments.length).forEach(uploadFile);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleRemoveAttachment = (id: string) => {
+    setAttachments((prev) => {
+      const target = prev.find((att) => att.id === id);
+      if (target && target.previewUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(target.previewUrl);
+      }
+      return prev.filter((att) => att.id !== id);
+    });
+  };
+
+  const handlePaste = (e: React.ClipboardEvent) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      if (item.type.startsWith('image/')) {
+        const file = item.getAsFile();
+        if (file) {
+          e.preventDefault();
+          const ext = item.type.split('/')[1] || 'png';
+          const screenshotFile = new File([file], `screenshot-${Date.now()}.${ext}`, {
+            type: item.type,
+          });
+          uploadFile(screenshotFile);
+        }
+      }
+    }
+  };
+
   const isTitleValid = title.trim().length >= 4;
   const isMessageValid = message.trim().length >= 10;
-  const canSubmit = isTitleValid && isMessageValid && rating >= 1 && !isSubmitting;
+  const isAnyAttachmentUploading = attachments.some((att) => att.isUploading);
+  const canSubmit = isTitleValid && isMessageValid && rating >= 1 && !isSubmitting && !isAnyAttachmentUploading;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -178,6 +343,15 @@ export const FeedbackDialog: React.FC<FeedbackDialogProps> = ({
           ? user.email || undefined
           : guestEmail.trim() || undefined;
 
+      const validAttachments: FeedbackAttachment[] = attachments
+        .filter((att) => att.url && !att.isUploading)
+        .map((att) => ({
+          url: att.url as string,
+          filename: att.filename,
+          content_type: att.content_type,
+          file_size_bytes: att.file_size_bytes,
+        }));
+
       const payload = {
         title: title.trim(),
         category,
@@ -186,6 +360,7 @@ export const FeedbackDialog: React.FC<FeedbackDialogProps> = ({
         user_name: resolvedName,
         user_email: resolvedEmail,
         idempotency_key: idempotencyKey,
+        attachments: validAttachments,
         metadata: {
           page: typeof window !== 'undefined' ? window.location.pathname : '',
           user_agent: typeof navigator !== 'undefined' ? navigator.userAgent : '',
@@ -215,6 +390,7 @@ export const FeedbackDialog: React.FC<FeedbackDialogProps> = ({
       setGuestName('');
       setGuestEmail('');
       setIsAnonymous(false);
+      setAttachments([]);
       handleOpenChange(false);
     } catch (err: unknown) {
       if (err instanceof ApiClientError) {
@@ -236,6 +412,7 @@ export const FeedbackDialog: React.FC<FeedbackDialogProps> = ({
       <DialogContent
         className="sm:max-w-xl max-h-[90vh] overflow-y-auto border-border/80 bg-background/95 backdrop-blur-md shadow-2xl"
         data-testid="feedback-dialog"
+        onPaste={handlePaste}
       >
         <DialogHeader className="space-y-1.5">
           <DialogTitle className="text-lg font-bold flex items-center gap-2">
@@ -382,6 +559,127 @@ export const FeedbackDialog: React.FC<FeedbackDialogProps> = ({
               <p className="text-[11px] text-rose-500 font-medium">
                 {t('feedback.validation.messageMin')}
               </p>
+            )}
+          </div>
+
+          {/* Attachments Section */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                <Paperclip className="h-3.5 w-3.5 text-primary" />
+                <span>{t('feedback.attachments.label')}</span>
+              </Label>
+              <span className="text-[10px] text-muted-foreground">
+                {attachments.length} / {MAX_ATTACHMENTS}
+              </span>
+            </div>
+
+            {/* Dropzone */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/png,image/jpeg,image/jpg,image/webp,image/gif"
+              multiple
+              className="hidden"
+              data-testid="feedback-file-input"
+              onChange={(e) => handleFilesSelected(e.target.files)}
+            />
+
+            {attachments.length < MAX_ATTACHMENTS && (
+              <div
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  setIsDragOver(true);
+                }}
+                onDragLeave={() => setIsDragOver(false)}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  setIsDragOver(false);
+                  handleFilesSelected(e.dataTransfer.files);
+                }}
+                onClick={() => fileInputRef.current?.click()}
+                className={cn(
+                  'group flex flex-col items-center justify-center p-4 border border-dashed rounded-xl cursor-pointer transition-all duration-200 text-center select-none',
+                  isDragOver
+                    ? 'border-primary bg-primary/10 shadow-xs'
+                    : 'border-border/70 hover:border-primary/50 hover:bg-secondary/20 bg-card/20'
+                )}
+                data-testid="feedback-dropzone"
+              >
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-secondary/60 text-primary mb-2 group-hover:scale-110 transition-transform">
+                  <UploadCloud className="h-5 w-5" />
+                </div>
+                <p className="text-xs font-medium text-foreground">
+                  {t('feedback.attachments.dropzoneText')}
+                </p>
+                <p className="text-[11px] text-muted-foreground mt-0.5">
+                  {t('feedback.attachments.hint')}
+                </p>
+                <p className="text-[10px] text-primary/80 mt-1 font-medium flex items-center gap-1">
+                  <span>✨</span>
+                  <span>{t('feedback.attachments.pasteHint')}</span>
+                </p>
+              </div>
+            )}
+
+            {/* Attachments List */}
+            {attachments.length > 0 && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1" data-testid="feedback-attachments-list">
+                {attachments.map((att) => (
+                  <div
+                    key={att.id}
+                    data-testid={`feedback-attachment-item-${att.id}`}
+                    className="relative flex items-center gap-2.5 p-2 rounded-lg border border-border/60 bg-secondary/20 group hover:border-border transition-all"
+                  >
+                    {/* Thumbnail preview */}
+                    <div className="relative h-11 w-11 rounded-md overflow-hidden bg-secondary/80 border border-border/40 shrink-0 flex items-center justify-center">
+                      {att.previewUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={att.previewUrl}
+                          alt={att.filename}
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <ImageIcon className="h-5 w-5 text-muted-foreground" />
+                      )}
+                      {att.isUploading && (
+                        <div className="absolute inset-0 bg-background/80 flex items-center justify-center backdrop-blur-xs">
+                          <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Metadata */}
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-medium text-foreground truncate" title={att.filename}>
+                        {att.filename}
+                      </p>
+                      <p className="text-[10px] text-muted-foreground">
+                        {att.isUploading ? (
+                          <span className="text-primary font-medium flex items-center gap-1">
+                            <Loader2 className="h-2.5 w-2.5 animate-spin" />
+                            {t('feedback.attachments.uploading')}
+                          </span>
+                        ) : (
+                          formatBytes(att.file_size_bytes)
+                        )}
+                      </p>
+                    </div>
+
+                    {/* Remove button */}
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveAttachment(att.id)}
+                      data-testid={`feedback-attachment-remove-${att.id}`}
+                      aria-label={t('feedback.attachments.remove')}
+                      className="p-1 rounded-md text-muted-foreground hover:text-rose-500 hover:bg-rose-500/10 transition-colors cursor-pointer"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
             )}
           </div>
 

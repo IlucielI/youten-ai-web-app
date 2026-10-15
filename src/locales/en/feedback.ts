@@ -39,6 +39,18 @@ export const enFeedback = {
     messageMin: 'Message must be at least 10 characters.',
     emailInvalid: 'Please enter a valid email address.',
   },
+  attachments: {
+    label: 'Image / Screenshot Attachments (Optional)',
+    hint: 'PNG, JPG, WebP, GIF up to 10MB (Max 5 images).',
+    dropzoneText: 'Choose file or drag images here',
+    pasteHint: 'Tip: You can also paste screenshots directly with Ctrl+V / ⌘+V',
+    uploading: 'Uploading...',
+    remove: 'Remove attachment',
+    maxCount: 'Maximum 5 image attachments.',
+    tooLarge: 'Image size must not exceed 10MB.',
+    invalidType: 'Unsupported file format. Please use PNG, JPEG, WebP, or GIF.',
+    uploadFailed: 'Failed to upload image. Please try again.',
+  },
   submitting: 'Submitting...',
   submitButton: 'Submit Feedback',
   cancelButton: 'Cancel',
@@ -47,3 +59,4 @@ export const enFeedback = {
   errorTitle: 'Failed to Submit Feedback',
   rateLimitExceeded: 'Too many requests. Please wait a moment before submitting feedback again.',
 };
+

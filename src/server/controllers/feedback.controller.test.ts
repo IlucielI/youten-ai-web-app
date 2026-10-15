@@ -10,12 +10,14 @@ describe('FeedbackController', () => {
   let controller: FeedbackController;
   let mockService: {
     submitFeedback: ReturnType<typeof vi.fn>;
+    presignUpload: ReturnType<typeof vi.fn>;
   };
   let rateLimiter: MemoryRateLimiter;
 
   beforeEach(() => {
     mockService = {
       submitFeedback: vi.fn(),
+      presignUpload: vi.fn(),
     };
     rateLimiter = new MemoryRateLimiter(2, 60000); // 2 requests per minute for testing
     controller = new FeedbackController(
@@ -172,4 +174,79 @@ describe('FeedbackController', () => {
       expect(res3.headers.get('Retry-After')).toBeDefined();
     });
   });
+
+  describe('presignUpload', () => {
+    it('successfully generates presigned upload URL for supported image', async () => {
+      const payload = {
+        filename: 'screenshot.png',
+        content_type: 'image/png',
+        file_size_bytes: 204800,
+      };
+
+      mockService.presignUpload = vi.fn().mockResolvedValue({
+        status: ResponseStatus.SUCCESS,
+        code: ResponseCode.SUCCESS,
+        message: 'Presigned upload URL generated successfully',
+        data: {
+          upload_url: 'https://s3.example.com/recordings/feedbacks/uuid/screenshot.png?sig=123',
+          object_key: 'feedbacks/uuid/screenshot.png',
+          download_url: 'https://s3.example.com/recordings/feedbacks/uuid/screenshot.png',
+          filename: payload.filename,
+          content_type: payload.content_type,
+          file_size_bytes: payload.file_size_bytes,
+        },
+        timestamp: new Date().toISOString(),
+      });
+
+      const req = new Request('http://localhost/api/feedback/presign', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-client-ip': '192.168.1.100',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const response = await controller.presignUpload(req);
+      const json = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(mockService.presignUpload).toHaveBeenCalledWith(payload);
+      expect(json.data.upload_url).toContain('s3.example.com');
+    });
+
+    it('returns 400 Bad Request when image MIME type is unsupported', async () => {
+      const payload = {
+        filename: 'malicious.exe',
+        content_type: 'application/x-msdownload',
+      };
+
+      const req = new Request('http://localhost/api/feedback/presign', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      const response = await controller.presignUpload(req);
+      expect(response.status).toBe(400);
+    });
+
+    it('returns 400 Bad Request when image exceeds 10MB', async () => {
+      const payload = {
+        filename: 'huge.png',
+        content_type: 'image/png',
+        file_size_bytes: 15 * 1024 * 1024,
+      };
+
+      const req = new Request('http://localhost/api/feedback/presign', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      const response = await controller.presignUpload(req);
+      expect(response.status).toBe(400);
+    });
+  });
 });
+

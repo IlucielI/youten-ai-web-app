@@ -2,6 +2,15 @@ import { z } from 'zod';
 
 export const FeedbackCategoryEnum = z.enum(['bug', 'feature', 'improvement', 'praise', 'general']);
 
+export const FeedbackAttachmentSchema = z.object({
+  url: z.string().url('URL lampiran tidak valid'),
+  filename: z.string().min(1, 'Nama file lampiran tidak valid').max(255),
+  content_type: z.string().min(1),
+  file_size_bytes: z.number().int().nonnegative(),
+});
+
+export type FeedbackAttachmentInput = z.infer<typeof FeedbackAttachmentSchema>;
+
 export const FeedbackRequestSchema = z.object({
   title: z
     .string()
@@ -18,6 +27,7 @@ export const FeedbackRequestSchema = z.object({
   user_name: z.string().trim().max(150).optional().nullable(),
   user_email: z.string().trim().email('Format email tidak valid').optional().nullable().or(z.literal('')),
   idempotency_key: z.string().trim().max(100).optional().nullable(),
+  attachments: z.array(FeedbackAttachmentSchema).max(5, 'Maksimal 5 lampiran').optional().default([]),
   metadata: z.record(z.string(), z.unknown()).optional().default({}),
 });
 
@@ -33,8 +43,27 @@ export const FeedbackResponseSchema = z.object({
   user_name: z.string().nullable().optional(),
   user_email: z.string().nullable().optional(),
   idempotency_key: z.string().nullable().optional(),
+  attachments: z.array(FeedbackAttachmentSchema).optional().default([]),
   metadata: z.record(z.string(), z.unknown()).optional(),
   created_at: z.string(),
 });
 
 export type FeedbackResponseDto = z.infer<typeof FeedbackResponseSchema>;
+
+export const FeedbackPresignRequestSchema = z.object({
+  filename: z.string().trim().min(1, 'Nama file wajib diisi').max(255),
+  content_type: z.enum(
+    ['image/png', 'image/jpeg', 'image/jpg', 'image/webp', 'image/gif'],
+    {
+      message: 'Format file tidak didukung. Harap unggah gambar (PNG, JPEG, WebP, GIF)',
+    }
+  ),
+  file_size_bytes: z
+    .number()
+    .int()
+    .max(10 * 1024 * 1024, 'Ukuran gambar maksimal 10MB')
+    .optional(),
+});
+
+export type FeedbackPresignRequestInput = z.infer<typeof FeedbackPresignRequestSchema>;
+

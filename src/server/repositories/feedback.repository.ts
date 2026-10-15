@@ -2,7 +2,12 @@ import { IFeedbackRepository } from './feedback.repository.interface';
 import { IHttpClient, httpClient as defaultHttpClient } from '../datasources/http';
 import { MockDataService, mockDataService as defaultMockDataService } from '../datasources/mock';
 import { env } from '../config';
-import { FeedbackRequest, FeedbackResponse } from '../dtos/feedback.dto';
+import {
+  FeedbackRequest,
+  FeedbackResponse,
+  FeedbackPresignRequest,
+  FeedbackPresignResponse,
+} from '../dtos/feedback.dto';
 import { ApiResponse } from '../dtos/response.dto';
 import { ResponseStatus, ResponseCode } from '../constants';
 
@@ -33,6 +38,15 @@ export class FeedbackRepository implements IFeedbackRepository {
     }
 
     return this.http.post<ApiResponse<FeedbackResponse>>('/v1/feedback', payload, { headers });
+  }
+
+  async presignUpload(payload: FeedbackPresignRequest): Promise<ApiResponse<FeedbackPresignResponse>> {
+    if (this.useMock) {
+      const data = this.mock.presignFeedbackUpload(payload);
+      return this.successResponse(data, 'Presigned upload URL generated successfully');
+    }
+
+    return this.http.post<ApiResponse<FeedbackPresignResponse>>('/v1/feedback/presign-upload', payload);
   }
 
   private successResponse<T>(data: T, message: string): ApiResponse<T> {

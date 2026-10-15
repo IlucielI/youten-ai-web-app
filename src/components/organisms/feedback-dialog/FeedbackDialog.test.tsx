@@ -203,4 +203,118 @@ describe('FeedbackDialog Organism', () => {
 
     apiSpy.mockRestore();
   });
+
+  it('supports image attachment upload and attaches it to submission payload', async () => {
+    // 1. Mock presign call
+    const presignMock = vi.fn().mockResolvedValue({
+      status: 'success',
+      data: {
+        upload_url: 'https://s3.example.com/recordings/feedbacks/uuid/test.png?sig=abc',
+        object_key: 'feedbacks/uuid/test.png',
+        download_url: 'https://s3.example.com/recordings/feedbacks/uuid/test.png',
+        filename: 'test.png',
+        content_type: 'image/png',
+        file_size_bytes: 1024,
+      },
+    });
+
+    // 2. Mock submit call
+    const submitMock = vi.fn().mockResolvedValue({
+      status: 'success',
+      data: { id: 'fb-att-123' },
+    });
+
+    const apiSpy = vi.spyOn(apiClient, 'apiFetch').mockImplementation(async (url) => {
+      if (url === '/api/feedback/presign') {
+        return presignMock();
+      }
+      return submitMock();
+    });
+
+    // 3. Mock S3 direct PUT fetch
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(null, { status: 200 })
+    );
+
+    // Mock URL.createObjectURL
+    if (!window.URL.createObjectURL) {
+      window.URL.createObjectURL = vi.fn().mockReturnValue('blob:mock-preview-url');
+    }
+
+    render(<FeedbackDialog open={true} onOpenChange={vi.fn()} />);
+
+    // Select file
+    const file = new File(['mock content'], 'test.png', { type: 'image/png' });
+    const fileInput = screen.getByTestId('feedback-file-input');
+    fireEvent.change(fileInput, { target: { files: [file] } });
+
+    // Wait for S3 upload and UI attachment list item
+    await waitFor(() => {
+      expect(screen.getByText('test.png')).toBeInTheDocument();
+    });
+
+    // Fill required fields
+    fireEvent.change(screen.getByTestId('feedback-title-input'), {
+      target: { value: 'Bug with attachment' },
+    });
+    fireEvent.change(screen.getByTestId('feedback-message-input'), {
+      target: { value: 'Detailed description of the issue with screenshot.' },
+    });
+
+    // Submit
+    fireEvent.click(screen.getByTestId('feedback-submit-btn'));
+
+    await waitFor(() => {
+      expect(submitMock).toHaveBeenCalledTimes(1);
+      const submitCall = apiSpy.mock.calls.find((call) => call[0] === '/api/feedback');
+      expect(submitCall).toBeDefined();
+      const body = JSON.parse(submitCall![1]?.body as string);
+      expect(body.attachments).toEqual([
+        expect.objectContaining({
+          filename: 'test.png',
+          content_type: 'image/png',
+          url: 'https://s3.example.com/recordings/feedbacks/uuid/test.png',
+        }),
+      ]);
+    });
+
+    apiSpy.mockRestore();
+    fetchSpy.mockRestore();
+  });
+
+  it('allows removing an uploaded attachment', async () => {
+    const apiSpy = vi.spyOn(apiClient, 'apiFetch').mockResolvedValue({
+      status: 'success',
+      data: {
+        upload_url: 'https://s3.example.com/recordings/feedbacks/uuid/remove.png?sig=abc',
+        download_url: 'https://s3.example.com/recordings/feedbacks/uuid/remove.png',
+        filename: 'remove.png',
+        content_type: 'image/png',
+      },
+    });
+
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(null, { status: 200 })
+    );
+
+    render(<FeedbackDialog open={true} onOpenChange={vi.fn()} />);
+
+    const file = new File(['content'], 'remove.png', { type: 'image/png' });
+    const fileInput = screen.getByTestId('feedback-file-input');
+    fireEvent.change(fileInput, { target: { files: [file] } });
+
+    await waitFor(() => {
+      expect(screen.getByText('remove.png')).toBeInTheDocument();
+    });
+
+    // Find remove button
+    const removeBtn = screen.getByRole('button', { name: 'Hapus lampiran' });
+    fireEvent.click(removeBtn);
+
+    expect(screen.queryByText('remove.png')).not.toBeInTheDocument();
+
+    apiSpy.mockRestore();
+    fetchSpy.mockRestore();
+  });
 });
+

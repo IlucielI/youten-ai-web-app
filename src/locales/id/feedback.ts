@@ -39,6 +39,18 @@ export const idFeedback = {
     messageMin: 'Pesan minimal 10 karakter.',
     emailInvalid: 'Format email tidak valid.',
   },
+  attachments: {
+    label: 'Lampiran Gambar / Screenshot (Opsional)',
+    hint: 'PNG, JPG, WebP, GIF hingga 10MB (Maksimal 5 gambar).',
+    dropzoneText: 'Pilih file atau seret gambar ke sini',
+    pasteHint: 'Tip: Anda juga dapat menempelkan screenshot langsung dengan Ctrl+V / ⌘+V',
+    uploading: 'Mengunggah...',
+    remove: 'Hapus lampiran',
+    maxCount: 'Maksimal 5 lampiran gambar.',
+    tooLarge: 'Ukuran gambar tidak boleh melebihi 10MB.',
+    invalidType: 'Format file tidak didukung. Gunakan PNG, JPEG, WebP, atau GIF.',
+    uploadFailed: 'Gagal mengunggah gambar. Silakan coba lagi.',
+  },
   submitting: 'Mengirimkan...',
   submitButton: 'Kirim Feedback',
   cancelButton: 'Batal',
@@ -47,3 +59,4 @@ export const idFeedback = {
   errorTitle: 'Gagal Mengirim Feedback',
   rateLimitExceeded: 'Terlalu banyak permintaan. Silakan tunggu beberapa saat sebelum mengirim feedback lagi.',
 };
+
