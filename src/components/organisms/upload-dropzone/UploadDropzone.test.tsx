@@ -120,12 +120,47 @@ describe('UploadDropzone Organism', () => {
     fireEvent.click(startBtn);
 
     await waitFor(() => {
-      expect(handleUploadFile).toHaveBeenCalledWith(file, {
-        title: 'interview',
-        templateCategory: TemplateKey.GENERAL,
-      });
+      expect(handleUploadFile).toHaveBeenCalledWith(
+        file,
+        expect.objectContaining({
+          title: 'interview',
+          templateCategory: TemplateKey.GENERAL,
+          onProgress: expect.any(Function),
+        })
+      );
       expect(handleComplete).toHaveBeenCalledWith('rec-123', 'guest-tok-abc');
     });
+  });
+
+  it('updates progress indicator dynamically when onProgress callback is invoked', async () => {
+    let capturedProgressCb: ((pct: number) => void) | null = null;
+    let resolveUpload: ((val: { id: string }) => void) | null = null;
+    const uploadPromise = new Promise<{ id: string }>((resolve) => {
+      resolveUpload = resolve;
+    });
+
+    const handleUploadFile = vi.fn().mockImplementation((_file, options) => {
+      capturedProgressCb = options.onProgress;
+      return uploadPromise;
+    });
+
+    render(<UploadDropzone onUploadFile={handleUploadFile} />);
+
+    const file = new File(['content'], 'speech.mp3', { type: 'audio/mpeg' });
+    fireEvent.change(screen.getByTestId('file-input'), { target: { files: [file] } });
+    fireEvent.click(screen.getByTestId('start-upload-btn'));
+
+    await waitFor(() => {
+      expect(capturedProgressCb).not.toBeNull();
+    });
+
+    // Simulate progress event at 65%
+    capturedProgressCb!(65);
+
+    expect(await screen.findByText('65%')).toBeInTheDocument();
+
+    // Clean up pending upload promise
+    resolveUpload!({ id: 'rec-progress' });
   });
 
   it('does not show upload failure when onUploadComplete throws an error', async () => {
