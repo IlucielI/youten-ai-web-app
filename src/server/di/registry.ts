@@ -10,15 +10,18 @@ import {
   waitlistRepository,
   systemRepository,
   meetingBotRepository,
+  feedbackRepository,
 } from '../repositories';
 import { recordingService } from '../services/recording.service';
 import { authService } from '../services/auth.service';
 import { workspaceService } from '../services/workspace.service';
 import { waitlistService } from '../services/waitlist.service';
 import { meetingBotService } from '../services/meeting-bot.service';
+import { feedbackService } from '../services/feedback.service';
 import { workspaceController } from '../controllers/workspace.controller';
 import { waitlistController } from '../controllers/waitlist.controller';
 import { meetingBotController } from '../controllers/meeting-bot.controller';
+import { feedbackController } from '../controllers/feedback.controller';
 
 /**
  * Shared Infrastructure & Domain Singletons Registry
@@ -42,6 +45,7 @@ export {
   waitlistRepository,
   systemRepository,
   meetingBotRepository,
+  feedbackRepository,
 };
 
 // 4. Domain Services & Controllers Singletons
@@ -51,8 +55,11 @@ export {
   workspaceService,
   waitlistService,
   meetingBotService,
+  feedbackService,
   workspaceController,
   waitlistController,
   meetingBotController,
+  feedbackController,
 };
+
 

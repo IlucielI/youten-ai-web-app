@@ -31,6 +31,8 @@ import {
   WorkspaceAskRequestSchema,
   WaitlistRequestSchema,
   WaitlistResponseSchema,
+  FeedbackRequestSchema,
+  FeedbackResponseSchema,
 } from './index';
 import {
   UserStatus,
@@ -659,4 +661,62 @@ describe('Domain Schemas & Validation Rules', () => {
       expect(() => WaitlistResponseSchema.parse(invalid)).toThrow();
     });
   });
+
+  describe('Feedback Schemas', () => {
+    it('should validate valid FeedbackRequestSchema with defaults', () => {
+      const payload = {
+        title: 'Meeting export error',
+        message: 'The export button does not produce a valid file on Safari.',
+      };
+      const parsed = FeedbackRequestSchema.parse(payload);
+      expect(parsed.category).toBe('general');
+      expect(parsed.rating).toBe(5);
+      expect(parsed.title).toBe('Meeting export error');
+    });
+
+    it('should validate complete FeedbackRequestSchema with all fields', () => {
+      const payload = {
+        title: 'Feature request: Notion sync',
+        category: 'feature' as const,
+        rating: 4,
+        message: 'It would be amazing to sync meeting action items directly into Notion.',
+        user_name: 'Developer',
+        user_email: 'dev@example.com',
+        idempotency_key: 'idem-12345',
+        metadata: { page: '/dashboard', browser: 'Chrome' },
+      };
+      const parsed = FeedbackRequestSchema.parse(payload);
+      expect(parsed.category).toBe('feature');
+      expect(parsed.rating).toBe(4);
+      expect(parsed.idempotency_key).toBe('idem-12345');
+    });
+
+    it('should reject FeedbackRequestSchema with too short message (<10 chars)', () => {
+      const invalid = {
+        title: 'Valid title',
+        message: 'Short',
+      };
+      expect(() => FeedbackRequestSchema.parse(invalid)).toThrow();
+    });
+
+    it('should validate FeedbackResponseSchema', () => {
+      const resp = {
+        id: '123e4567-e89b-12d3-a456-426614174000',
+        title: 'Audio seek glitch',
+        category: 'bug',
+        rating: 2,
+        message: 'Audio player jumps 5 seconds backwards when seeking.',
+        status: 'new',
+        user_name: 'Alice',
+        user_email: 'alice@example.com',
+        idempotency_key: 'idem-abc',
+        metadata: { url: '/recordings/1' },
+        created_at: new Date().toISOString(),
+      };
+      const parsed = FeedbackResponseSchema.parse(resp);
+      expect(parsed.id).toBe('123e4567-e89b-12d3-a456-426614174000');
+      expect(parsed.rating).toBe(2);
+    });
+  });
 });
+

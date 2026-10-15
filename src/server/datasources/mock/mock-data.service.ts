@@ -41,6 +41,8 @@ import {
   StopMeetingBotSessionResponse,
   CapabilitiesResponse,
   TemplateListResponse,
+  FeedbackRequest,
+  FeedbackResponse,
 } from '../../dtos';
 import {
   RecordingStatus,
@@ -84,6 +86,7 @@ export class MockDataService {
   private comments: CommentResponse[] = JSON.parse(JSON.stringify(mockComments));
   private summaryVersions: Map<string, SummaryVersionResponse[]> = new Map();
   private waitlistApplicants: WaitlistResponse[] = [];
+  private feedbacks: FeedbackResponse[] = [];
 
   constructor() {
     this.reset();
@@ -96,6 +99,7 @@ export class MockDataService {
     this.listItems = [...mockRecordingListItems];
     this.comments = JSON.parse(JSON.stringify(mockComments));
     this.waitlistApplicants = [];
+    this.feedbacks = [];
     this.summaryVersions.clear();
 
     // Seed initial summary version for default mock recording
@@ -603,6 +607,32 @@ export class MockDataService {
       message: 'Successfully joined meeting voice bot beta waitlist',
     };
     this.waitlistApplicants.push(resp);
+    return resp;
+  }
+
+  // --- Feedback Handlers ---
+  submitFeedback(payload: FeedbackRequest): FeedbackResponse {
+    if (payload.idempotency_key) {
+      const existing = this.feedbacks.find((f) => f.idempotency_key === payload.idempotency_key);
+      if (existing) {
+        return existing;
+      }
+    }
+
+    const resp: FeedbackResponse = {
+      id: crypto.randomUUID(),
+      title: payload.title,
+      category: payload.category || 'general',
+      rating: payload.rating ?? 5,
+      message: payload.message,
+      status: 'new',
+      user_name: payload.user_name || null,
+      user_email: payload.user_email || null,
+      idempotency_key: payload.idempotency_key || null,
+      metadata: payload.metadata || {},
+      created_at: new Date().toISOString(),
+    };
+    this.feedbacks.push(resp);
     return resp;
   }
 
