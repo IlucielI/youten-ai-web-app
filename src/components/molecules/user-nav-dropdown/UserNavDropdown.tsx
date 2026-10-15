@@ -11,8 +11,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/atoms/dropdown-menu';
-import { Settings, LogOut, ChevronDown, LayoutDashboard } from 'lucide-react';
+import { Settings, LogOut, ChevronDown, LayoutDashboard, MessageSquarePlus } from 'lucide-react';
 import { useTranslation } from '@/locales';
+import { useUiStore } from '@/stores/ui.store';
 
 export interface UserNavDropdownProps {
   user?: {
@@ -191,6 +192,19 @@ export const UserNavDropdown: React.FC<UserNavDropdownProps> = ({
               />
             )}
           </Link>
+        </DropdownMenuItem>
+
+        {/* Masukan / Feedback */}
+        <DropdownMenuItem
+          onClick={() => {
+            handleOpenChange(false);
+            useUiStore.getState().openModal('feedback');
+          }}
+          className="flex items-center gap-2 px-2.5 py-2 text-xs font-medium text-foreground hover:text-primary hover:bg-muted rounded-md transition-colors cursor-pointer"
+          data-testid="feedback-nav-item"
+        >
+          <MessageSquarePlus className="w-4 h-4 text-muted-foreground group-hover:text-primary" />
+          <span>{t('feedback.buttonLabel')}</span>
         </DropdownMenuItem>
 
         <DropdownMenuSeparator className="my-1 bg-border" />

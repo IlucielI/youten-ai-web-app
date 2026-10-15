@@ -13,6 +13,7 @@ import { enRecording } from './recording';
 import { enSettings } from './settings';
 import { enSpeakers } from './speakers';
 import { enShare } from './share';
+import { enFeedback } from './feedback';
 
 export const enDictionary: AppDictionary = {
   common: enCommon,
@@ -29,4 +30,5 @@ export const enDictionary: AppDictionary = {
   settings: enSettings,
   speakers: enSpeakers,
   share: enShare,
+  feedback: enFeedback,
 };

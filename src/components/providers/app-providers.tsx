@@ -5,6 +5,8 @@ import { ThemeProvider } from 'next-themes';
 import { TooltipProvider } from '@/components/atoms/tooltip';
 import { Toaster } from '@/components/atoms/sonner';
 import { useAuthStore } from '@/stores/auth.store';
+import { FeedbackButton } from '@/components/molecules/feedback-button';
+import { FeedbackDialog } from '@/components/organisms/feedback-dialog';
 
 export interface AppProvidersProps {
   children: React.ReactNode;
@@ -26,6 +28,8 @@ export function AppProviders({ children }: AppProvidersProps) {
     >
       <TooltipProvider delayDuration={200}>
         {children}
+        <FeedbackButton />
+        <FeedbackDialog />
         <Toaster />
       </TooltipProvider>
     </ThemeProvider>
