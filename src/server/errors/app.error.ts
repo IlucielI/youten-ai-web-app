@@ -80,3 +80,13 @@ export class GatewayTimeoutError extends AppError {
   }
 }
 
+export class TooManyRequestsError extends AppError {
+  public readonly retryAfterSeconds?: number;
+
+  constructor(message = 'Too Many Requests', details?: unknown, retryAfterSeconds?: number) {
+    super(message, 429, 'TOO_MANY_REQUESTS', true, details);
+    this.retryAfterSeconds = retryAfterSeconds;
+  }
+}
+
+

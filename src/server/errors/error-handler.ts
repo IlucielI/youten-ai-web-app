@@ -74,11 +74,17 @@ export function handleApiError(
     ...(clientDetails !== undefined && { details: clientDetails }),
   };
 
+  const responseHeaders: Record<string, string> = {
+    [REQUEST_ID_HEADER]: requestId,
+    'Cache-Control': 'no-store, no-cache, must-revalidate',
+  };
+
+  if ('retryAfterSeconds' in (error as Record<string, unknown>) && typeof (error as { retryAfterSeconds?: unknown }).retryAfterSeconds === 'number') {
+    responseHeaders['Retry-After'] = String((error as { retryAfterSeconds: number }).retryAfterSeconds);
+  }
+
   return NextResponse.json(payload, {
     status: statusCode,
-    headers: {
-      [REQUEST_ID_HEADER]: requestId,
-      'Cache-Control': 'no-store, no-cache, must-revalidate',
-    },
+    headers: responseHeaders,
   });
 }

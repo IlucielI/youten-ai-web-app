@@ -41,6 +41,10 @@ import {
   StopMeetingBotSessionResponse,
   CapabilitiesResponse,
   TemplateListResponse,
+  FeedbackRequest,
+  FeedbackResponse,
+  FeedbackPresignRequest,
+  FeedbackPresignResponse,
 } from '../../dtos';
 import {
   RecordingStatus,
@@ -84,6 +88,7 @@ export class MockDataService {
   private comments: CommentResponse[] = JSON.parse(JSON.stringify(mockComments));
   private summaryVersions: Map<string, SummaryVersionResponse[]> = new Map();
   private waitlistApplicants: WaitlistResponse[] = [];
+  private feedbacks: FeedbackResponse[] = [];
 
   constructor() {
     this.reset();
@@ -96,6 +101,7 @@ export class MockDataService {
     this.listItems = [...mockRecordingListItems];
     this.comments = JSON.parse(JSON.stringify(mockComments));
     this.waitlistApplicants = [];
+    this.feedbacks = [];
     this.summaryVersions.clear();
 
     // Seed initial summary version for default mock recording
@@ -604,6 +610,47 @@ export class MockDataService {
     };
     this.waitlistApplicants.push(resp);
     return resp;
+  }
+
+  // --- Feedback Handlers ---
+  submitFeedback(payload: FeedbackRequest): FeedbackResponse {
+    if (payload.idempotency_key) {
+      const existing = this.feedbacks.find((f) => f.idempotency_key === payload.idempotency_key);
+      if (existing) {
+        return existing;
+      }
+    }
+
+    const resp: FeedbackResponse = {
+      id: crypto.randomUUID(),
+      title: payload.title,
+      category: payload.category || 'general',
+      rating: payload.rating ?? 5,
+      message: payload.message,
+      status: 'new',
+      user_name: payload.user_name || null,
+      user_email: payload.user_email || null,
+      idempotency_key: payload.idempotency_key || null,
+      attachments: payload.attachments || [],
+      metadata: payload.metadata || {},
+      created_at: new Date().toISOString(),
+    };
+    this.feedbacks.push(resp);
+    return resp;
+  }
+
+  presignFeedbackUpload(payload: FeedbackPresignRequest): FeedbackPresignResponse {
+    const id = crypto.randomUUID();
+    const safeFilename = payload.filename.replace(/[^a-zA-Z0-9._-]/g, '_');
+    const objectKey = `feedbacks/${id}/${safeFilename}`;
+    return {
+      upload_url: `https://mock-s3.youten.local/recordings/${objectKey}?uploadId=mock-upload`,
+      object_key: objectKey,
+      download_url: `https://mock-s3.youten.local/recordings/${objectKey}`,
+      filename: payload.filename,
+      content_type: payload.content_type,
+      file_size_bytes: payload.file_size_bytes,
+    };
   }
 
   // --- Meeting Bot Handlers ---

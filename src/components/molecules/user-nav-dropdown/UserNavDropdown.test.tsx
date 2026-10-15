@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { UserNavDropdown } from './UserNavDropdown';
 import { useLocaleStore } from '@/stores/locale.store';
+import { useUiStore } from '@/stores/ui.store';
 
 describe('UserNavDropdown', () => {
   beforeEach(() => {
@@ -164,5 +165,22 @@ describe('UserNavDropdown', () => {
     expect(dashboardLink).toHaveAttribute('data-active', 'false');
     expect(dashboardLink).not.toHaveAttribute('aria-current');
     expect(screen.queryByTestId('dashboard-active-indicator')).not.toBeInTheDocument();
+  });
+
+  it('renders feedback option and opens feedback modal when clicked', () => {
+    useUiStore.setState({ activeModal: null });
+
+    render(
+      <UserNavDropdown
+        open={true}
+        user={{ full_name: 'Bayu', email: 'bayu@youten.ai' }}
+      />
+    );
+
+    const feedbackBtn = screen.getByTestId('feedback-nav-item');
+    expect(feedbackBtn).toBeInTheDocument();
+    fireEvent.click(feedbackBtn);
+
+    expect(useUiStore.getState().activeModal).toBe('feedback');
   });
 });

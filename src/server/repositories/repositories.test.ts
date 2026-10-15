@@ -8,6 +8,7 @@ import {
   WaitlistRepository,
   MeetingBotRepository,
   TemplateRepository,
+  FeedbackRepository,
 } from './index';
 import { MockDataService } from '../datasources/mock';
 import { HttpClient } from '../datasources/http';
@@ -30,6 +31,7 @@ describe('BFF Domain Repositories (Mock & Transport Layer)', () => {
   let waitlistRepo: WaitlistRepository;
   let meetingBotRepo: MeetingBotRepository;
   let templateRepo: TemplateRepository;
+  let feedbackRepo: FeedbackRepository;
 
   beforeEach(() => {
     mockService = new MockDataService();
@@ -43,6 +45,7 @@ describe('BFF Domain Repositories (Mock & Transport Layer)', () => {
     waitlistRepo = new WaitlistRepository(fakeHttp, mockService, true);
     meetingBotRepo = new MeetingBotRepository(fakeHttp, mockService, true);
     templateRepo = new TemplateRepository(fakeHttp, mockService, true);
+    feedbackRepo = new FeedbackRepository(fakeHttp, mockService, true);
   });
 
   describe('AuthRepository', () => {
@@ -398,6 +401,27 @@ describe('BFF Domain Repositories (Mock & Transport Layer)', () => {
       expect(resp.data?.items).toBeDefined();
       expect(resp.data!.items.length).toBeGreaterThan(0);
       expect(resp.data?.items.some((item) => item.category_key === 'MOM')).toBe(true);
+    });
+  });
+
+  describe('FeedbackRepository', () => {
+    it('submits feedback and supports idempotency correctly', async () => {
+      const payload = {
+        title: 'Waveform rendering lag',
+        category: 'bug' as const,
+        rating: 3,
+        message: 'On Firefox, the waveform takes 3 seconds to render completely.',
+        idempotency_key: 'idem-test-repo-1',
+      };
+
+      const resp1 = await feedbackRepo.submitFeedback(payload);
+      expect(resp1.status).toBe(ResponseStatus.SUCCESS);
+      expect(resp1.data?.id).toBeDefined();
+      expect(resp1.data?.title).toBe(payload.title);
+
+      // Re-submitting with identical idempotency key returns the same feedback
+      const resp2 = await feedbackRepo.submitFeedback(payload);
+      expect(resp2.data?.id).toBe(resp1.data?.id);
     });
   });
 });

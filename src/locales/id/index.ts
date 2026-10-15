@@ -12,6 +12,7 @@ import { idRecording } from './recording';
 import { idSettings } from './settings';
 import { idSpeakers } from './speakers';
 import { idShare } from './share';
+import { idFeedback } from './feedback';
 
 export const idDictionary = {
   common: idCommon,
@@ -28,6 +29,7 @@ export const idDictionary = {
   settings: idSettings,
   speakers: idSpeakers,
   share: idShare,
+  feedback: idFeedback,
 };
 
 export type AppDictionary = typeof idDictionary;

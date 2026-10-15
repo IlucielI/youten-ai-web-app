@@ -11,3 +11,5 @@ export * from './workspace.schema';
 export * from './waitlist.schema';
 export * from './meeting-bot.schema';
 export * from './template.schema';
+export * from './feedback.schema';
+

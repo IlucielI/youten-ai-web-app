@@ -17,3 +17,6 @@ export * from './meeting-bot.repository.interface';
 export * from './meeting-bot.repository';
 export * from './template.repository.interface';
 export * from './template.repository';
+export * from './feedback.repository.interface';
+export * from './feedback.repository';
+

@@ -12,3 +12,6 @@ export * from './meeting-bot.service.interface';
 export * from './meeting-bot.service';
 export * from './template.service.interface';
 export * from './template.service';
+export * from './feedback.service.interface';
+export * from './feedback.service';
+
