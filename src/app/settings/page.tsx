@@ -32,6 +32,7 @@ import {
   Zap,
   Eye,
   EyeOff,
+  UploadCloud,
 } from 'lucide-react';
 
 export default function SettingsPage() {
@@ -406,6 +407,13 @@ export default function SettingsPage() {
                       )}>
                         {user?.email_verified ? t('settings.quota.verified') : t('settings.quota.unverified')}
                       </span>
+                    </div>
+                    <div className="flex items-center justify-between text-muted-foreground">
+                      <span className="flex items-center gap-1">
+                        <UploadCloud className="w-3.5 h-3.5" />
+                        {t('settings.quota.maxFileSize')}
+                      </span>
+                      <span className="font-semibold text-foreground">{user?.max_file_size_mb ?? 500} MB</span>
                     </div>
                     <div className="flex items-center justify-between text-muted-foreground">
                       <span className="flex items-center gap-1">

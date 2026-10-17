@@ -27,7 +27,8 @@ export const idIngestion = {
     languageAuto: 'Deteksi Otomatis (Auto)',
     securityNoticeTitle: 'Perhatian Keamanan:',
     securityNoticeDesc:
-      'Mendukung video YouTube dan tautan file audio/video langsung yang dapat diakses publik. Tautan internal (localhost/IP privat) akan diblokir otomatis.',
+      'Mendukung video YouTube, Google Drive, dan tautan file audio/video langsung yang dapat diakses publik. Tautan internal (localhost/IP privat) akan diblokir otomatis.',
+    maxSizeHint: 'Maksimal ukuran media dari tautan: {size} MB',
     downloading: 'Mengunduh & Memproses...',
     submit: 'Impor & Transkripsikan Media',
     emptyUrl: 'Silakan masukkan tautan media.',

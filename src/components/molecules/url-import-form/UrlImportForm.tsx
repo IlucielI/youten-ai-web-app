@@ -25,6 +25,7 @@ export interface UrlImportFormProps {
     language?: string;
   }) => Promise<void> | void;
   isLoading?: boolean;
+  maxSizeMB?: number;
   className?: string;
 }
 
@@ -53,6 +54,7 @@ export function isValidMediaUrl(url: string): boolean {
 export function UrlImportForm({
   onSubmit,
   isLoading = false,
+  maxSizeMB = 500,
   className,
 }: UrlImportFormProps) {
   const { t } = useTranslation();
@@ -196,13 +198,18 @@ export function UrlImportForm({
         </div>
       </div>
 
-      {/* Anti-SSRF Defense Banner */}
+      {/* Anti-SSRF Defense Banner & Max Size Notice */}
       <div className="flex items-start gap-2 rounded-xl border border-sky-500/20 bg-sky-500/5 p-3 text-[11px] text-muted-foreground">
         <ShieldCheck className="h-4 w-4 shrink-0 text-sky-400 mt-0.5" />
-        <p className="leading-relaxed">
-          <span className="font-semibold text-foreground">{t('ingestion.url.securityNoticeTitle')}</span>{' '}
-          {t('ingestion.url.securityNoticeDesc')}
-        </p>
+        <div className="space-y-1">
+          <p className="leading-relaxed">
+            <span className="font-semibold text-foreground">{t('ingestion.url.securityNoticeTitle')}</span>{' '}
+            {t('ingestion.url.securityNoticeDesc')}
+          </p>
+          <p className="font-medium text-foreground/80">
+            {t('ingestion.url.maxSizeHint', { size: maxSizeMB })}
+          </p>
+        </div>
       </div>
 
       {/* Error Alert */}

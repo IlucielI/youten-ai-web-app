@@ -111,6 +111,8 @@ export const UserResponseSchema = z.object({
   permissions: z.array(z.string()).optional(),
   daily_quota: z.number().int().nonnegative(),
   daily_quota_override: z.number().int().positive().nullable().optional(),
+  max_file_size_mb: z.number().int().positive().optional(),
+  max_file_size_mb_override: z.number().int().positive().nullable().optional(),
   email_verified: z.boolean(),
   created_at: z.string(),
 });
@@ -128,6 +130,7 @@ export const UserProfileResponseSchema = z.object({
   daily_quota: z.number().int().nonnegative(),
   quota_used_today: z.number().int().nonnegative(),
   quota_remaining: z.number().int().nonnegative(),
+  max_file_size_mb: z.number().int().positive().optional(),
   email_verified: z.boolean(),
   created_at: z.string(),
 });

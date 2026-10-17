@@ -35,6 +35,7 @@ export const enSettings: typeof idSettings = {
     emailVerification: 'Email Verification:',
     verified: 'Verified',
     unverified: 'Unverified',
+    maxFileSize: 'Max File Size:',
     resetTime: 'Quota Reset:',
   },
   security: {

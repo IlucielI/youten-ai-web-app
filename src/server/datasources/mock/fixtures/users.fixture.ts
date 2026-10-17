@@ -18,6 +18,8 @@ export const mockUser: UserResponse = {
   ],
   daily_quota: 5,
   daily_quota_override: null,
+  max_file_size_mb: 500,
+  max_file_size_mb_override: null,
   email_verified: true,
   created_at: '2026-10-01T00:00:00.000Z',
 };
@@ -40,6 +42,7 @@ export const mockUserProfile: UserProfileResponse = {
   daily_quota: 5,
   quota_used_today: 1,
   quota_remaining: 4,
+  max_file_size_mb: 500,
   email_verified: true,
   created_at: '2026-10-01T00:00:00.000Z',
 };
