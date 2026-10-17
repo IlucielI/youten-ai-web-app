@@ -408,6 +408,7 @@ export default function LandingPage() {
             {/* Tab 1: Upload File */}
             <TabsContent value="upload" className="outline-none">
               <UploadDropzone
+                maxSizeMB={currentUser?.max_file_size_mb ?? 500}
                 className="max-w-3xl"
                 onUploadFile={handleUploadFile}
                 onUploadComplete={handleUploadComplete}
@@ -417,6 +418,7 @@ export default function LandingPage() {
             {/* Tab 2: URL Import */}
             <TabsContent value="url" className="outline-none">
               <UrlImportForm
+                maxSizeMB={currentUser?.max_file_size_mb ?? 500}
                 className="max-w-3xl"
                 onSubmit={handleUrlImport}
                 isLoading={isUrlImporting}

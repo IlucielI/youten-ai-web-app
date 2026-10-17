@@ -33,6 +33,7 @@ export const idSettings = {
     emailVerification: 'Verifikasi Email:',
     verified: 'Terverifikasi',
     unverified: 'Belum Diverifikasi',
+    maxFileSize: 'Batas Ukuran Berkas:',
     resetTime: 'Reset Kuota:',
   },
   security: {

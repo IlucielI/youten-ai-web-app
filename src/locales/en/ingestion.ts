@@ -29,7 +29,8 @@ export const enIngestion: typeof idIngestion = {
     languageAuto: 'Automatic Detection (Auto)',
     securityNoticeTitle: 'Security Notice:',
     securityNoticeDesc:
-      'Supports YouTube videos and direct public audio/video URLs. Private network/localhost links will be blocked automatically.',
+      'Supports YouTube videos, Google Drive files, and direct public audio/video URLs. Private network/localhost links will be blocked automatically.',
+    maxSizeHint: 'Maximum media size from link: {size} MB',
     downloading: 'Downloading & Processing...',
     submit: 'Import & Transcribe Media',
     emptyUrl: 'Please enter a media link.',

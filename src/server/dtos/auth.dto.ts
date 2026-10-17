@@ -23,6 +23,8 @@ export interface UserResponse {
   permissions?: string[];
   daily_quota: number;
   daily_quota_override?: number | null;
+  max_file_size_mb?: number;
+  max_file_size_mb_override?: number | null;
   email_verified: boolean;
   created_at: string;
 }
@@ -39,6 +41,7 @@ export interface UserProfileResponse {
   daily_quota: number;
   quota_used_today: number;
   quota_remaining: number;
+  max_file_size_mb?: number;
   email_verified: boolean;
   created_at: string;
 }

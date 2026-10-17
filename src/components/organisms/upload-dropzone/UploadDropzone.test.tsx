@@ -222,4 +222,21 @@ describe('UploadDropzone Organism', () => {
     expect(screen.getByText('sample.mp3')).toBeInTheDocument();
     expect(fileInput.value).toBe('');
   });
+
+  it('renders custom max file size label when maxSizeMB is provided', () => {
+    render(<UploadDropzone maxSizeMB={1000} />);
+    expect(screen.getByText('Maksimal ukuran file: 1000 MB')).toBeInTheDocument();
+  });
+
+  it('rejects file exceeding custom maxSizeMB', () => {
+    render(<UploadDropzone maxSizeMB={10} />);
+    const largeFile = new File(['x'], 'large.mp3', { type: 'audio/mp3' });
+    Object.defineProperty(largeFile, 'size', { value: 15 * 1024 * 1024 });
+
+    const fileInput = screen.getByTestId('file-input');
+    fireEvent.change(fileInput, { target: { files: [largeFile] } });
+
+    expect(screen.getByTestId('upload-error-alert')).toBeInTheDocument();
+    expect(screen.getByText(/Ukuran file melebihi batas maksimal 10 MB/)).toBeInTheDocument();
+  });
 });

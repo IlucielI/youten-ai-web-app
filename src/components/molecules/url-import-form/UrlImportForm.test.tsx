@@ -97,4 +97,9 @@ describe('UrlImportForm Molecule', () => {
       expect(screen.getByText('Koneksi timeout')).toBeInTheDocument();
     });
   });
+
+  it('renders custom max size hint when maxSizeMB is provided', () => {
+    render(<UrlImportForm onSubmit={vi.fn()} maxSizeMB={1000} />);
+    expect(screen.getByText(/1000 MB/)).toBeInTheDocument();
+  });
 });
