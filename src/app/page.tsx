@@ -232,7 +232,11 @@ export default function LandingPage() {
   const handleProcessLiveRecording = async (
     audioBlob: Blob,
     _durationSeconds?: number,
-    options?: { title?: string; templateCategory?: TemplateKey }
+    options?: {
+      title?: string;
+      templateCategory?: TemplateKey;
+      onProgress?: (percent: number) => void;
+    }
   ) => {
     const prefix = locale === 'en' ? 'voice-recording' : 'rekaman-suara';
     const file = new File(
@@ -244,6 +248,7 @@ export default function LandingPage() {
     const result = await handleUploadFile(file, {
       title: options?.title || t('landing.tabs.record'),
       templateCategory: options?.templateCategory || DefaultTemplateKey,
+      onProgress: options?.onProgress,
     });
 
     handleUploadComplete(result.id);

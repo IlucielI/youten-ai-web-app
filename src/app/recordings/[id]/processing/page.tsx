@@ -21,10 +21,10 @@ import {
   AlertDialogAction,
 } from '@/components/atoms/alert-dialog';
 import { toast } from 'sonner';
-import { RecordingStatus } from '@/server/constants';
+import { RecordingStatus, ApiErrorCode } from '@/server/constants';
 import { usePipelineStore, PipelineProgressPayload } from '@/stores/pipeline.store';
 import { useTokenStore } from '@/stores/token.store';
-import { apiFetch } from '@/lib/api-client';
+import { apiFetch, ApiClientError } from '@/lib/api-client';
 import { ApiResponse } from '@/server/dtos/response.dto';
 import { RecordingDetailDto, RetryRecordingResponseDto } from '@/server/schemas/recording.schema';
 import { useTranslation } from '@/locales';
@@ -389,6 +389,43 @@ export default function RecordingProcessingPage() {
         connectSSE(recordingId);
       }
     } catch (err: unknown) {
+      // 1. Check if the recording is ALREADY COMPLETED on the server
+      const isAlreadyCompleted =
+        (err instanceof ApiClientError &&
+          (err.code === ApiErrorCode.ERR_ALREADY_COMPLETED ||
+            (err.status === 409 && err.message.toLowerCase().includes('already completed')))) ||
+        (err instanceof Error &&
+          (err.message.toLowerCase().includes('already completed') ||
+            err.message.toLowerCase().includes('sudah selesai')));
+
+      if (isAlreadyCompleted) {
+        toast.success(t('pipeline.status.alreadyCompletedToast'));
+        const meta = getStatusMeta(RecordingStatus.COMPLETED);
+        usePipelineStore.getState().setCompleted(meta.message);
+        setTimeout(() => {
+          routerRef.current.push(`/recordings/${recordingId}`);
+        }, 1000);
+        return;
+      }
+
+      // 2. Check if the recording is STILL ACTIVELY PROCESSING (409 Conflict)
+      const isStillProcessing =
+        (err instanceof ApiClientError &&
+          (err.status === 409 ||
+            err.code === ApiErrorCode.CONFLICT_PROCESSING ||
+            err.code === ApiErrorCode.CONFLICT)) ||
+        (err instanceof Error &&
+          (err.message.toLowerCase().includes('currently being processed') ||
+            err.message.toLowerCase().includes('sedang diproses')));
+
+      if (isStillProcessing) {
+        toast.info(t('pipeline.status.stillProcessingToast'));
+        // Re-check status & keep SSE / polling alive without marking FAILED
+        connectSSE(recordingId);
+        return;
+      }
+
+      // 3. Genuine retry failure
       const msg = err instanceof Error ? err.message : t('pipeline.errors.retryFailedMessage');
       usePipelineStore.getState().setFailure({
         code: 'ERR_RETRY_FAILED',
