@@ -7,7 +7,7 @@ export const enErrors: typeof idErrors = {
   ERR_FORBIDDEN: 'You do not have permission to perform this action.',
   ERR_NOT_FOUND: 'The requested data or file could not be found.',
   ERR_RATE_LIMIT_EXCEEDED: 'Daily limit reached. Please try again tomorrow or upgrade your account.',
-  ERR_FILE_TOO_LARGE: 'The file size exceeds the maximum allowed limit (up to 500MB).',
+  ERR_FILE_TOO_LARGE: 'The file size exceeds the maximum allowed limit (up to 100MB).',
   ERR_UNSUPPORTED_MEDIA_TYPE: 'Unsupported media format. Please use MP3, M4A, WAV, MP4, or WEBM.',
   ERR_PIPELINE_FAILED: 'Internal processing failure while analyzing the recording.',
   ERR_NETWORK_ERROR: 'Network connection error. Please check your internet connection.',

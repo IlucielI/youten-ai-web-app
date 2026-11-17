@@ -54,7 +54,7 @@ export function isValidMediaUrl(url: string): boolean {
 export function UrlImportForm({
   onSubmit,
   isLoading = false,
-  maxSizeMB = 500,
+  maxSizeMB = 1024,
   className,
 }: UrlImportFormProps) {
   const { t } = useTranslation();
@@ -64,6 +64,17 @@ export function UrlImportForm({
   const [language, setLanguage] = useState('id');
   const [validationError, setValidationError] = useState<string | null>(null);
   const { templates } = useTemplates();
+
+  const displayMaxSize = useMemo(() => {
+    if (typeof maxSizeMB === 'number') {
+      if (maxSizeMB >= 1000) {
+        const gb = maxSizeMB >= 1024 ? Math.round(maxSizeMB / 1024) : 1;
+        return `${gb} GB`;
+      }
+      return `${maxSizeMB} MB`;
+    }
+    return `${maxSizeMB}`;
+  }, [maxSizeMB]);
 
   const templateOptions: SearchableSelectOption[] = useMemo(
     () =>
@@ -207,7 +218,7 @@ export function UrlImportForm({
             {t('ingestion.url.securityNoticeDesc')}
           </p>
           <p className="font-medium text-foreground/80">
-            {t('ingestion.url.maxSizeHint', { size: maxSizeMB })}
+            {t('ingestion.url.maxSizeHint', { size: displayMaxSize })}
           </p>
         </div>
       </div>
