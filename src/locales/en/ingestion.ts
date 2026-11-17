@@ -60,6 +60,8 @@ export const enIngestion: typeof idIngestion = {
     reload: 'Reload',
     retry: 'Try Again',
     close: 'Close',
+    emptyAudioError: 'The recording is empty or no audio was captured. Please record again.',
+    uploadingAudio: 'Uploading recording...',
     notSupported: 'Audio recording is not supported by your browser.',
     formatNotSupported: 'Audio recording format is not supported by your browser.',
     defaultProcessError: 'Failed to process audio recording.',

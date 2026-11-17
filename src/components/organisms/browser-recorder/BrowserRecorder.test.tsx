@@ -15,12 +15,14 @@ interface MockMediaRecorderType {
 
 describe('BrowserRecorder Organism', () => {
   let mockMediaRecorderInstance: MockMediaRecorderType | null = null;
+  let mockAudioParts: BlobPart[] = ['audio-sample'];
 
   const setMockInstance = (instance: MockMediaRecorderType) => {
     mockMediaRecorderInstance = instance;
   };
 
   beforeEach(() => {
+    mockAudioParts = ['audio-sample'];
     class MockMediaRecorder implements MockMediaRecorderType {
       static isTypeSupported = vi.fn().mockReturnValue(true);
       state = 'inactive';
@@ -32,7 +34,7 @@ describe('BrowserRecorder Organism', () => {
       stop = vi.fn(() => {
         this.state = 'inactive';
         if (this.ondataavailable) {
-          this.ondataavailable({ data: new Blob(['audio-sample'], { type: 'audio/webm' }) });
+          this.ondataavailable({ data: new Blob(mockAudioParts, { type: 'audio/webm' }) });
         }
         if (this.onstop) {
           this.onstop();
@@ -164,10 +166,11 @@ describe('BrowserRecorder Organism', () => {
       expect(handleProcess).toHaveBeenCalledWith(
         expect.any(Blob),
         expect.any(Number),
-        {
+        expect.objectContaining({
           title: 'Rapat Sinkronisasi Sprint 42',
           templateCategory: 'INTERVIEW',
-        }
+          onProgress: expect.any(Function),
+        })
       );
     });
   });
@@ -185,6 +188,63 @@ describe('BrowserRecorder Organism', () => {
 
     await waitFor(() => {
       expect(screen.getByText('Network error saat upload')).toBeInTheDocument();
+    });
+  });
+
+  it('displays warning when recorded audio blob is empty', async () => {
+    // Configure stop to emit an empty blob
+    mockAudioParts = [];
+
+    const handleProcess = vi.fn();
+    render(<BrowserRecorder onProcessRecording={handleProcess} />);
+
+    fireEvent.click(screen.getByTestId('start-record-btn'));
+    await waitFor(() => expect(screen.getByTestId('stop-record-btn')).toBeInTheDocument());
+    fireEvent.click(screen.getByTestId('stop-record-btn'));
+    await waitFor(() => expect(screen.getByTestId('process-record-btn')).toBeInTheDocument());
+
+    // When blob has size 0, process button should be disabled
+    expect(screen.getByTestId('process-record-btn')).toBeDisabled();
+    expect(handleProcess).not.toHaveBeenCalled();
+  });
+
+  it('updates progress indicator dynamically when onProgress callback is invoked', async () => {
+    let capturedProgressCb: ((pct: number) => void) | null = null;
+    let resolveProcessing: (() => void) | null = null;
+    const processPromise = new Promise<void>((resolve) => {
+      resolveProcessing = resolve;
+    });
+
+    const handleProcess = vi.fn().mockImplementation((_blob, _dur, options) => {
+      capturedProgressCb = options?.onProgress;
+      return processPromise;
+    });
+
+    render(<BrowserRecorder onProcessRecording={handleProcess} />);
+
+    fireEvent.click(screen.getByTestId('start-record-btn'));
+    await waitFor(() => expect(screen.getByTestId('stop-record-btn')).toBeInTheDocument());
+    fireEvent.click(screen.getByTestId('stop-record-btn'));
+    await waitFor(() => expect(screen.getByTestId('process-record-btn')).toBeInTheDocument());
+
+    fireEvent.click(screen.getByTestId('process-record-btn'));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('recorder-progress-container')).toBeInTheDocument();
+      expect(screen.getByText('10%')).toBeInTheDocument();
+    });
+
+    // Invoke captured onProgress callback
+    expect(capturedProgressCb).toBeDefined();
+    capturedProgressCb!(55);
+
+    await waitFor(() => {
+      expect(screen.getByText('55%')).toBeInTheDocument();
+    });
+
+    resolveProcessing!();
+    await waitFor(() => {
+      expect(screen.queryByTestId('recorder-progress-container')).not.toBeInTheDocument();
     });
   });
 

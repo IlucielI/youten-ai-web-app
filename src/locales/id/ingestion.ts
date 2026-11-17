@@ -58,6 +58,8 @@ export const idIngestion = {
     reload: 'Muat Ulang',
     retry: 'Coba Lagi',
     close: 'Tutup',
+    emptyAudioError: 'Rekaman kosong atau tidak ada audio yang tertangkap. Silakan rekam ulang.',
+    uploadingAudio: 'Mengunggah rekaman...',
     notSupported: 'Perekaman audio tidak didukung oleh browser Anda.',
     formatNotSupported: 'Format perekaman audio tidak didukung oleh browser Anda.',
     defaultProcessError: 'Gagal memproses rekaman audio.',

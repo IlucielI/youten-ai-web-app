@@ -52,6 +52,8 @@ export const enPipeline: typeof idPipeline = {
     cancelConfirmButton: 'Yes, Cancel & Clean Up',
     cancelSuccess: 'Recording session successfully cancelled and cleaned up.',
     cancelFailed: 'Failed to cancel recording. Please try again.',
+    stillProcessingToast: 'The recording is actively being processed by the server. Please wait a moment...',
+    alreadyCompletedToast: 'Recording processing is already complete! Redirecting to review...',
     staleWarningTitle: 'Processing Stalled or Taking Unusually Long',
     staleWarningDescription: 'Processing has been running for over 10 minutes without new progress. This session might be stuck due to network or pipeline failure. You can cancel and clean it up now.',
     elapsedTime: 'Elapsed Time',

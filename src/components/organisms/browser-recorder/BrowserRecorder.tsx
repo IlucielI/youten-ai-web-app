@@ -5,6 +5,7 @@ import { formatTime } from '@/lib/time';
 import { Button } from '@/components/atoms/button';
 import { Input } from '@/components/atoms/input';
 import { Label } from '@/components/atoms/label';
+import { Progress } from '@/components/atoms/progress';
 import { SearchableSelect, SearchableSelectOption } from '@/components/molecules/searchable-select';
 import { useTemplates } from '@/hooks';
 import { TemplateKey, DefaultTemplateKey } from '@/server/constants/template.constant';
@@ -26,6 +27,7 @@ export type RecorderState = 'idle' | 'recording' | 'paused' | 'stopped';
 export interface RecordingProcessOptions {
   title?: string;
   templateCategory?: TemplateKey;
+  onProgress?: (percent: number) => void;
 }
 
 export interface BrowserRecorderProps {
@@ -79,14 +81,18 @@ export function BrowserRecorder({
   isProcessing = false,
   className,
 }: BrowserRecorderProps) {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const [recorderState, setRecorderState] = useState<RecorderState>('idle');
   const [duration, setDuration] = useState(0);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [recordedBlob, setRecordedBlob] = useState<Blob | null>(null);
   const [title, setTitle] = useState('');
   const [templateCategory, setTemplateCategory] = useState<TemplateKey>(DefaultTemplateKey);
+  const [isProcessingInternal, setIsProcessingInternal] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const { templates } = useTemplates();
+
+  const isBusy = isProcessing || isProcessingInternal;
 
   const templateOptions: SearchableSelectOption[] = useMemo(
     () =>
@@ -193,6 +199,7 @@ export function BrowserRecorder({
     setErrorMessage(null);
     setRecordedBlob(null);
     setDuration(0);
+    setUploadProgress(0);
     audioChunksRef.current = [];
 
     try {
@@ -296,21 +303,42 @@ export function BrowserRecorder({
     setRecordedBlob(null);
     audioChunksRef.current = [];
     setErrorMessage(null);
+    setUploadProgress(0);
     setTitle('');
     setTemplateCategory(DefaultTemplateKey);
   };
 
   const handleProcess = async () => {
-    if (!recordedBlob || isProcessing || !onProcessRecording) return;
+    if (!recordedBlob || isBusy || !onProcessRecording) return;
+
+    if (recordedBlob.size === 0) {
+      setErrorMessage(
+        t('ingestion.recorder.emptyAudioError') ||
+          (locale === 'en'
+            ? 'The recording is empty or no audio was captured. Please record again.'
+            : 'Rekaman kosong atau tidak ada audio yang tertangkap. Silakan rekam ulang.')
+      );
+      return;
+    }
+
+    setIsProcessingInternal(true);
+    setUploadProgress(10);
+    setErrorMessage(null);
+
     try {
-      setErrorMessage(null);
       await onProcessRecording(recordedBlob, duration, {
         title: title.trim() || t('ingestion.recorder.defaultTitle'),
         templateCategory,
+        onProgress: (percent: number) => {
+          setUploadProgress(Math.min(100, Math.max(0, Math.round(percent))));
+        },
       });
+      setUploadProgress(100);
     } catch (err: unknown) {
       const msg = extractErrorMessage(err, t('ingestion.recorder.defaultProcessError'), t);
       setErrorMessage(msg);
+    } finally {
+      setIsProcessingInternal(false);
     }
   };
 
@@ -415,7 +443,7 @@ export function BrowserRecorder({
               id="recording-title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              disabled={isProcessing}
+              disabled={isBusy}
               placeholder={t('ingestion.recorder.titlePlaceholder')}
               className="text-xs"
               data-testid="recording-title-input"
@@ -433,11 +461,25 @@ export function BrowserRecorder({
               value={templateCategory}
               onValueChange={(val) => setTemplateCategory(val as TemplateKey)}
               options={templateOptions}
-              disabled={isProcessing}
+              disabled={isBusy}
               placeholder={t('ingestion.recorder.templateLabel')}
               searchPlaceholder="Cari template..."
             />
           </div>
+
+          {/* Real-time Upload / Processing Progress Bar */}
+          {isBusy && (
+            <div className="space-y-1.5 pt-2" data-testid="recorder-progress-container">
+              <div className="flex items-center justify-between text-xs text-muted-foreground">
+                <span className="flex items-center gap-1.5 font-medium text-foreground">
+                  <Loader2 className="h-3 w-3 animate-spin text-primary" />
+                  {t('ingestion.recorder.uploadingAudio') || t('ingestion.recorder.processing')}
+                </span>
+                <span className="font-semibold text-primary">{uploadProgress}%</span>
+              </div>
+              <Progress value={uploadProgress} className="h-2" />
+            </div>
+          )}
         </div>
       )}
 
@@ -501,7 +543,7 @@ export function BrowserRecorder({
               variant="outline"
               size="sm"
               onClick={handleReset}
-              disabled={isProcessing}
+              disabled={isBusy}
               data-testid="reset-record-btn"
             >
               <RotateCcw className="h-3.5 w-3.5" />
@@ -513,10 +555,10 @@ export function BrowserRecorder({
               variant="default"
               size="sm"
               onClick={handleProcess}
-              disabled={isProcessing || !recordedBlob}
+              disabled={isBusy || !recordedBlob || recordedBlob.size === 0}
               data-testid="process-record-btn"
             >
-              {isProcessing ? (
+              {isBusy ? (
                 <>
                   <Loader2 className="h-3.5 w-3.5 animate-spin" />
                   <span>{t('ingestion.recorder.processing')}</span>

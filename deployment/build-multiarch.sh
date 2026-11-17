@@ -10,6 +10,13 @@ BUILDER="${BUILDER:-default}"
 REBUILD_BASE="${REBUILD_BASE:-false}"
 BASE_IMAGE="${BASE_IMAGE:-youten-ai-web-base:latest}"
 
+EXTRA_BASE_TAG=""
+EXTRA_APP_TAG=""
+if [ "$ACTION" != "--push" ]; then
+  EXTRA_BASE_TAG="-t code-base-nextjs-base:latest"
+  EXTRA_APP_TAG="-t code-base-nextjs:latest"
+fi
+
 # 1. Build multi-arch base image if missing or forced
 if [ "$REBUILD_BASE" = "true" ] || ! docker image inspect "$BASE_IMAGE" >/dev/null 2>&1; then
   echo "==> Building multi-arch base image (${PLATFORMS}) with tag: ${BASE_IMAGE}..."
@@ -19,7 +26,7 @@ if [ "$REBUILD_BASE" = "true" ] || ! docker image inspect "$BASE_IMAGE" >/dev/nu
     $ACTION \
     -f deployment/Dockerfile.base \
     -t "$BASE_IMAGE" \
-    -t "code-base-nextjs-base:latest" \
+    $EXTRA_BASE_TAG \
     .
 else
   echo "==> Base image '$BASE_IMAGE' already exists. Skipping base build."
@@ -37,7 +44,7 @@ docker buildx build \
   $ACTION \
   -f deployment/Dockerfile \
   -t "$IMAGE_TAG" \
-  -t "code-base-nextjs:latest" \
+  $EXTRA_APP_TAG \
   .
 
 echo "==> Successfully built ${IMAGE_TAG} for ${PLATFORMS}"
