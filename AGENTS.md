@@ -99,6 +99,14 @@ This document defines the architectural invariants, conventions, and workflows f
 - **Consolidated Providers**: When introducing client context providers (`ThemeProvider` from `next-themes`, `TooltipProvider` from Radix UI, `<Toaster />` from Sonner), wrap them inside a dedicated client component (e.g. `src/components/providers/` or similar) with `'use client'`, and mount that wrapper inside `src/app/layout.tsx`.
 - **Hydration Warning Suppression**: When using `ThemeProvider` (dynamic theme attributes on `<html>`), ensure `<html lang="en" suppressHydrationWarning>` is declared on the root HTML tag.
 
+### 2.9. Strictly Forbidden: Hardcoded Assumptions, Heuristics & Content Guessing
+- **Zero Content Guessing**: The web app, BFF layer, and UI components **MUST NEVER** attempt to guess, infer, or hardcode domain assumptions based on raw transcript words or specific language patterns (e.g., checking if text starts with certain words to assign roles, badges, or colors).
+- **Strictly Contract-Driven UI**:
+  - The frontend must render transcripts, speaker tags, and audio metadata purely based on the structured contract delivered by the API (`speaker_label`, `speaker_name`, `acoustic_speaker`, `acoustic_confidence`, `start`, `end`, `words`).
+  - No language-specific or topic-specific heuristics (e.g. assuming interviews, meetings, or specific Indonesian/English terms).
+- **Universal Multi-Domain Resilience**:
+  - All transcript visualizations, audio synchronization players, and analytics widgets must work seamlessly regardless of whether the recording is in English, Indonesian, or any other language, and regardless of whether the content is a job interview, a board meeting, a medical consult, a technical standup, or a podcast.
+
 ---
 
 ## 3. Development Workflows for Agents
