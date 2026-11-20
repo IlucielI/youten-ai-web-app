@@ -118,11 +118,11 @@ describe('PipelineStepper Component', () => {
     expect(screen.getByText('Ready for Review')).toBeInTheDocument();
   });
 
-  it('displays stale warning banner when elapsed time exceeds 10 minutes and triggers onCancel', () => {
+  it('displays stale warning banner when elapsed time exceeds 45 minutes and triggers onCancel', () => {
     const onCancel = vi.fn();
     const onRetry = vi.fn();
-    // 700 seconds in the past (> 10 mins)
-    const startedAt = new Date(Date.now() - 700 * 1000).toISOString();
+    // 2800 seconds in the past (> 45 mins)
+    const startedAt = new Date(Date.now() - 2800 * 1000).toISOString();
 
     render(
       <PipelineStepper
