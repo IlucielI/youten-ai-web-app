@@ -50,6 +50,8 @@ export const idPipeline = {
     cancelConfirmButton: 'Ya, Batalkan & Hapus',
     cancelSuccess: 'Sesi rekaman berhasil dibatalkan dan dibersihkan.',
     cancelFailed: 'Gagal membatalkan rekaman. Silakan coba lagi.',
+    stillProcessingToast: 'Rekaman masih aktif diproses oleh server. Mohon tunggu beberapa saat...',
+    alreadyCompletedToast: 'Rekaman telah selesai diproses! Mengalihkan ke hasil ringkasan...',
     staleWarningTitle: 'Pemrosesan Berjalan Terlalu Lama / Terhenti',
     staleWarningDescription: 'Pemrosesan telah berjalan lebih dari 10 menit tanpa kemajuan baru. Sesi ini kemungkinan terhenti karena kendala jaringan atau kegagalan pipeline. Anda dapat membatalkan dan membersihkannya sekarang.',
     elapsedTime: 'Waktu Berjalan',

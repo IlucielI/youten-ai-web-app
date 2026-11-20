@@ -28,7 +28,7 @@ export const idIngestion = {
     securityNoticeTitle: 'Perhatian Keamanan:',
     securityNoticeDesc:
       'Mendukung video YouTube, Google Drive, dan tautan file audio/video langsung yang dapat diakses publik. Tautan internal (localhost/IP privat) akan diblokir otomatis.',
-    maxSizeHint: 'Maksimal ukuran media dari tautan: {size} MB',
+    maxSizeHint: 'Maksimal ukuran media dari tautan: {size}',
     downloading: 'Mengunduh & Memproses...',
     submit: 'Impor & Transkripsikan Media',
     emptyUrl: 'Silakan masukkan tautan media.',
@@ -58,6 +58,8 @@ export const idIngestion = {
     reload: 'Muat Ulang',
     retry: 'Coba Lagi',
     close: 'Tutup',
+    emptyAudioError: 'Rekaman kosong atau tidak ada audio yang tertangkap. Silakan rekam ulang.',
+    uploadingAudio: 'Mengunggah rekaman...',
     notSupported: 'Perekaman audio tidak didukung oleh browser Anda.',
     formatNotSupported: 'Format perekaman audio tidak didukung oleh browser Anda.',
     defaultProcessError: 'Gagal memproses rekaman audio.',

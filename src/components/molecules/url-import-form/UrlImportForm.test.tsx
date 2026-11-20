@@ -99,7 +99,12 @@ describe('UrlImportForm Molecule', () => {
   });
 
   it('renders custom max size hint when maxSizeMB is provided', () => {
-    render(<UrlImportForm onSubmit={vi.fn()} maxSizeMB={1000} />);
-    expect(screen.getByText(/1000 MB/)).toBeInTheDocument();
+    render(<UrlImportForm onSubmit={vi.fn()} maxSizeMB={500} />);
+    expect(screen.getByText(/500 MB/)).toBeInTheDocument();
+  });
+
+  it('renders formatted 1 GB max size hint when maxSizeMB is 1024', () => {
+    render(<UrlImportForm onSubmit={vi.fn()} maxSizeMB={1024} />);
+    expect(screen.getByText(/1 GB/)).toBeInTheDocument();
   });
 });

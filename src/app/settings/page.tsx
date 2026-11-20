@@ -413,7 +413,7 @@ export default function SettingsPage() {
                         <UploadCloud className="w-3.5 h-3.5" />
                         {t('settings.quota.maxFileSize')}
                       </span>
-                      <span className="font-semibold text-foreground">{user?.max_file_size_mb ?? 500} MB</span>
+                      <span className="font-semibold text-foreground">{user?.max_file_size_mb ?? 100} MB</span>
                     </div>
                     <div className="flex items-center justify-between text-muted-foreground">
                       <span className="flex items-center gap-1">

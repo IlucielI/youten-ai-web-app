@@ -5,7 +5,7 @@ export const idErrors = {
   ERR_FORBIDDEN: 'Anda tidak memiliki hak akses untuk tindakan ini.',
   ERR_NOT_FOUND: 'Data atau berkas yang Anda cari tidak ditemukan.',
   ERR_RATE_LIMIT_EXCEEDED: 'Batas kuota harian telah tercapai. Silakan coba kembali besok atau tingkatkan akun Anda.',
-  ERR_FILE_TOO_LARGE: 'Ukuran berkas melebihi batas maksimal yang diizinkan (maksimal 500MB).',
+  ERR_FILE_TOO_LARGE: 'Ukuran berkas melebihi batas maksimal yang diizinkan (maksimal 100MB).',
   ERR_UNSUPPORTED_MEDIA_TYPE: 'Format berkas media tidak didukung. Harap gunakan MP3, M4A, WAV, MP4, atau WEBM.',
   ERR_PIPELINE_FAILED: 'Pemrosesan analisis rekaman mengalami kegagalan sistem internal.',
   ERR_NETWORK_ERROR: 'Koneksi jaringan terputus. Harap periksa koneksi internet Anda.',

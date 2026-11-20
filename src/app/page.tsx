@@ -232,7 +232,11 @@ export default function LandingPage() {
   const handleProcessLiveRecording = async (
     audioBlob: Blob,
     _durationSeconds?: number,
-    options?: { title?: string; templateCategory?: TemplateKey }
+    options?: {
+      title?: string;
+      templateCategory?: TemplateKey;
+      onProgress?: (percent: number) => void;
+    }
   ) => {
     const prefix = locale === 'en' ? 'voice-recording' : 'rekaman-suara';
     const file = new File(
@@ -244,6 +248,7 @@ export default function LandingPage() {
     const result = await handleUploadFile(file, {
       title: options?.title || t('landing.tabs.record'),
       templateCategory: options?.templateCategory || DefaultTemplateKey,
+      onProgress: options?.onProgress,
     });
 
     handleUploadComplete(result.id);
@@ -408,7 +413,7 @@ export default function LandingPage() {
             {/* Tab 1: Upload File */}
             <TabsContent value="upload" className="outline-none">
               <UploadDropzone
-                maxSizeMB={currentUser?.max_file_size_mb ?? 500}
+                maxSizeMB={currentUser?.max_file_size_mb ? Math.min(currentUser.max_file_size_mb, 100) : 100}
                 className="max-w-3xl"
                 onUploadFile={handleUploadFile}
                 onUploadComplete={handleUploadComplete}
@@ -418,7 +423,7 @@ export default function LandingPage() {
             {/* Tab 2: URL Import */}
             <TabsContent value="url" className="outline-none">
               <UrlImportForm
-                maxSizeMB={currentUser?.max_file_size_mb ?? 500}
+                maxSizeMB={1024}
                 className="max-w-3xl"
                 onSubmit={handleUrlImport}
                 isLoading={isUrlImporting}

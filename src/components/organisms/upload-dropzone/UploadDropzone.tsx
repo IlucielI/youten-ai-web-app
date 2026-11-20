@@ -52,7 +52,7 @@ export function isSupportedExtension(fileName: string): boolean {
 export function UploadDropzone({
   onUploadFile,
   onUploadComplete,
-  maxSizeMB = 500,
+  maxSizeMB = 100,
   className,
 }: UploadDropzoneProps) {
   const { t } = useTranslation();

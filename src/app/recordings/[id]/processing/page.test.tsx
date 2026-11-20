@@ -321,4 +321,107 @@ describe('RecordingProcessingPage', () => {
       expect(mockPush).toHaveBeenCalledWith('/dashboard');
     });
   });
+
+  it('handles 409 conflict during retry without marking pipeline as failed', async () => {
+    vi.spyOn(apiClient, 'apiFetch').mockImplementation(async (url: string, options?: RequestInit) => {
+      if (options?.method === 'POST' && url.includes('/retry')) {
+        throw new apiClient.ApiClientError(
+          409,
+          'CONFLICT_PROCESSING',
+          'recording is currently being processed, so retry cannot be initiated'
+        );
+      }
+      return {
+        status: 'SUCCESS',
+        code: 'OK',
+        message: 'Success',
+        data: {
+          id: 'rec-123-abc',
+          title: 'Processing Recording',
+          status: RecordingStatus.TRANSCRIBING,
+          created_at: new Date().toISOString(),
+        },
+      } as never;
+    });
+
+    render(<RecordingProcessingPage />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('recording-title-display')).toHaveTextContent('Processing Recording');
+    });
+
+    // Emulate failed status first to expose retry button
+    const es = MockEventSource.instances[0];
+    act(() => {
+      es.emitMessage({
+        status: RecordingStatus.FAILED,
+        stage: 'failed',
+        progress: 45,
+        message: 'Temporarily halted',
+        errorCode: 'ERR_TIMEOUT',
+        errorMessage: 'Temporary timeout',
+      });
+    });
+
+    await waitFor(() => {
+      expect(screen.getByTestId('pipeline-error-card')).toBeInTheDocument();
+    });
+
+    const retryBtn = screen.getByTestId('retry-stage-button');
+    await act(async () => {
+      fireEvent.click(retryBtn);
+    });
+
+    // Should NOT crash or overwrite with ERR_RETRY_FAILED
+    await waitFor(() => {
+      expect(apiClient.apiFetch).toHaveBeenCalledWith(
+        '/api/recordings/rec-123-abc/retry',
+        { method: 'POST' }
+      );
+    });
+
+    // Error code should NOT be ERR_RETRY_FAILED
+    expect(usePipelineStore.getState().errorCode).not.toBe('ERR_RETRY_FAILED');
+  });
+
+  it('handles already completed 409 during retry by redirecting to detail review', async () => {
+    vi.spyOn(apiClient, 'apiFetch').mockImplementation(async (url: string, options?: RequestInit) => {
+      if (options?.method === 'POST' && url.includes('/retry')) {
+        throw new apiClient.ApiClientError(
+          409,
+          'ERR_ALREADY_COMPLETED',
+          'recording has already completed processing'
+        );
+      }
+      return {
+        status: 'SUCCESS',
+        code: 'OK',
+        message: 'Success',
+        data: {
+          id: 'rec-123-abc',
+          title: 'Completed Recording',
+          status: RecordingStatus.FAILED,
+          created_at: new Date().toISOString(),
+        },
+      } as never;
+    });
+
+    render(<RecordingProcessingPage />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('recording-title-display')).toHaveTextContent('Completed Recording');
+    });
+
+    const retryBtn = await screen.findByTestId('retry-stage-button');
+    await act(async () => {
+      fireEvent.click(retryBtn);
+    });
+
+    await waitFor(
+      () => {
+        expect(mockPush).toHaveBeenCalledWith('/recordings/rec-123-abc');
+      },
+      { timeout: 2000 }
+    );
+  });
 });

@@ -30,7 +30,7 @@ export const enIngestion: typeof idIngestion = {
     securityNoticeTitle: 'Security Notice:',
     securityNoticeDesc:
       'Supports YouTube videos, Google Drive files, and direct public audio/video URLs. Private network/localhost links will be blocked automatically.',
-    maxSizeHint: 'Maximum media size from link: {size} MB',
+    maxSizeHint: 'Maximum media size from link: {size}',
     downloading: 'Downloading & Processing...',
     submit: 'Import & Transcribe Media',
     emptyUrl: 'Please enter a media link.',
@@ -60,6 +60,8 @@ export const enIngestion: typeof idIngestion = {
     reload: 'Reload',
     retry: 'Try Again',
     close: 'Close',
+    emptyAudioError: 'The recording is empty or no audio was captured. Please record again.',
+    uploadingAudio: 'Uploading recording...',
     notSupported: 'Audio recording is not supported by your browser.',
     formatNotSupported: 'Audio recording format is not supported by your browser.',
     defaultProcessError: 'Failed to process audio recording.',
