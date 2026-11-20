@@ -110,6 +110,35 @@ describe('ExportMenu', () => {
 
     expect(handleExport).toHaveBeenCalledWith(ExportFormat.PDF);
   });
+
+  it('triggers direct download link with version parameter when currentVersion is provided', async () => {
+    const clickSpy = vi.fn();
+    const originalCreateElement = document.createElement.bind(document);
+    vi.spyOn(document, 'createElement').mockImplementation((tagName: string) => {
+      const el = originalCreateElement(tagName);
+      if (tagName === 'a') {
+        el.click = clickSpy;
+      }
+      return el;
+    });
+
+    render(
+      <ExportMenu
+        open={true}
+        recordingId="rec-test-123"
+        currentVersion={3}
+      />
+    );
+
+    const mdOption = screen.getByTestId(`export-option-${ExportFormat.MARKDOWN}`);
+    fireEvent.click(mdOption);
+
+    await waitFor(() => {
+      expect(clickSpy).toHaveBeenCalled();
+    });
+
+    vi.restoreAllMocks();
+  });
 });
 
 
