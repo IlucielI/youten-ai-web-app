@@ -93,10 +93,12 @@ export function ExportMenu({
         await onExport(format);
       } else if (recordingId) {
         // Direct browser download trigger via BFF route
-        const downloadUrl = `/api/recordings/${recordingId}/export?format=${format}`;
+        const versionParam = currentVersion ? `&version=${currentVersion}` : '';
+        const downloadUrl = `/api/recordings/${recordingId}/export?format=${format}${versionParam}`;
         const link = document.createElement('a');
         link.href = downloadUrl;
-        link.download = `recording-${recordingId}.${format === ExportFormat.MARKDOWN ? 'md' : format}`;
+        const versionSuffix = currentVersion ? `_v${currentVersion}` : '';
+        link.download = `recording-${recordingId}${versionSuffix}.${format === ExportFormat.MARKDOWN ? 'md' : format}`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
