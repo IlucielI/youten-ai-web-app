@@ -293,8 +293,8 @@ export const PipelineStepper: React.FC<PipelineStepperProps> = ({
         </div>
       </div>
 
-      {/* Stale / Long-Running Warning Alert */}
-      {elapsedSeconds >= 600 && !isCompleted && !isFailed && (
+      {/* Stale / Long-Running Warning Alert (threshold: 45 minutes) */}
+      {elapsedSeconds >= 2700 && !isCompleted && !isFailed && (
         <div
           data-testid="pipeline-stale-warning"
           className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-amber-900 dark:text-amber-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 animate-in fade-in duration-300"

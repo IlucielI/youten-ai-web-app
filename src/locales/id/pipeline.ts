@@ -51,7 +51,7 @@ export const idPipeline = {
     cancelSuccess: 'Sesi rekaman berhasil dibatalkan dan dibersihkan.',
     cancelFailed: 'Gagal membatalkan rekaman. Silakan coba lagi.',
     staleWarningTitle: 'Pemrosesan Berjalan Terlalu Lama / Terhenti',
-    staleWarningDescription: 'Pemrosesan telah berjalan lebih dari 10 menit tanpa kemajuan baru. Sesi ini kemungkinan terhenti karena kendala jaringan atau kegagalan pipeline. Anda dapat membatalkan dan membersihkannya sekarang.',
+    staleWarningDescription: 'Pemrosesan telah berjalan lebih dari 45 menit tanpa kemajuan baru. Sesi ini kemungkinan terhenti karena kendala jaringan atau kegagalan pipeline. Anda dapat membatalkan dan membersihkannya sekarang.',
     elapsedTime: 'Waktu Berjalan',
     estimatedRemaining: 'Perkiraan Sisa',
   },
