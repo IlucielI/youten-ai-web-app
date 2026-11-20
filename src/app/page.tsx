@@ -88,6 +88,7 @@ export default function LandingPage() {
       // Step 2: Upload binary file directly to S3 with real-time progress & timeout
       await uploadToStorageWithProgress(upload_url, file, {
         contentType: file.type || 'audio/mpeg',
+        proxyUrl: '/api/recordings/proxy-upload',
         onProgress: (pct) => {
           options.onProgress?.(Math.round(15 + pct * 0.75));
         },

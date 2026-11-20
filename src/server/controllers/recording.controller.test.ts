@@ -494,4 +494,84 @@ describe('RecordingController', () => {
     expect(json.data.is_active).toBe(true);
     expect(mockService.activateSummaryVersion).toHaveBeenCalledWith('rec-123', 'summary-1', 'token-xyz');
   });
+
+  describe('proxyUpload', () => {
+    it('handles proxy upload and returns 200 with success status', async () => {
+      const fetchSpy = vi.spyOn(global, 'fetch').mockResolvedValue(
+        new Response('', { status: 200, statusText: 'OK' })
+      );
+
+      const req = new Request('http://localhost/api/recordings/proxy-upload', {
+        method: 'POST',
+        headers: {
+          'x-upload-url': 'https://s3.bayuanugerah.my.id/youten-ai/recordings/rec-123/audio.mp4',
+          'content-type': 'video/mp4',
+        },
+        body: 'sample-binary-payload',
+      });
+
+      const res = await controller.proxyUpload(req);
+      expect(res.status).toBe(200);
+      const json = await res.json();
+      expect(json.data.uploaded).toBe(true);
+      expect(fetchSpy).toHaveBeenCalledWith(
+        'https://s3.bayuanugerah.my.id/youten-ai/recordings/rec-123/audio.mp4',
+        expect.objectContaining({
+          method: 'PUT',
+          headers: { 'Content-Type': 'video/mp4' },
+        })
+      );
+      fetchSpy.mockRestore();
+    });
+
+    it('rejects proxy upload with missing target URL', async () => {
+      const req = new Request('http://localhost/api/recordings/proxy-upload', {
+        method: 'POST',
+      });
+
+      const res = await controller.proxyUpload(req);
+      expect(res.status).toBe(400);
+    });
+
+    it('rejects proxy upload with invalid target URL protocol', async () => {
+      const req = new Request('http://localhost/api/recordings/proxy-upload', {
+        method: 'POST',
+        headers: {
+          'x-upload-url': 'ftp://s3.bayuanugerah.my.id/youten-ai/file.mp4',
+        },
+      });
+
+      const res = await controller.proxyUpload(req);
+      expect(res.status).toBe(400);
+    });
+
+    it('rejects proxy upload with disallowed target host', async () => {
+      const req = new Request('http://localhost/api/recordings/proxy-upload', {
+        method: 'POST',
+        headers: {
+          'x-upload-url': 'https://malicious-site.com/uploads/evil.mp4',
+        },
+      });
+
+      const res = await controller.proxyUpload(req);
+      expect(res.status).toBe(403);
+    });
+
+    it('rejects proxy upload when upstream storage returns non-2xx status', async () => {
+      const fetchSpy = vi.spyOn(global, 'fetch').mockResolvedValue(
+        new Response('Access Denied', { status: 403, statusText: 'Forbidden' })
+      );
+
+      const req = new Request('http://localhost/api/recordings/proxy-upload', {
+        method: 'POST',
+        headers: {
+          'x-upload-url': 'https://s3.bayuanugerah.my.id/youten-ai/recordings/rec-123/audio.mp4',
+        },
+      });
+
+      const res = await controller.proxyUpload(req);
+      expect(res.status).toBe(502);
+      fetchSpy.mockRestore();
+    });
+  });
 });

@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { BaseController } from './base.controller';
 import { IRecordingService } from '../services/recording.service.interface';
 import { recordingService as defaultRecordingService } from '../services/recording.service';
+import { BadRequestError, ForbiddenError, BadGatewayError } from '../errors/app.error';
+import { ResponseStatus, ResponseCode } from '../constants';
 import {
   PresignUploadRequestSchema,
   UploadRecordingRequestSchema,
@@ -146,6 +148,65 @@ export class RecordingController extends BaseController {
       const url = new URL(req.url);
       const token = url.searchParams.get('token') || req.headers.get('x-ownership-token') || undefined;
       return this.recordingService.activateSummaryVersion(id, versionId, token);
+    });
+  }
+
+  async proxyUpload(req: Request): Promise<NextResponse> {
+    return this.handle(req, async () => {
+      const targetUrl = req.headers.get('x-upload-url') || new URL(req.url).searchParams.get('url');
+      if (!targetUrl) {
+        throw new BadRequestError('Missing target upload URL');
+      }
+
+      let parsed: URL;
+      try {
+        parsed = new URL(targetUrl);
+      } catch {
+        throw new BadRequestError('Invalid target upload URL');
+      }
+
+      if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') {
+        throw new BadRequestError('Invalid target upload URL protocol');
+      }
+
+      const isAllowedHost =
+        parsed.hostname === 's3.bayuanugerah.my.id' ||
+        parsed.hostname.endsWith('.bayuanugerah.my.id') ||
+        parsed.hostname.includes('s3') ||
+        parsed.hostname === 'localhost' ||
+        parsed.hostname === '127.0.0.1';
+
+      if (!isAllowedHost) {
+        throw new ForbiddenError('Target upload host is not allowed');
+      }
+
+      const contentType = req.headers.get('content-type') || 'application/octet-stream';
+
+      const upstreamRes = await fetch(targetUrl, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': contentType,
+        },
+        body: req.body,
+        // @ts-expect-error duplex is required in Node.js for streaming fetch request bodies
+        duplex: 'half',
+      });
+
+      if (!upstreamRes.ok) {
+        const errText = await upstreamRes.text().catch(() => '');
+        throw new BadGatewayError(
+          `Storage rejected upload: ${upstreamRes.status} ${errText.slice(0, 150)}`
+        );
+      }
+
+      return {
+        status: ResponseStatus.SUCCESS,
+        code: ResponseCode.SUCCESS,
+        message: 'File successfully uploaded to storage via proxy',
+        data: {
+          uploaded: true,
+        },
+      };
     });
   }
 }
