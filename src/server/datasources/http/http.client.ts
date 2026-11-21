@@ -4,8 +4,10 @@ import { REQUEST_ID_HEADER } from '../../context/request.context';
 import {
   AUTH_COOKIE_NAME,
   GUEST_COOKIE_NAME,
+  WORKSPACE_COOKIE_NAME,
   ANON_TOKEN_HEADER,
   OWNERSHIP_TOKEN_HEADER,
+  WORKSPACE_ID_HEADER,
   FORWARDED_FOR_HEADER,
   REAL_IP_HEADER,
   CLIENT_IP_HEADER,
@@ -141,6 +143,20 @@ export class HttpClient implements IHttpClient {
     }
 
     // 2. Explicit anonymous token resolution:
+    if (options?.workspaceId) {
+      headers[WORKSPACE_ID_HEADER] = options.workspaceId;
+    } else if (this.autoForwardSession && !headers[WORKSPACE_ID_HEADER] && !headers['X-Workspace-ID']) {
+      try {
+        const cookieStore = await getNextCookies();
+        const wsId = cookieStore.get(WORKSPACE_COOKIE_NAME)?.value;
+        if (wsId) {
+          headers[WORKSPACE_ID_HEADER] = wsId;
+        }
+      } catch {
+        // Outside Next.js request context
+      }
+    }
+
     if (options?.anonToken) {
       headers[ANON_TOKEN_HEADER] = options.anonToken;
     }
@@ -195,6 +211,13 @@ export class HttpClient implements IHttpClient {
           const incomingAnonToken = incomingHeaders.get(ANON_TOKEN_HEADER);
           if (incomingAnonToken) {
             headers[ANON_TOKEN_HEADER] = incomingAnonToken;
+          }
+        }
+
+        if (!headers[WORKSPACE_ID_HEADER] && !headers['X-Workspace-ID']) {
+          const incomingWsId = incomingHeaders.get(WORKSPACE_ID_HEADER) || incomingHeaders.get('x-workspace-id');
+          if (incomingWsId) {
+            headers[WORKSPACE_ID_HEADER] = incomingWsId;
           }
         }
       } catch {

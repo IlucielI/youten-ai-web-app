@@ -5,9 +5,11 @@
 export const AUTH_COOKIE_NAME = 'youten_access_token';
 export const REFRESH_COOKIE_NAME = 'youten_refresh_token';
 export const GUEST_COOKIE_NAME = 'youten_guest_token';
+export const WORKSPACE_COOKIE_NAME = 'youten_active_workspace_id';
 
 export const ANON_TOKEN_HEADER = 'x-anon-token';
 export const OWNERSHIP_TOKEN_HEADER = 'x-ownership-token';
+export const WORKSPACE_ID_HEADER = 'x-workspace-id';
 export const FORWARDED_FOR_HEADER = 'x-forwarded-for';
 export const REAL_IP_HEADER = 'x-real-ip';
 export const CLIENT_IP_HEADER = 'x-client-ip';

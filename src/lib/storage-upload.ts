@@ -216,7 +216,7 @@ export async function uploadToStorageWithProgress(
       try {
         await uploadViaProxy(proxyUrl, uploadUrl, file, contentType, timeoutMs, onProgress);
         return;
-      } catch (proxyErr: unknown) {
+      } catch {
         // Fall through to fetch attempt if proxy fails
       }
     }
@@ -226,7 +226,7 @@ export async function uploadToStorageWithProgress(
       await uploadViaFetch(uploadUrl, file, contentType);
       onProgress?.(100);
       return;
-    } catch (fetchErr: unknown) {
+    } catch {
       // Fall through to terminal rejection
     }
 

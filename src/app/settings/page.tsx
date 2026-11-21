@@ -15,6 +15,7 @@ import { Input } from '@/components/atoms/input';
 import { Label } from '@/components/atoms/label';
 import { Progress } from '@/components/atoms/progress';
 import { UserNavDropdown } from '@/components/molecules/user-nav-dropdown';
+import { WorkspaceSettingsTab } from '@/components/organisms/workspace-settings-tab';
 import { LanguageSwitcher } from '@/components/molecules/language-switcher';
 import { ThemeToggle } from '@/components/molecules/theme-toggle';
 import { Footer } from '@/components/organisms/footer';
@@ -33,6 +34,7 @@ import {
   Eye,
   EyeOff,
   UploadCloud,
+  Users,
 } from 'lucide-react';
 
 export default function SettingsPage() {
@@ -44,7 +46,15 @@ export default function SettingsPage() {
   const [authLoading, setAuthLoading] = useState(true);
 
   // Tab State
-  const [activeTab, setActiveTab] = useState<'profile' | 'security'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'security' | 'workspaces'>(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('tab') === 'workspaces') {
+        return 'workspaces';
+      }
+    }
+    return 'profile';
+  });
 
   // Profile Form State
   const [fullName, setFullName] = useState('');
@@ -287,6 +297,20 @@ export default function SettingsPage() {
           >
             <Shield className="w-4 h-4" />
             <span>{t('settings.tabs.security')}</span>
+          </button>
+          <button
+            type="button"
+            data-testid="tab-workspaces"
+            onClick={() => setActiveTab('workspaces')}
+            className={cn(
+              'flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 transition-all -mb-px cursor-pointer',
+              activeTab === 'workspaces'
+                ? 'border-primary text-primary bg-primary/10 rounded-t-lg'
+                : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
+            )}
+          >
+            <Users className="w-4 h-4" />
+            <span>Workspace</span>
           </button>
         </div>
 
@@ -565,6 +589,13 @@ export default function SettingsPage() {
                 </form>
               </CardContent>
             </Card>
+          </div>
+        )}
+
+        {/* Tab 3: Workspace & Team Collaboration */}
+        {activeTab === 'workspaces' && (
+          <div className="space-y-6">
+            <WorkspaceSettingsTab />
           </div>
         )}
       </main>

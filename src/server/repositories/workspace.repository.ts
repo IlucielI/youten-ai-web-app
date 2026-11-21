@@ -8,8 +8,18 @@ import {
   WorkspaceAskRequest,
   WorkspaceAskResponse,
   SpeakerDirectoryResponse,
+  WorkspaceDTO,
+  CreateWorkspaceRequest,
+  UpdateWorkspaceRequest,
+  WorkspaceMemberDTO,
+  UpdateMemberRoleRequest,
+  WorkspaceInvitationDTO,
+  CreateInvitationRequest,
+  FolderDTO,
+  CreateFolderRequest,
+  UpdateFolderRequest,
 } from '../dtos';
-import { ApiResponse } from '../dtos/response.dto';
+import { ApiResponse, BaseResponse } from '../dtos/response.dto';
 import { ResponseStatus, ResponseCode } from '../constants';
 
 export class WorkspaceRepository implements IWorkspaceRepository {
@@ -56,6 +66,94 @@ export class WorkspaceRepository implements IWorkspaceRepository {
       return this.successResponse(data, 'Speakers directory retrieved successfully');
     }
     return this.http.get<ApiResponse<SpeakerDirectoryResponse>>('/v1/speakers');
+  }
+
+  async listWorkspaces(): Promise<ApiResponse<WorkspaceDTO[]>> {
+    return this.http.get<ApiResponse<WorkspaceDTO[]>>('/v1/workspaces');
+  }
+
+  async createWorkspace(payload: CreateWorkspaceRequest): Promise<ApiResponse<WorkspaceDTO>> {
+    return this.http.post<ApiResponse<WorkspaceDTO>>('/v1/workspaces', payload);
+  }
+
+  async getWorkspace(id: string): Promise<ApiResponse<WorkspaceDTO>> {
+    return this.http.get<ApiResponse<WorkspaceDTO>>(`/v1/workspaces/${id}`);
+  }
+
+  async updateWorkspace(id: string, payload: UpdateWorkspaceRequest): Promise<ApiResponse<WorkspaceDTO>> {
+    return this.http.put<ApiResponse<WorkspaceDTO>>(`/v1/workspaces/${id}`, payload);
+  }
+
+  async deleteWorkspace(id: string): Promise<BaseResponse> {
+    return this.http.delete<BaseResponse>(`/v1/workspaces/${id}`);
+  }
+
+  async listMembers(workspaceId: string): Promise<ApiResponse<WorkspaceMemberDTO[]>> {
+    return this.http.get<ApiResponse<WorkspaceMemberDTO[]>>(`/v1/workspaces/${workspaceId}/members`);
+  }
+
+  async updateMemberRole(
+    workspaceId: string,
+    userId: string,
+    payload: UpdateMemberRoleRequest
+  ): Promise<ApiResponse<WorkspaceMemberDTO>> {
+    return this.http.put<ApiResponse<WorkspaceMemberDTO>>(`/v1/workspaces/${workspaceId}/members/${userId}`, payload);
+  }
+
+  async removeMember(workspaceId: string, userId: string): Promise<BaseResponse> {
+    return this.http.delete<BaseResponse>(`/v1/workspaces/${workspaceId}/members/${userId}`);
+  }
+
+  async listInvitations(workspaceId: string): Promise<ApiResponse<WorkspaceInvitationDTO[]>> {
+    return this.http.get<ApiResponse<WorkspaceInvitationDTO[]>>(`/v1/workspaces/${workspaceId}/invites`);
+  }
+
+  async createInvitation(
+    workspaceId: string,
+    payload: CreateInvitationRequest
+  ): Promise<ApiResponse<WorkspaceInvitationDTO>> {
+    return this.http.post<ApiResponse<WorkspaceInvitationDTO>>(`/v1/workspaces/${workspaceId}/invites`, payload);
+  }
+
+  async revokeInvitation(workspaceId: string, inviteId: string): Promise<BaseResponse> {
+    return this.http.delete<BaseResponse>(`/v1/workspaces/${workspaceId}/invites/${inviteId}`);
+  }
+
+  async getInvitationByToken(token: string): Promise<ApiResponse<WorkspaceInvitationDTO>> {
+    return this.http.get<ApiResponse<WorkspaceInvitationDTO>>(`/v1/workspaces/invitations/${token}`);
+  }
+
+  async acceptInvitation(token: string): Promise<ApiResponse<WorkspaceDTO>> {
+    return this.http.post<ApiResponse<WorkspaceDTO>>(`/v1/workspaces/invitations/${token}/accept`);
+  }
+
+  async listFolders(workspaceId?: string): Promise<ApiResponse<FolderDTO[]>> {
+    return this.http.get<ApiResponse<FolderDTO[]>>('/v1/folders', { workspaceId });
+  }
+
+  async createFolder(payload: CreateFolderRequest): Promise<ApiResponse<FolderDTO>> {
+    return this.http.post<ApiResponse<FolderDTO>>('/v1/folders', payload);
+  }
+
+  async updateFolder(id: string, payload: UpdateFolderRequest): Promise<ApiResponse<FolderDTO>> {
+    return this.http.put<ApiResponse<FolderDTO>>(`/v1/folders/${id}`, payload);
+  }
+
+  async deleteFolder(id: string): Promise<BaseResponse> {
+    return this.http.delete<BaseResponse>(`/v1/folders/${id}`);
+  }
+
+  async moveRecordingFolder(recordingId: string, folderId: string | null): Promise<BaseResponse> {
+    return this.http.patch<BaseResponse>(`/v1/recordings/${recordingId}/folder`, { folder_id: folderId });
+  }
+
+  private baseSuccessResponse(message: string): BaseResponse {
+    return {
+      status: ResponseStatus.SUCCESS,
+      code: ResponseCode.SUCCESS,
+      message,
+      timestamp: new Date().toISOString(),
+    };
   }
 
   private successResponse<T>(data: T, message: string): ApiResponse<T> {

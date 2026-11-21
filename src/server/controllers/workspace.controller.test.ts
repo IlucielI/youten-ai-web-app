@@ -18,7 +18,7 @@ describe('WorkspaceController', () => {
       semanticSearch: vi.fn(),
       askWorkspace: vi.fn(),
       getSpeakers: vi.fn(),
-    };
+    } as unknown as IWorkspaceService;
     controller = new WorkspaceController(mockService);
   });
 

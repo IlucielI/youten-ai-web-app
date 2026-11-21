@@ -20,7 +20,7 @@ describe('WorkspaceService', () => {
       semanticSearch: vi.fn(),
       askWorkspace: vi.fn(),
       getSpeakers: vi.fn(),
-    };
+    } as unknown as IWorkspaceRepository;
     service = new WorkspaceService(mockRepo);
   });
 

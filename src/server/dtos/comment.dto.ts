@@ -11,6 +11,14 @@ export interface CreateCommentRequest {
   author_name: string;
   parent_id?: string | null;
   ownership_token?: string;
+  mentioned_user_ids?: string[];
+}
+
+export interface CommentMentionDTO {
+  id: string;
+  user_id: string;
+  full_name?: string;
+  email?: string;
 }
 
 export interface CommentResponse {
@@ -24,6 +32,7 @@ export interface CommentResponse {
   comment_text: string;
   parent_id?: string | null;
   replies?: CommentResponse[];
+  mentions?: CommentMentionDTO[];
   created_at: string;
   updated_at?: string;
 }

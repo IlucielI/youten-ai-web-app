@@ -75,3 +75,47 @@ export const SpeakerDirectoryResponseSchema = z.object({
   speakers: z.array(SpeakerSummarySchema),
 });
 export type SpeakerDirectoryResponseDto = z.infer<typeof SpeakerDirectoryResponseSchema>;
+
+export const CreateWorkspaceSchema = z.object({
+  name: z.string().trim().min(1, 'Name cannot be blank').max(100, 'Name cannot exceed 100 characters'),
+  description: z.string().trim().max(500, 'Description cannot exceed 500 characters').optional(),
+});
+export type CreateWorkspaceInput = z.infer<typeof CreateWorkspaceSchema>;
+
+export const UpdateWorkspaceSchema = z.object({
+  name: z.string().trim().min(1, 'Name cannot be blank').max(100, 'Name cannot exceed 100 characters').optional(),
+  description: z.string().trim().max(500, 'Description cannot exceed 500 characters').optional(),
+});
+export type UpdateWorkspaceInput = z.infer<typeof UpdateWorkspaceSchema>;
+
+export const UpdateMemberRoleSchema = z.object({
+  role: z.enum(['owner', 'admin', 'member', 'viewer'], {
+    message: 'Role must be one of owner, admin, member, or viewer',
+  }),
+});
+export type UpdateMemberRoleInput = z.infer<typeof UpdateMemberRoleSchema>;
+
+export const CreateInvitationSchema = z.object({
+  email: z.string().trim().email('Invalid email address'),
+  role: z.enum(['admin', 'member', 'viewer'], {
+    message: 'Role must be one of admin, member, or viewer',
+  }).default('member'),
+});
+export type CreateInvitationInput = z.infer<typeof CreateInvitationSchema>;
+
+export const CreateFolderSchema = z.object({
+  name: z.string().trim().min(1, 'Folder name cannot be blank').max(100, 'Folder name cannot exceed 100 characters'),
+  parent_id: z.string().uuid('Invalid parent folder UUID').nullable().optional(),
+});
+export type CreateFolderInput = z.infer<typeof CreateFolderSchema>;
+
+export const UpdateFolderSchema = z.object({
+  name: z.string().trim().min(1, 'Folder name cannot be blank').max(100, 'Folder name cannot exceed 100 characters').optional(),
+  parent_id: z.string().uuid('Invalid parent folder UUID').nullable().optional(),
+});
+export type UpdateFolderInput = z.infer<typeof UpdateFolderSchema>;
+
+export const MoveRecordingFolderSchema = z.object({
+  folder_id: z.string().uuid('Invalid folder UUID').nullable().optional(),
+});
+export type MoveRecordingFolderInput = z.infer<typeof MoveRecordingFolderSchema>;

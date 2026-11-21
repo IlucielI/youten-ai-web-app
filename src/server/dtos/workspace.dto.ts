@@ -57,3 +57,80 @@ export interface SpeakerDirectoryResponse {
   count: number;
   speakers: SpeakerSummaryDTO[];
 }
+
+export interface WorkspaceDTO {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string;
+  owner_id: string;
+  role?: string;
+  created_at: string;
+  updated_at?: string;
+}
+
+export interface CreateWorkspaceRequest {
+  name: string;
+  description?: string;
+}
+
+export interface UpdateWorkspaceRequest {
+  name?: string;
+  description?: string;
+}
+
+export interface WorkspaceMemberDTO {
+  id: string;
+  workspace_id: string;
+  user_id: string;
+  role: 'owner' | 'admin' | 'member' | 'viewer';
+  full_name?: string;
+  email?: string;
+  created_at: string;
+}
+
+export interface UpdateMemberRoleRequest {
+  role: 'owner' | 'admin' | 'member' | 'viewer';
+}
+
+export interface WorkspaceInvitationDTO {
+  id: string;
+  workspace_id: string;
+  email: string;
+  role: 'admin' | 'member' | 'viewer';
+  token: string;
+  accepted_at?: string | null;
+  expires_at: string;
+  workspace_name?: string;
+  inviter_name?: string;
+  created_at: string;
+}
+
+export interface CreateInvitationRequest {
+  email: string;
+  role: 'admin' | 'member' | 'viewer';
+}
+
+export interface FolderDTO {
+  id: string;
+  workspace_id: string;
+  name: string;
+  parent_id?: string | null;
+  children?: FolderDTO[];
+  created_at: string;
+  updated_at?: string;
+}
+
+export interface CreateFolderRequest {
+  name: string;
+  parent_id?: string | null;
+}
+
+export interface UpdateFolderRequest {
+  name?: string;
+  parent_id?: string | null;
+}
+
+export interface MoveRecordingFolderRequest {
+  folder_id?: string | null;
+}

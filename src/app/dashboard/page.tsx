@@ -42,6 +42,10 @@ import { StatusPill } from '@/components/molecules/status-pill';
 import { EmptyState } from '@/components/molecules/empty-state';
 import { ShareDialog } from '@/components/molecules/share-dialog';
 import { UserNavDropdown } from '@/components/molecules/user-nav-dropdown';
+import { WorkspaceSwitcher } from '@/components/molecules/workspace-switcher';
+import { FolderSidebar } from '@/components/molecules/folder-sidebar';
+import { MoveFolderDialog } from '@/components/molecules/move-folder-dialog';
+import { useWorkspaceStore } from '@/stores/workspace.store';
 import { LanguageSwitcher } from '@/components/molecules/language-switcher';
 import { ThemeToggle } from '@/components/molecules/theme-toggle';
 import { Footer } from '@/components/organisms/footer';
@@ -62,6 +66,7 @@ import {
   ExternalLink,
   AlertTriangle,
   FolderOpen,
+  Folder,
 } from 'lucide-react';
 
 interface RecordingsApiResponse {
@@ -141,6 +146,10 @@ export default function DashboardPage() {
   const [shareRecording, setShareRecording] = useState<RecordingListItemDTO | null>(null);
   const [shareToken, setShareToken] = useState<string | null>(null);
 
+  // Workspace & Folder State
+  const { activeWorkspace, activeFolderId } = useWorkspaceStore();
+  const [recordingToMove, setRecordingToMove] = useState<RecordingListItemDTO | null>(null);
+
   // 1. Debounce search query
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -206,6 +215,9 @@ export default function DashboardPage() {
     if (selectedTemplate) {
       params.set('template', selectedTemplate);
     }
+    if (activeFolderId) {
+      params.set('folder_id', activeFolderId);
+    }
 
     apiFetch<RecordingsApiResponse>(`/api/recordings?${params.toString()}`)
       .then((res) => {
@@ -251,7 +263,7 @@ export default function DashboardPage() {
     return () => {
       isMounted = false;
     };
-  }, [authLoading, user, page, pageSize, debouncedSearch, selectedStatus, selectedTemplate, refreshKey, t]);
+  }, [authLoading, user, page, pageSize, debouncedSearch, selectedStatus, selectedTemplate, refreshKey, t, activeWorkspace?.id, activeFolderId]);
 
   // 4. Handle Delete
   const handleDeleteConfirm = async () => {
@@ -341,7 +353,8 @@ export default function DashboardPage() {
           </Link>
 
           {/* Right Header Controls */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            <WorkspaceSwitcher />
             <ThemeToggle />
             <LanguageSwitcher />
             <UserNavDropdown user={user} onLogout={handleLogout} />
@@ -389,8 +402,17 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        {/* Search, Filter Toolbar & View Mode Switcher */}
-        <section className="bg-card text-card-foreground rounded-2xl border border-border p-4 shadow-xs space-y-3">
+        {/* Folders & Recordings Section */}
+        <div className="flex flex-col lg:flex-row items-start gap-6">
+          {/* Left Folder Sidebar */}
+          <aside className="w-full lg:w-60 shrink-0 bg-card border border-border rounded-2xl p-4 shadow-xs">
+            <FolderSidebar totalRecordingsCount={totalItems} />
+          </aside>
+
+          {/* Right Main Column */}
+          <div className="flex-1 w-full space-y-6">
+            {/* Search, Filter Toolbar & View Mode Switcher */}
+            <section className="bg-card text-card-foreground rounded-2xl border border-border p-4 shadow-xs space-y-3">
           <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
             {/* Search Input */}
             <div className="relative flex-1">
@@ -564,6 +586,7 @@ export default function DashboardPage() {
                 recording={recording}
                 onShare={handleOpenShare}
                 onDelete={(rec) => setRecordingToDelete(rec)}
+                onMoveFolder={(rec) => setRecordingToMove(rec)}
               />
             ))}
           </div>
@@ -646,6 +669,15 @@ export default function DashboardPage() {
                           <Button
                             variant="ghost"
                             size="sm"
+                            onClick={() => setRecordingToMove(recording)}
+                            className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+                            aria-label="Move to Folder"
+                          >
+                            <Folder className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
                             onClick={() => setRecordingToDelete(recording)}
                             className="h-8 w-8 p-0 text-destructive hover:bg-destructive/10"
                             aria-label={t('dashboard.table.delete')}
@@ -704,10 +736,21 @@ export default function DashboardPage() {
             </div>
           </footer>
         )}
+          </div>
+        </div>
       </main>
 
       {/* Global Application Footer */}
       <Footer className="mt-auto" />
+
+      {/* Move Folder Dialog */}
+      <MoveFolderDialog
+        recordingId={recordingToMove?.id ?? null}
+        currentFolderId={recordingToMove?.folder_id}
+        open={Boolean(recordingToMove)}
+        onOpenChange={(open) => !open && setRecordingToMove(null)}
+        onMoved={refreshRecordings}
+      />
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog

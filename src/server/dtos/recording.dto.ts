@@ -126,6 +126,8 @@ export interface RecordingListItemDTO {
   selected_template: string;
   detected_language?: string | null;
   output_language: string;
+  folder_id?: string | null;
+  workspace_id?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -139,6 +141,7 @@ export interface RecordingFilterQuery {
   search?: string;
   status?: string;
   template?: string;
+  folder_id?: string;
   page?: number;
   limit?: number;
   sort_by?: string;

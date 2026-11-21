@@ -41,6 +41,7 @@ import type { ChatMessageResponseDto } from '@/server/schemas/chat.schema';
 import { usePlayerStore } from '@/stores/player.store';
 import { useChatStore } from '@/stores/chat.store';
 import { useTokenStore } from '@/stores/token.store';
+import { useWorkspaceStore } from '@/stores/workspace.store';
 import { apiFetch } from '@/lib/api-client';
 import { claimSingleRecording } from '@/lib/claim';
 import { ApiResponse } from '@/server/dtos/response.dto';
@@ -751,6 +752,17 @@ export default function RecordingDetailPage() {
    * Handle comment addition.
    */
   const handleCreateComment = (payload: CreateCommentRequest) => {
+    const members = useWorkspaceStore.getState().members;
+    const mentions = (payload.mentioned_user_ids || []).map((uid) => {
+      const m = members.find((x) => x.user_id === uid);
+      return {
+        id: `mention-${uid}-${Date.now()}`,
+        user_id: uid,
+        full_name: m?.full_name,
+        email: m?.email,
+      };
+    });
+
     const newComment: CommentResponse = {
       id: `comment-${Date.now()}`,
       recording_id: recordingId,
@@ -760,11 +772,53 @@ export default function RecordingDetailPage() {
       timestamp_sec: payload.timestamp_sec,
       segment_id: payload.segment_id,
       selected_text: payload.selected_text,
+      mentions: mentions.length > 0 ? mentions : undefined,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
 
     setComments((prev) => [newComment, ...prev]);
+  };
+
+  /**
+   * Handle replying to an existing comment.
+   */
+  const handleReplyComment = (parentId: string, payload: CreateCommentRequest) => {
+    const members = useWorkspaceStore.getState().members;
+    const mentions = (payload.mentioned_user_ids || []).map((uid) => {
+      const m = members.find((x) => x.user_id === uid);
+      return {
+        id: `mention-${uid}-${Date.now()}`,
+        user_id: uid,
+        full_name: m?.full_name,
+        email: m?.email,
+      };
+    });
+
+    const reply: CommentResponse = {
+      id: `reply-${Date.now()}`,
+      recording_id: recordingId,
+      user_id: 'current-user',
+      author_name: payload.author_name || 'Anda',
+      comment_text: payload.comment_text,
+      timestamp_sec: payload.timestamp_sec,
+      parent_id: parentId,
+      mentions: mentions.length > 0 ? mentions : undefined,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
+    setComments((prev) =>
+      prev.map((c) => {
+        if (c.id === parentId) {
+          return {
+            ...c,
+            replies: [...(c.replies || []), reply],
+          };
+        }
+        return c;
+      })
+    );
   };
 
   /**
@@ -1154,6 +1208,7 @@ export default function RecordingDetailPage() {
         comments={comments}
         currentTimestampSec={selectedCommentSegment?.start_time || currentTime}
         onCreateComment={handleCreateComment}
+        onReplyComment={handleReplyComment}
         onSeek={(time) => seek(time)}
       />
     </div>
