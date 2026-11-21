@@ -129,7 +129,9 @@ export class WorkspaceController extends BaseController {
 
   async listFolders(req: Request): Promise<NextResponse> {
     return this.handle(req, async () => {
-      return this.workspaceService.listFolders();
+      const url = new URL(req.url);
+      const workspaceId = url.searchParams.get('workspace_id') || undefined;
+      return this.workspaceService.listFolders(workspaceId);
     });
   }
 
@@ -156,7 +158,7 @@ export class WorkspaceController extends BaseController {
   async moveRecordingFolder(req: Request, recordingId: string): Promise<NextResponse> {
     return this.handle(req, async () => {
       const body = await this.getBody(req, MoveRecordingFolderSchema);
-      return this.workspaceService.moveRecordingFolder(recordingId, body.folder_id ?? null);
+      return this.workspaceService.moveRecordingFolder(recordingId, body.folder_id ?? null, body.workspace_id ?? null);
     });
   }
 

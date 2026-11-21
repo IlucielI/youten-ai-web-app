@@ -161,4 +161,32 @@ describe('WorkspaceController', () => {
       expect(mockService.getSpeakers).toHaveBeenCalled();
     });
   });
+
+  describe('moveRecordingFolder', () => {
+    it('handles moving recording folder with workspace_id and calls service', async () => {
+      mockService.moveRecordingFolder = vi.fn().mockResolvedValue({
+        status: ResponseStatus.SUCCESS,
+        code: ResponseCode.SUCCESS,
+        message: 'Recording moved successfully',
+        timestamp: new Date().toISOString(),
+      });
+
+      const recId = '11111111-1111-4111-a111-111111111111';
+      const folderId = '22222222-2222-4222-a222-222222222222';
+      const wsId = '33333333-3333-4333-a333-333333333333';
+
+      const req = new Request('http://localhost:3000/api/recordings/test/folder', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ folder_id: folderId, workspace_id: wsId }),
+      });
+
+      const res = await controller.moveRecordingFolder(req, recId);
+      const json = await res.json();
+
+      expect(res.status).toBe(200);
+      expect(json.code).toBe(ResponseCode.SUCCESS);
+      expect(mockService.moveRecordingFolder).toHaveBeenCalledWith(recId, folderId, wsId);
+    });
+  });
 });

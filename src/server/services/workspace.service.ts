@@ -119,8 +119,8 @@ export class WorkspaceService implements IWorkspaceService {
     return this.workspaceRepo.deleteFolder(id);
   }
 
-  async moveRecordingFolder(recordingId: string, folderId: string | null): Promise<BaseResponse> {
-    return this.workspaceRepo.moveRecordingFolder(recordingId, folderId);
+  async moveRecordingFolder(recordingId: string, folderId: string | null, workspaceId?: string | null): Promise<BaseResponse> {
+    return this.workspaceRepo.moveRecordingFolder(recordingId, folderId, workspaceId);
   }
 
   async listWorkspaceChatSessions(folderId?: string): Promise<ApiResponse<WorkspaceChatSessionDTO[]>> {

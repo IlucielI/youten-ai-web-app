@@ -20,6 +20,7 @@ describe('WorkspaceService', () => {
       semanticSearch: vi.fn(),
       askWorkspace: vi.fn(),
       getSpeakers: vi.fn(),
+      moveRecordingFolder: vi.fn(),
     } as unknown as IWorkspaceRepository;
     service = new WorkspaceService(mockRepo);
   });
@@ -115,6 +116,26 @@ describe('WorkspaceService', () => {
       const result = await service.getSpeakers();
 
       expect(mockRepo.getSpeakers).toHaveBeenCalled();
+      expect(result).toEqual(expectedResponse);
+    });
+
+    it('should call repository moveRecordingFolder with workspaceId when provided', async () => {
+      const expectedResponse = {
+        status: 'success' as const,
+        code: 'OK',
+        message: 'Recording moved successfully',
+        timestamp: new Date().toISOString(),
+      };
+
+      vi.mocked(mockRepo.moveRecordingFolder).mockResolvedValue(expectedResponse);
+
+      const recId = '11111111-1111-1111-1111-111111111111';
+      const folderId = '22222222-2222-2222-2222-222222222222';
+      const wsId = '33333333-3333-3333-3333-333333333333';
+
+      const result = await service.moveRecordingFolder(recId, folderId, wsId);
+
+      expect(mockRepo.moveRecordingFolder).toHaveBeenCalledWith(recId, folderId, wsId);
       expect(result).toEqual(expectedResponse);
     });
   });

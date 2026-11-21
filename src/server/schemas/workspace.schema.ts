@@ -119,5 +119,6 @@ export type UpdateFolderInput = z.infer<typeof UpdateFolderSchema>;
 
 export const MoveRecordingFolderSchema = z.object({
   folder_id: z.string().uuid('Invalid folder UUID').nullable().optional(),
+  workspace_id: z.string().uuid('Invalid workspace UUID').nullable().optional(),
 });
 export type MoveRecordingFolderInput = z.infer<typeof MoveRecordingFolderSchema>;
