@@ -7,11 +7,21 @@ export const CreateWorkspaceChatSessionSchema = z.object({
 });
 export type CreateWorkspaceChatSessionInput = z.infer<typeof CreateWorkspaceChatSessionSchema>;
 
-export const StreamWorkspaceChatSchema = z.object({
-  query: z.string().trim().min(1, 'Query cannot be empty').max(4000, 'Query cannot exceed 4000 characters'),
-  session_id: z.string().uuid().optional(),
-  folder_id: z.string().uuid().nullable().optional(),
-});
+export const StreamWorkspaceChatSchema = z
+  .object({
+    query: z.string().trim().max(4000, 'Query cannot exceed 4000 characters').optional(),
+    question: z.string().trim().max(4000, 'Question cannot exceed 4000 characters').optional(),
+    session_id: z.string().uuid().optional(),
+    folder_id: z.string().uuid().nullable().optional(),
+  })
+  .transform((data) => ({
+    ...data,
+    query: (data.query || data.question || '').trim(),
+  }))
+  .refine((data) => data.query.length > 0, {
+    message: 'Query cannot be empty',
+    path: ['query'],
+  });
 export type StreamWorkspaceChatInput = z.infer<typeof StreamWorkspaceChatSchema>;
 
 export const WorkspaceChatSessionSchema = z.object({

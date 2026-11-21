@@ -236,6 +236,7 @@ export const useWorkspaceChatStore = create<WorkspaceChatStore>()(
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               query: trimmed,
+              question: trimmed,
               session_id: currentSessionId || undefined,
               folder_id: scope.folderId || undefined,
             }),

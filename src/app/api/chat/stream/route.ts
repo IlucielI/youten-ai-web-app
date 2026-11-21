@@ -42,6 +42,9 @@ export async function POST(req: Request) {
     const cookieHeader = req.headers.get('cookie');
     if (cookieHeader) headers['cookie'] = cookieHeader;
 
+    const reqWsId = req.headers.get('x-workspace-id');
+    if (reqWsId) headers['x-workspace-id'] = reqWsId;
+
     try {
       const cookieStore = await cookies();
       const authCookie = cookieStore.get(AUTH_COOKIE_NAME);
@@ -54,7 +57,7 @@ export async function POST(req: Request) {
         }
       }
       const wsCookie = cookieStore.get(WORKSPACE_COOKIE_NAME);
-      if (wsCookie?.value) {
+      if (wsCookie?.value && !headers['x-workspace-id']) {
         headers['x-workspace-id'] = wsCookie.value;
       }
     } catch {
@@ -77,6 +80,7 @@ export async function POST(req: Request) {
         method: 'POST',
         headers,
         body: JSON.stringify({
+          question: parsed.data.query,
           query: parsed.data.query,
           session_id: parsed.data.session_id,
           folder_id: parsed.data.folder_id,
@@ -86,6 +90,7 @@ export async function POST(req: Request) {
 
       if (!upstreamRes.ok) {
         const errorText = await upstreamRes.text().catch(() => '');
+        console.error('[Stream Chat Upstream Error]', upstreamRes.status, errorText);
         return new Response(
           errorText || JSON.stringify({ error: 'Gagal terhubung ke layanan chat' }),
           {
