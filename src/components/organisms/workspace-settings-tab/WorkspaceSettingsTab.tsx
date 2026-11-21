@@ -57,7 +57,21 @@ import { apiFetch } from '@/lib/api-client';
 import { toast } from 'sonner';
 
 export const WorkspaceSettingsTab: React.FC = () => {
-  const { activeWorkspace } = useWorkspaceStore();
+  const { activeWorkspace, fetchWorkspaces } = useWorkspaceStore();
+
+  useEffect(() => {
+    let isMounted = true;
+    if (!activeWorkspace) {
+      Promise.resolve().then(() => {
+        if (isMounted) {
+          void fetchWorkspaces();
+        }
+      });
+    }
+    return () => {
+      isMounted = false;
+    };
+  }, [activeWorkspace, fetchWorkspaces]);
 
   const [members, setMembers] = useState<WorkspaceMemberDTO[]>([]);
   const [invitations, setInvitations] = useState<WorkspaceInvitationDTO[]>([]);
@@ -239,6 +253,7 @@ export const WorkspaceSettingsTab: React.FC = () => {
             <Button
               type="button"
               size="sm"
+              data-testid="invite-member-btn"
               onClick={() => setInviteOpen(true)}
               className="gap-1.5 text-xs font-semibold"
             >
@@ -250,7 +265,7 @@ export const WorkspaceSettingsTab: React.FC = () => {
       </Card>
 
       {/* Members Section */}
-      <Card className="border-border shadow-xs bg-card text-card-foreground">
+      <Card data-testid="members-card" className="border-border shadow-xs bg-card text-card-foreground">
         <CardHeader>
           <CardTitle className="text-base font-bold text-foreground flex items-center gap-2">
             <Users className="w-4 h-4 text-primary" />
@@ -261,7 +276,7 @@ export const WorkspaceSettingsTab: React.FC = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Table>
+          <Table data-testid="members-table">
             <TableHeader>
               <TableRow className="border-b border-border bg-muted/40">
                 <TableHead className="font-bold text-muted-foreground text-xs">Name</TableHead>
@@ -425,6 +440,7 @@ export const WorkspaceSettingsTab: React.FC = () => {
               </Label>
               <Input
                 id="invite-email"
+                data-testid="invite-email-input"
                 type="email"
                 placeholder="colleague@example.com"
                 value={inviteEmail}
@@ -460,7 +476,12 @@ export const WorkspaceSettingsTab: React.FC = () => {
               >
                 Cancel
               </Button>
-              <Button type="submit" size="sm" disabled={isInviting || !inviteEmail.trim()}>
+              <Button
+                type="submit"
+                size="sm"
+                data-testid="submit-invite-btn"
+                disabled={isInviting || !inviteEmail.trim()}
+              >
                 {isInviting ? 'Sending...' : 'Send Invitation'}
               </Button>
             </DialogFooter>

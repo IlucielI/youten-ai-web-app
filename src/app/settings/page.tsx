@@ -16,6 +16,7 @@ import { Label } from '@/components/atoms/label';
 import { Progress } from '@/components/atoms/progress';
 import { UserNavDropdown } from '@/components/molecules/user-nav-dropdown';
 import { WorkspaceSettingsTab } from '@/components/organisms/workspace-settings-tab';
+import { useWorkspaceStore } from '@/stores/workspace.store';
 import { LanguageSwitcher } from '@/components/molecules/language-switcher';
 import { ThemeToggle } from '@/components/molecules/theme-toggle';
 import { Footer } from '@/components/organisms/footer';
@@ -71,6 +72,7 @@ export default function SettingsPage() {
 
   // 1. Session verification on mount
   useEffect(() => {
+    void useWorkspaceStore.getState().fetchWorkspaces();
     let isMounted = true;
     apiFetch<ApiResponse<UserProfileResponse>>('/api/auth/me')
       .then((res) => {

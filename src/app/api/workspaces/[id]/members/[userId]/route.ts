@@ -15,3 +15,4 @@ export async function DELETE(
   const { id, userId } = await params;
   return workspaceController.removeMember(req, id, userId);
 }
+

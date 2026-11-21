@@ -7,3 +7,4 @@ export async function PATCH(
   const { id } = await params;
   return workspaceController.moveRecordingFolder(req, id);
 }
+

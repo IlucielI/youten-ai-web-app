@@ -7,3 +7,4 @@ export async function DELETE(
   const { id, inviteId } = await params;
   return workspaceController.revokeInvitation(req, id, inviteId);
 }
+

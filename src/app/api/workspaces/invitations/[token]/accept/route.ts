@@ -7,3 +7,4 @@ export async function POST(
   const { token } = await params;
   return workspaceController.acceptInvitation(req, token);
 }
+

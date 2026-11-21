@@ -156,7 +156,7 @@ export const FolderSidebar: React.FC<FolderSidebarProps> = ({
     const isExpanded = expandedFolderIds.has(folder.id);
 
     return (
-      <div key={folder.id} className="space-y-0.5">
+      <div key={folder.id} data-testid={`folder-item-${folder.id}`} className="space-y-0.5">
         <div
           onClick={() => setActiveFolderId(folder.id)}
           style={{ paddingLeft: `${Math.max(8, depth * 16 + 8)}px` }}
@@ -247,7 +247,7 @@ export const FolderSidebar: React.FC<FolderSidebarProps> = ({
   };
 
   return (
-    <div className={cn('flex flex-col space-y-3', className)}>
+    <div className={cn('flex flex-col space-y-3', className)} data-testid="folder-sidebar">
       <div className="flex items-center justify-between px-2">
         <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
           Folders
@@ -256,6 +256,7 @@ export const FolderSidebar: React.FC<FolderSidebarProps> = ({
           type="button"
           variant="ghost"
           size="sm"
+          data-testid="create-folder-btn"
           onClick={() => {
             setParentId(null);
             setCreateOpen(true);
@@ -270,6 +271,7 @@ export const FolderSidebar: React.FC<FolderSidebarProps> = ({
       <div className="space-y-0.5">
         <button
           type="button"
+          data-testid="all-recordings-nav"
           onClick={() => setActiveFolderId(null)}
           className={cn(
             'w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors text-left',
@@ -294,7 +296,7 @@ export const FolderSidebar: React.FC<FolderSidebarProps> = ({
 
       {/* Create Folder Dialog */}
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-        <DialogContent className="sm:max-w-sm">
+        <DialogContent className="sm:max-w-sm" data-testid="create-folder-dialog">
           <DialogHeader>
             <DialogTitle>{parentId ? 'New Subfolder' : 'New Folder'}</DialogTitle>
             <DialogDescription>
@@ -308,6 +310,7 @@ export const FolderSidebar: React.FC<FolderSidebarProps> = ({
               </Label>
               <Input
                 id="folder-name"
+                data-testid="folder-name-input"
                 placeholder="e.g. Sprint Reviews"
                 value={newFolderName}
                 onChange={(e) => setNewFolderName(e.target.value)}
@@ -326,7 +329,12 @@ export const FolderSidebar: React.FC<FolderSidebarProps> = ({
               >
                 Cancel
               </Button>
-              <Button type="submit" size="sm" disabled={isSubmitting || !newFolderName.trim()}>
+              <Button
+                type="submit"
+                size="sm"
+                data-testid="submit-folder-btn"
+                disabled={isSubmitting || !newFolderName.trim()}
+              >
                 {isSubmitting ? 'Creating...' : 'Create Folder'}
               </Button>
             </DialogFooter>
@@ -402,3 +410,4 @@ export const FolderSidebar: React.FC<FolderSidebarProps> = ({
     </div>
   );
 };
+

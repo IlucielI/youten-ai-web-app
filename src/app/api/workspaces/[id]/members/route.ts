@@ -7,3 +7,4 @@ export async function GET(
   const { id } = await params;
   return workspaceController.listMembers(req, id);
 }
+

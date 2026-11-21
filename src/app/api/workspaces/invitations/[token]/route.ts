@@ -7,3 +7,4 @@ export async function GET(
   const { token } = await params;
   return workspaceController.getInvitationByToken(req, token);
 }
+

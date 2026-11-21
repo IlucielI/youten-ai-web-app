@@ -15,3 +15,4 @@ export async function POST(
   const { id } = await params;
   return workspaceController.createInvitation(req, id);
 }
+
