@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -49,6 +49,7 @@ export const MoveFolderDialog: React.FC<MoveFolderDialogProps> = ({
   const [displayedFolders, setDisplayedFolders] = useState<FolderDTO[]>(defaultFolders);
   const [isLoadingFolders, setIsLoadingFolders] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const foldersRequestId = useRef(0);
 
   // Sync state when dialog opens or inputs change
   useEffect(() => {
@@ -58,6 +59,8 @@ export const MoveFolderDialog: React.FC<MoveFolderDialogProps> = ({
       setSelectedFolderId(currentFolderId ?? null);
 
       if (initialWs === activeWorkspace?.id) {
+        foldersRequestId.current++;
+        setIsLoadingFolders(false);
         setDisplayedFolders(defaultFolders);
       } else if (initialWs) {
         fetchWorkspaceFolders(initialWs);
@@ -66,18 +69,23 @@ export const MoveFolderDialog: React.FC<MoveFolderDialogProps> = ({
   }, [open, currentFolderId, currentWorkspaceId, activeWorkspace?.id, defaultFolders]);
 
   const fetchWorkspaceFolders = async (wsId: string) => {
+    const requestId = ++foldersRequestId.current;
     setIsLoadingFolders(true);
     try {
       const res = await apiFetch<ApiResponse<FolderDTO[]>>(`/api/folders?workspace_id=${wsId}`);
+      if (requestId !== foldersRequestId.current) return;
       if (res && res.data) {
         setDisplayedFolders(res.data);
       } else {
         setDisplayedFolders([]);
       }
     } catch {
+      if (requestId !== foldersRequestId.current) return;
       setDisplayedFolders([]);
     } finally {
-      setIsLoadingFolders(false);
+      if (requestId === foldersRequestId.current) {
+        setIsLoadingFolders(false);
+      }
     }
   };
 
@@ -85,6 +93,8 @@ export const MoveFolderDialog: React.FC<MoveFolderDialogProps> = ({
     setSelectedWorkspaceId(newWsId);
     setSelectedFolderId(null);
     if (newWsId === activeWorkspace?.id) {
+      foldersRequestId.current++;
+      setIsLoadingFolders(false);
       setDisplayedFolders(defaultFolders);
     } else {
       fetchWorkspaceFolders(newWsId);
