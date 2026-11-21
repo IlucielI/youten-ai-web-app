@@ -19,6 +19,7 @@ export function CitationCard({ citation, className }: CitationCardProps) {
 
   return (
     <div
+      data-testid="citation-card"
       className={cn(
         'group flex flex-col gap-1.5 rounded-lg border border-border/70 bg-card/60 p-2.5 text-xs transition-colors hover:border-primary/40 hover:bg-card/90',
         className
@@ -27,6 +28,7 @@ export function CitationCard({ citation, className }: CitationCardProps) {
       <div className="flex items-center justify-between gap-2">
         <Link
           href={targetUrl}
+          data-testid="citation-title"
           className="flex items-center gap-1.5 font-medium text-foreground hover:text-primary transition-colors line-clamp-1"
           title={citation.recording_title || 'Meeting recording'}
         >

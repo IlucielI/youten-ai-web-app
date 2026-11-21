@@ -61,11 +61,17 @@ export function WorkspaceChatDrawer() {
 
   if (!isOpen) return null;
 
-  const currentSession = sessions.find((s) => s.id === currentSessionId);
+  const safeSessions = Array.isArray(sessions) ? sessions : [];
+  const safeMessages = Array.isArray(messages) ? messages : [];
+  const currentSession = safeSessions.find((s) => s.id === currentSessionId);
   const scopeLabel =
     scope.type === 'folder'
       ? `Folder: ${scope.folderName || 'Selected Folder'}`
       : 'All Workspace Meetings';
+  const drawerTitle =
+    scope.type === 'folder'
+      ? `Ask Folder AI (${scope.folderName || 'Folder'})`
+      : 'Ask Workspace AI';
 
   const handleSend = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -87,6 +93,7 @@ export function WorkspaceChatDrawer() {
     <div
       role="dialog"
       aria-label="Workspace AI Chat"
+      data-testid="workspace-chat-drawer"
       className="fixed inset-y-0 right-0 z-50 flex w-full max-w-lg flex-col border-l border-border bg-background shadow-2xl transition-all duration-300 sm:max-w-md md:max-w-lg"
     >
       {/* Header */}
@@ -102,7 +109,7 @@ export function WorkspaceChatDrawer() {
               ) : (
                 <Layers className="h-3 w-3 text-primary" />
               )}
-              <span className="truncate">{scopeLabel}</span>
+              <span className="truncate" data-testid="workspace-chat-drawer-title">{drawerTitle}</span>
             </div>
             {/* Session selector */}
             <div className="relative">
@@ -121,6 +128,7 @@ export function WorkspaceChatDrawer() {
                     <span>Recent Sessions</span>
                     <button
                       type="button"
+                      data-testid="new-chat-session-btn"
                       onClick={() => {
                         setShowSessionsDropdown(false);
                         void createNewSession();
@@ -131,7 +139,7 @@ export function WorkspaceChatDrawer() {
                     </button>
                   </div>
                   <div className="max-h-56 overflow-y-auto space-y-0.5">
-                    {sessions.map((sess) => (
+                    {safeSessions.map((sess) => (
                       <div
                         key={sess.id}
                         className={cn(
@@ -156,7 +164,7 @@ export function WorkspaceChatDrawer() {
                         </button>
                       </div>
                     ))}
-                    {sessions.length === 0 && (
+                    {safeSessions.length === 0 && (
                       <div className="p-2 text-center text-xs text-muted-foreground">
                         No previous chats
                       </div>
@@ -171,6 +179,7 @@ export function WorkspaceChatDrawer() {
         <div className="flex items-center gap-1">
           <button
             type="button"
+            data-testid="new-chat-session-btn"
             onClick={() => void createNewSession()}
             title="Start new chat"
             className="rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
@@ -179,6 +188,7 @@ export function WorkspaceChatDrawer() {
           </button>
           <button
             type="button"
+            data-testid="close-chat-drawer-btn"
             onClick={closeDrawer}
             title="Close"
             className="rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
@@ -189,13 +199,13 @@ export function WorkspaceChatDrawer() {
       </div>
 
       {/* Messages View */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4" data-testid="chat-history-list">
         {isLoadingHistory ? (
           <div className="flex h-40 items-center justify-center text-muted-foreground text-xs gap-2">
             <Loader2 className="h-4 w-4 animate-spin text-primary" />
             Loading conversation...
           </div>
-        ) : messages.length === 0 && !isStreaming ? (
+        ) : safeMessages.length === 0 && !isStreaming ? (
           <div className="flex flex-col items-center justify-center h-full text-center p-4">
             <div className="mb-3 rounded-full bg-primary/10 p-3 text-primary">
               <Sparkles className="h-6 w-6" />
@@ -205,7 +215,7 @@ export function WorkspaceChatDrawer() {
               Ask questions across all meetings in this {scope.type === 'folder' ? 'folder' : 'workspace'} with verified timestamps and source citations.
             </p>
 
-            <div className="w-full space-y-2">
+            <div className="w-full space-y-2" data-testid="chat-starter-chips">
               <p className="text-[11px] font-medium text-muted-foreground text-left">Suggested inquiries:</p>
               {STARTER_PROMPTS.map((prompt, idx) => (
                 <button
@@ -224,9 +234,10 @@ export function WorkspaceChatDrawer() {
           </div>
         ) : (
           <>
-            {messages.map((msg) => (
+            {safeMessages.map((msg) => (
               <div
                 key={msg.id}
+                data-testid={msg.role === 'user' ? 'chat-message-user' : 'chat-message-assistant'}
                 className={cn(
                   'flex gap-2.5 max-w-[90%]',
                   msg.role === 'user' ? 'ml-auto flex-row-reverse' : 'mr-auto'
@@ -260,7 +271,7 @@ export function WorkspaceChatDrawer() {
                       <p className="text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">
                         Source Evidence ({msg.citations.length})
                       </p>
-                      <div className="grid grid-cols-1 gap-1.5">
+                      <div className="grid grid-cols-1 gap-1.5" data-testid="citations-grid">
                         {msg.citations.map((c, i) => (
                           <CitationCard key={i} citation={c} />
                         ))}
@@ -272,7 +283,7 @@ export function WorkspaceChatDrawer() {
             ))}
 
             {isStreaming && (
-              <div className="flex gap-2.5 mr-auto max-w-[90%]">
+              <div className="flex gap-2.5 mr-auto max-w-[90%]" data-testid="chat-message-assistant">
                 <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-muted text-foreground text-xs">
                   <Bot className="h-3.5 w-3.5" />
                 </div>
@@ -291,7 +302,7 @@ export function WorkspaceChatDrawer() {
                       <p className="text-[10px] font-semibold tracking-wider text-muted-foreground uppercase">
                         Identified Sources ({streamingCitations.length})
                       </p>
-                      <div className="grid grid-cols-1 gap-1.5">
+                      <div className="grid grid-cols-1 gap-1.5" data-testid="citations-grid">
                         {streamingCitations.map((c, i) => (
                           <CitationCard key={i} citation={c} />
                         ))}
@@ -316,6 +327,7 @@ export function WorkspaceChatDrawer() {
       <div className="border-t border-border p-3 bg-muted/20">
         <form onSubmit={handleSend} className="relative flex items-end gap-2">
           <textarea
+            data-testid="workspace-chat-input"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
@@ -330,6 +342,7 @@ export function WorkspaceChatDrawer() {
           />
           <button
             type="submit"
+            data-testid="send-workspace-chat-btn"
             disabled={!input.trim() || isStreaming}
             className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >

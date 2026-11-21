@@ -81,7 +81,12 @@ export const useWorkspaceChatStore = create<WorkspaceChatStore>()(
             throw new Error('Gagal memuat sesi chat');
           }
           const json = await res.json();
-          const sessions: WorkspaceChatSessionDTO[] = json.data || [];
+          const raw = json.data;
+          const sessions: WorkspaceChatSessionDTO[] = Array.isArray(raw)
+            ? raw
+            : Array.isArray(raw?.sessions)
+            ? raw.sessions
+            : [];
           set(
             {
               sessions,
@@ -109,7 +114,12 @@ export const useWorkspaceChatStore = create<WorkspaceChatStore>()(
             throw new Error('Gagal memuat riwayat percakapan');
           }
           const json = await res.json();
-          const messages: WorkspaceChatMessageDTO[] = json.data || [];
+          const raw = json.data;
+          const messages: WorkspaceChatMessageDTO[] = Array.isArray(raw)
+            ? raw
+            : Array.isArray(raw?.messages)
+            ? raw.messages
+            : [];
           set(
             {
               messages,
