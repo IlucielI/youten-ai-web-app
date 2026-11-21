@@ -11,4 +11,5 @@ export * from './waitlist.dto';
 export * from './meeting-bot.dto';
 export * from './template.dto';
 export * from './feedback.dto';
+export * from './workspace-chat.dto';
 

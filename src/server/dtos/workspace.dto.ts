@@ -35,6 +35,8 @@ export interface WorkspaceAskRequest {
 export interface MeetingSourceCitationDTO {
   recording_id: string;
   recording_title: string;
+  folder_id?: string | null;
+  folder_name?: string | null;
   chunk_index: number;
   snippet: string;
   start_time: number;

@@ -12,7 +12,9 @@ import {
   ChevronRight,
   ChevronDown,
   Layers,
+  Sparkles,
 } from 'lucide-react';
+import { useWorkspaceChatStore } from '@/stores/workspace-chat.store';
 import { Button } from '@/components/atoms/button';
 import { Input } from '@/components/atoms/input';
 import { Label } from '@/components/atoms/label';
@@ -192,9 +194,26 @@ export const FolderSidebar: React.FC<FolderSidebarProps> = ({
           </div>
 
           <div
-            className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity"
+            className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity gap-0.5"
             onClick={(e) => e.stopPropagation()}
           >
+            <button
+              type="button"
+              data-testid={`ask-ai-folder-${folder.id}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                useWorkspaceChatStore.getState().openDrawer({
+                  type: 'folder',
+                  folderId: folder.id,
+                  folderName: folder.name,
+                });
+              }}
+              className="p-1 hover:bg-primary/10 rounded text-muted-foreground hover:text-primary transition-colors"
+              title={`Ask AI about ${folder.name}`}
+            >
+              <Sparkles className="h-3.5 w-3.5" />
+            </button>
+
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button
@@ -205,6 +224,19 @@ export const FolderSidebar: React.FC<FolderSidebarProps> = ({
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-36 text-xs">
+                <DropdownMenuItem
+                  onClick={() => {
+                    useWorkspaceChatStore.getState().openDrawer({
+                      type: 'folder',
+                      folderId: folder.id,
+                      folderName: folder.name,
+                    });
+                  }}
+                  className="cursor-pointer text-primary focus:text-primary font-medium"
+                >
+                  <Sparkles className="h-3.5 w-3.5 mr-2 text-primary" />
+                  Ask AI
+                </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={() => {
                     setParentId(folder.id);
@@ -252,20 +284,36 @@ export const FolderSidebar: React.FC<FolderSidebarProps> = ({
         <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
           Folders
         </span>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          data-testid="create-folder-btn"
-          onClick={() => {
-            setParentId(null);
-            setCreateOpen(true);
-          }}
-          className="h-6 w-6 p-0 hover:bg-muted text-muted-foreground hover:text-foreground"
-          title="New Folder"
-        >
-          <FolderPlus className="h-3.5 w-3.5" />
-        </Button>
+        <div className="flex items-center gap-1">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            data-testid="ask-ai-workspace-btn"
+            onClick={() => {
+              useWorkspaceChatStore.getState().openDrawer({ type: 'workspace' });
+            }}
+            className="h-6 px-1.5 text-[11px] gap-1 hover:bg-primary/10 text-primary"
+            title="Ask AI (Workspace)"
+          >
+            <Sparkles className="h-3 w-3" />
+            <span>Ask AI</span>
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            data-testid="create-folder-btn"
+            onClick={() => {
+              setParentId(null);
+              setCreateOpen(true);
+            }}
+            className="h-6 w-6 p-0 hover:bg-muted text-muted-foreground hover:text-foreground"
+            title="New Folder"
+          >
+            <FolderPlus className="h-3.5 w-3.5" />
+          </Button>
+        </div>
       </div>
 
       <div className="space-y-0.5">

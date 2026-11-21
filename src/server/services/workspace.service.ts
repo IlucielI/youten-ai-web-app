@@ -19,6 +19,9 @@ import {
   FolderDTO,
   CreateFolderRequest,
   UpdateFolderRequest,
+  WorkspaceChatSessionDTO,
+  CreateWorkspaceChatSessionDTO,
+  WorkspaceChatMessageDTO,
 } from '../dtos';
 import { ApiResponse, BaseResponse } from '../dtos/response.dto';
 
@@ -118,6 +121,22 @@ export class WorkspaceService implements IWorkspaceService {
 
   async moveRecordingFolder(recordingId: string, folderId: string | null): Promise<BaseResponse> {
     return this.workspaceRepo.moveRecordingFolder(recordingId, folderId);
+  }
+
+  async listWorkspaceChatSessions(folderId?: string): Promise<ApiResponse<WorkspaceChatSessionDTO[]>> {
+    return this.workspaceRepo.listWorkspaceChatSessions(folderId);
+  }
+
+  async createWorkspaceChatSession(payload: CreateWorkspaceChatSessionDTO): Promise<ApiResponse<WorkspaceChatSessionDTO>> {
+    return this.workspaceRepo.createWorkspaceChatSession(payload);
+  }
+
+  async getWorkspaceChatSessionHistory(sessionId: string): Promise<ApiResponse<WorkspaceChatMessageDTO[]>> {
+    return this.workspaceRepo.getWorkspaceChatSessionHistory(sessionId);
+  }
+
+  async deleteWorkspaceChatSession(sessionId: string): Promise<BaseResponse> {
+    return this.workspaceRepo.deleteWorkspaceChatSession(sessionId);
   }
 }
 

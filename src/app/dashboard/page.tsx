@@ -45,7 +45,9 @@ import { UserNavDropdown } from '@/components/molecules/user-nav-dropdown';
 import { WorkspaceSwitcher } from '@/components/molecules/workspace-switcher';
 import { FolderSidebar } from '@/components/molecules/folder-sidebar';
 import { MoveFolderDialog } from '@/components/molecules/move-folder-dialog';
+import { WorkspaceChatDrawer } from '@/components/organisms/workspace-chat-drawer';
 import { useWorkspaceStore } from '@/stores/workspace.store';
+import { useWorkspaceChatStore } from '@/stores/workspace-chat.store';
 import { LanguageSwitcher } from '@/components/molecules/language-switcher';
 import { ThemeToggle } from '@/components/molecules/theme-toggle';
 import { Footer } from '@/components/organisms/footer';
@@ -392,7 +394,20 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* New Recording Primary CTA */}
+            {/* Ask AI & New Recording Primary CTAs */}
+            <Button
+              type="button"
+              variant="outline"
+              size="lg"
+              data-testid="ask-workspace-ai-btn"
+              onClick={() => {
+                useWorkspaceChatStore.getState().openDrawer({ type: 'workspace' });
+              }}
+              className="rounded-xl font-bold gap-2 border-primary/30 text-primary hover:bg-primary/10 shadow-xs"
+            >
+              <Sparkles className="w-4 h-4 text-primary" />
+              <span>Ask AI</span>
+            </Button>
             <Button asChild size="lg" className="rounded-xl shadow-sm shadow-primary/20 font-bold gap-2">
               <Link href="/">
                 <Plus className="w-4 h-4" />
@@ -790,6 +805,9 @@ export default function DashboardPage() {
         shareToken={shareToken}
         onToggleShare={handleToggleShare}
       />
+
+      {/* Multi-Meeting Ask AI Drawer */}
+      <WorkspaceChatDrawer />
     </div>
   );
 }
