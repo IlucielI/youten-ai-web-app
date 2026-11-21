@@ -146,8 +146,12 @@ export class WorkspaceRepository implements IWorkspaceRepository {
     return this.http.delete<BaseResponse>(`/v1/folders/${id}`);
   }
 
-  async moveRecordingFolder(recordingId: string, folderId: string | null): Promise<BaseResponse> {
-    return this.http.patch<BaseResponse>(`/v1/recordings/${recordingId}/folder`, { folder_id: folderId });
+  async moveRecordingFolder(recordingId: string, folderId: string | null, workspaceId?: string | null): Promise<BaseResponse> {
+    const payload: { folder_id: string | null; workspace_id?: string | null } = { folder_id: folderId };
+    if (workspaceId !== undefined) {
+      payload.workspace_id = workspaceId;
+    }
+    return this.http.patch<BaseResponse>(`/v1/recordings/${recordingId}/folder`, payload);
   }
 
   async listWorkspaceChatSessions(folderId?: string): Promise<ApiResponse<WorkspaceChatSessionDTO[]>> {

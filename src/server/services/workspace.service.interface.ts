@@ -42,7 +42,7 @@ export interface IWorkspaceService {
   createFolder(payload: CreateFolderRequest): Promise<ApiResponse<FolderDTO>>;
   updateFolder(id: string, payload: UpdateFolderRequest): Promise<ApiResponse<FolderDTO>>;
   deleteFolder(id: string): Promise<BaseResponse>;
-  moveRecordingFolder(recordingId: string, folderId: string | null): Promise<BaseResponse>;
+  moveRecordingFolder(recordingId: string, folderId: string | null, workspaceId?: string | null): Promise<BaseResponse>;
 
   // Multi-Meeting / Folder Chat Sessions
   listWorkspaceChatSessions(folderId?: string): Promise<ApiResponse<import('../dtos').WorkspaceChatSessionDTO[]>>;

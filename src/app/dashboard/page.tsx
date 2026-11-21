@@ -762,6 +762,7 @@ export default function DashboardPage() {
       <MoveFolderDialog
         recordingId={recordingToMove?.id ?? null}
         currentFolderId={recordingToMove?.folder_id}
+        currentWorkspaceId={recordingToMove?.workspace_id ?? activeWorkspace?.id ?? null}
         open={Boolean(recordingToMove)}
         onOpenChange={(open) => !open && setRecordingToMove(null)}
         onMoved={refreshRecordings}
