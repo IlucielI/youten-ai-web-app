@@ -28,3 +28,6 @@ export * from './searchable-select';
 export * from './theme-toggle';
 export * from './recording-tabs';
 export * from './feedback-button';
+export * from './workspace-switcher';
+export * from './folder-sidebar';
+export * from './move-folder-dialog';

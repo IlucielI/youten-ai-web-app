@@ -11,6 +11,7 @@ import {
   Loader2,
   Clock,
   ArrowUpDown,
+  AtSign,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/atoms/button';
@@ -20,6 +21,8 @@ import { Avatar, AvatarFallback } from '@/components/atoms/avatar';
 import { formatTime } from '@/lib/time';
 import type { CommentResponse, CreateCommentRequest } from '@/server/dtos/comment.dto';
 import { useTranslation } from '@/locales';
+import { useWorkspaceStore } from '@/stores/workspace.store';
+import type { WorkspaceMemberDTO } from '@/server/dtos/workspace.dto';
 
 export interface CommentDrawerProps {
   isOpen: boolean;
@@ -89,6 +92,24 @@ export function CommentDrawer({
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [drawerError, setDrawerError] = useState<string | null>(null);
 
+  // Mentions State
+  const members = useWorkspaceStore((state) => state.members);
+  const [newMentionedUserIds, setNewMentionedUserIds] = useState<string[]>([]);
+  const [replyMentionedUserIds, setReplyMentionedUserIds] = useState<string[]>([]);
+  const [showMentionSuggestions, setShowMentionSuggestions] = useState<'new' | 'reply' | null>(null);
+  const [mentionQuery, setMentionQuery] = useState('');
+
+  // Filter members matching query
+  const filteredMembers = useMemo(() => {
+    if (!mentionQuery) return members;
+    const q = mentionQuery.toLowerCase();
+    return members.filter(
+      (m) =>
+        (m.full_name && m.full_name.toLowerCase().includes(q)) ||
+        (m.email && m.email.toLowerCase().includes(q))
+    );
+  }, [members, mentionQuery]);
+
   // Count total comments including nested replies
   const totalCount = useMemo(() => {
     let count = 0;
@@ -115,6 +136,44 @@ export function CommentDrawer({
 
   if (!isOpen) return null;
 
+  const handleNewTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const val = e.target.value;
+    setNewCommentText(val);
+    const match = val.match(/@([a-zA-Z0-9._-]*)$/);
+    if (match) {
+      setShowMentionSuggestions('new');
+      setMentionQuery(match[1]);
+    } else {
+      setShowMentionSuggestions(null);
+    }
+  };
+
+  const handleReplyTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const val = e.target.value;
+    setReplyText(val);
+    const match = val.match(/@([a-zA-Z0-9._-]*)$/);
+    if (match) {
+      setShowMentionSuggestions('reply');
+      setMentionQuery(match[1]);
+    } else {
+      setShowMentionSuggestions(null);
+    }
+  };
+
+  const handleSelectMention = (member: WorkspaceMemberDTO, target: 'new' | 'reply') => {
+    const nameToInsert = member.full_name || member.email?.split('@')[0] || 'member';
+    if (target === 'new') {
+      const updated = newCommentText.replace(/@([a-zA-Z0-9._-]*)$/, `@${nameToInsert} `);
+      setNewCommentText(updated);
+      setNewMentionedUserIds((prev) => Array.from(new Set([...prev, member.user_id])));
+    } else {
+      const updated = replyText.replace(/@([a-zA-Z0-9._-]*)$/, `@${nameToInsert} `);
+      setReplyText(updated);
+      setReplyMentionedUserIds((prev) => Array.from(new Set([...prev, member.user_id])));
+    }
+    setShowMentionSuggestions(null);
+  };
+
   const handleCreateNewComment = async (e?: React.FormEvent) => {
     e?.preventDefault();
     if (isSubmittingNew) return;
@@ -129,8 +188,11 @@ export function CommentDrawer({
         timestamp_sec: currentTimestampSec,
         comment_text: text,
         author_name: authorName.trim() || 'Tamu / Guest',
+        mentioned_user_ids: newMentionedUserIds.length > 0 ? newMentionedUserIds : undefined,
       });
       setNewCommentText('');
+      setNewMentionedUserIds([]);
+      setShowMentionSuggestions(null);
     } catch (err: unknown) {
       const msg =
         err instanceof Error && err.message.trim()
@@ -156,9 +218,12 @@ export function CommentDrawer({
         comment_text: text,
         author_name: authorName.trim() || 'Tamu / Guest',
         parent_id: parentComment.id,
+        mentioned_user_ids: replyMentionedUserIds.length > 0 ? replyMentionedUserIds : undefined,
       });
       setReplyText('');
       setReplyingToId(null);
+      setReplyMentionedUserIds([]);
+      setShowMentionSuggestions(null);
     } catch (err: unknown) {
       const msg =
         err instanceof Error && err.message.trim()
@@ -231,7 +296,7 @@ export function CommentDrawer({
               onClick={() => onSeek?.(comment.timestamp_sec)}
               title={t('recording.comments.seekTooltip')}
               data-testid={`seek-comment-${comment.id}`}
-              className="flex items-center gap-1 rounded-md bg-secondary/80 hover:bg-primary/10 hover:text-primary px-1.5 py-0.5 text-[10px] font-mono font-medium text-muted-foreground transition-colors"
+              className="flex items-center gap-1 rounded-md bg-secondary/80 hover:bg-primary/10 hover:text-primary px-1.5 py-0.5 text-[10px] font-mono font-medium text-muted-foreground transition-colors cursor-pointer"
             >
               <Clock className="h-2.5 w-2.5" />
               <span>{formatTime(comment.timestamp_sec)}</span>
@@ -245,7 +310,7 @@ export function CommentDrawer({
                 disabled={isDeleting}
                 title={t('recording.comments.deleteTooltip')}
                 data-testid={`delete-comment-${comment.id}`}
-                className="opacity-0 group-hover:opacity-100 p-1 text-muted-foreground hover:text-destructive transition-all disabled:opacity-50"
+                className="opacity-0 group-hover:opacity-100 p-1 text-muted-foreground hover:text-destructive transition-all disabled:opacity-50 cursor-pointer"
               >
                 {isDeleting ? (
                   <Loader2 className="h-3 w-3 animate-spin text-destructive" />
@@ -273,7 +338,24 @@ export function CommentDrawer({
           {comment.comment_text}
         </p>
 
-        {/* Action: Reply button (only on top-level or when replying supported) */}
+        {/* Mentions Badges */}
+        {comment.mentions && comment.mentions.length > 0 && (
+          <div
+            className="mt-2 flex flex-wrap gap-1"
+            data-testid={`comment-mentions-${comment.id}`}
+          >
+            {comment.mentions.map((m) => (
+              <span
+                key={m.id || m.user_id}
+                className="inline-flex items-center gap-1 rounded-full bg-primary/10 text-primary px-2 py-0.5 text-[10px] font-semibold border border-primary/20"
+              >
+                <span>@{m.full_name || m.email?.split('@')[0] || 'member'}</span>
+              </span>
+            ))}
+          </div>
+        )}
+
+        {/* Action: Reply button */}
         {onReplyComment && !isReply && (
           <div className="mt-2.5 flex items-center justify-end">
             <button
@@ -281,9 +363,10 @@ export function CommentDrawer({
               onClick={() => {
                 setReplyingToId(replyingToId === comment.id ? null : comment.id);
                 setReplyText('');
+                setShowMentionSuggestions(null);
               }}
               data-testid={`reply-btn-${comment.id}`}
-              className="flex items-center gap-1 text-[11px] font-medium text-muted-foreground hover:text-primary transition-colors"
+              className="flex items-center gap-1 text-[11px] font-medium text-muted-foreground hover:text-primary transition-colors cursor-pointer"
             >
               <CornerDownRight className="h-3 w-3" />
               <span>{replyingToId === comment.id ? t('recording.comments.closeReply') : t('recording.comments.reply')}</span>
@@ -294,23 +377,52 @@ export function CommentDrawer({
         {/* Inline Reply Form */}
         {replyingToId === comment.id && (
           <div
-            className="mt-3 rounded-lg border border-border/80 bg-background/90 p-2.5 space-y-2 animate-in fade-in-0 duration-150"
+            className="mt-3 rounded-lg border border-border/80 bg-background/90 p-2.5 space-y-2 animate-in fade-in-0 duration-150 relative"
             data-testid={`reply-form-${comment.id}`}
           >
             <Textarea
               placeholder={t('recording.comments.replyPlaceholder', { name: comment.author_name })}
               value={replyText}
-              onChange={(e) => setReplyText(e.target.value)}
+              onChange={handleReplyTextChange}
               disabled={isSubmittingReply}
               data-testid={`reply-input-${comment.id}`}
               className="min-h-[50px] text-xs resize-none"
             />
+
+            {/* Mention Suggestions Popup for Reply */}
+            {showMentionSuggestions === 'reply' && filteredMembers.length > 0 && (
+              <div className="absolute left-2 bottom-12 z-50 w-52 max-h-40 overflow-y-auto rounded-lg border border-border bg-popover shadow-xl p-1 space-y-0.5">
+                <div className="px-2 py-1 text-[10px] font-semibold text-muted-foreground flex items-center gap-1 border-b border-border/50">
+                  <AtSign className="w-3 h-3 text-primary" />
+                  <span>Mention member</span>
+                </div>
+                {filteredMembers.map((m) => (
+                  <button
+                    key={m.user_id}
+                    type="button"
+                    onClick={() => handleSelectMention(m, 'reply')}
+                    className="w-full text-left px-2 py-1.5 rounded text-xs hover:bg-secondary flex items-center justify-between cursor-pointer"
+                  >
+                    <span className="font-medium text-foreground truncate">
+                      {m.full_name || m.email}
+                    </span>
+                    <span className="text-[10px] text-muted-foreground capitalize ml-1">
+                      {m.role}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
+
             <div className="flex items-center justify-end gap-1.5">
               <Button
                 type="button"
                 variant="ghost"
                 size="sm"
-                onClick={() => setReplyingToId(null)}
+                onClick={() => {
+                  setReplyingToId(null);
+                  setShowMentionSuggestions(null);
+                }}
                 disabled={isSubmittingReply}
                 className="h-6 px-2 text-xs text-muted-foreground"
               >
@@ -375,7 +487,7 @@ export function CommentDrawer({
             onClick={() => setSortBy(sortBy === 'timeline' ? 'recent' : 'timeline')}
             data-testid="sort-toggle-btn"
             title={sortBy === 'timeline' ? t('recording.comments.timelineSort') : t('recording.comments.recentSort')}
-            className="flex items-center gap-1 rounded-md px-2 py-1 text-[11px] text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
+            className="flex items-center gap-1 rounded-md px-2 py-1 text-[11px] text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors cursor-pointer"
           >
             <ArrowUpDown className="h-3 w-3" />
             <span>{sortBy === 'timeline' ? t('recording.comments.timelineSort') : t('recording.comments.recentSort')}</span>
@@ -387,7 +499,7 @@ export function CommentDrawer({
             onClick={onClose}
             data-testid="close-drawer-btn"
             aria-label={t('recording.comments.closeTitle')}
-            className="rounded-md p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
+            className="rounded-md p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors cursor-pointer"
           >
             <X className="h-4 w-4" />
           </button>
@@ -404,7 +516,7 @@ export function CommentDrawer({
           <button
             type="button"
             onClick={() => setDrawerError(null)}
-            className="text-destructive/80 hover:text-destructive"
+            className="text-destructive/80 hover:text-destructive cursor-pointer"
           >
             <X className="h-3.5 w-3.5" />
           </button>
@@ -413,7 +525,7 @@ export function CommentDrawer({
 
       {/* Top-Level Add Comment Section */}
       {onCreateComment && (
-        <div className="border-b border-border/60 p-4 bg-secondary/10">
+        <div className="border-b border-border/60 p-4 bg-secondary/10 relative">
           <form onSubmit={handleCreateNewComment} className="space-y-2.5">
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-medium text-foreground">
@@ -436,22 +548,52 @@ export function CommentDrawer({
               className="h-7 text-xs bg-background/80"
             />
 
-            <Textarea
-              placeholder={t('recording.comments.commentPlaceholder')}
-              value={newCommentText}
-              onChange={(e) => setNewCommentText(e.target.value)}
-              disabled={isSubmittingNew}
-              data-testid="drawer-comment-input"
-              className="min-h-[60px] text-xs resize-none bg-background/80"
-            />
+            <div className="relative">
+              <Textarea
+                placeholder={t('recording.comments.commentPlaceholder')}
+                value={newCommentText}
+                onChange={handleNewTextChange}
+                disabled={isSubmittingNew}
+                data-testid="drawer-comment-input"
+                className="min-h-[60px] text-xs resize-none bg-background/80"
+              />
 
-            <div className="flex justify-end">
+              {/* Mention Suggestions Popup */}
+              {showMentionSuggestions === 'new' && filteredMembers.length > 0 && (
+                <div className="absolute left-0 bottom-full mb-1 z-50 w-56 max-h-40 overflow-y-auto rounded-lg border border-border bg-popover shadow-xl p-1 space-y-0.5">
+                  <div className="px-2 py-1 text-[10px] font-semibold text-muted-foreground flex items-center gap-1 border-b border-border/50">
+                    <AtSign className="w-3 h-3 text-primary" />
+                    <span>Mention member</span>
+                  </div>
+                  {filteredMembers.map((m) => (
+                    <button
+                      key={m.user_id}
+                      type="button"
+                      onClick={() => handleSelectMention(m, 'new')}
+                      className="w-full text-left px-2 py-1.5 rounded text-xs hover:bg-secondary flex items-center justify-between cursor-pointer"
+                    >
+                      <span className="font-medium text-foreground truncate">
+                        {m.full_name || m.email}
+                      </span>
+                      <span className="text-[10px] text-muted-foreground capitalize ml-1">
+                        {m.role}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="text-[10px] text-muted-foreground">
+                Type <span className="font-mono text-primary">@</span> to mention a teammate
+              </div>
               <Button
                 type="submit"
                 size="sm"
                 disabled={isSubmittingNew || !newCommentText.trim()}
                 data-testid="drawer-submit-comment-btn"
-                className="h-7 px-3 text-xs gap-1.5"
+                className="h-7 px-3 text-xs gap-1.5 cursor-pointer"
               >
                 {isSubmittingNew ? (
                   <Loader2 className="h-3 w-3 animate-spin" />

@@ -14,6 +14,7 @@ export interface HttpRequestOptions<T = unknown> {
   anonToken?: string;
   ownershipToken?: string;
   clientIp?: string;
+  workspaceId?: string;
   schema?: z.ZodType<T>;
   next?: NextFetchOptions;
   cache?: RequestCache;

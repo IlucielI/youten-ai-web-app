@@ -12,8 +12,23 @@ export const CreateCommentRequestSchema = z.object({
   author_name: z.string().trim().max(100, 'Author name cannot exceed 100 characters').default('Anonymous'),
   parent_id: z.string().uuid().nullable().optional(),
   ownership_token: z.string().trim().optional(),
+  mentioned_user_ids: z.array(z.string().uuid()).optional(),
 });
 export type CreateCommentRequestInput = z.infer<typeof CreateCommentRequestSchema>;
+
+export type CommentMentionDto = {
+  id: string;
+  user_id: string;
+  full_name?: string;
+  email?: string;
+};
+
+export const CommentMentionSchema: z.ZodType<CommentMentionDto> = z.object({
+  id: z.string().uuid(),
+  user_id: z.string().uuid(),
+  full_name: z.string().optional(),
+  email: z.string().optional(),
+});
 
 export type CommentResponseDto = {
   id: string;
@@ -26,6 +41,7 @@ export type CommentResponseDto = {
   comment_text: string;
   parent_id?: string | null;
   replies?: CommentResponseDto[];
+  mentions?: CommentMentionDto[];
   created_at: string;
   updated_at?: string;
 };
@@ -42,6 +58,7 @@ export const CommentResponseSchema: z.ZodType<CommentResponseDto> = z.lazy(() =>
     comment_text: z.string(),
     parent_id: z.string().uuid().nullable().optional(),
     replies: z.array(CommentResponseSchema).optional(),
+    mentions: z.array(CommentMentionSchema).optional(),
     created_at: z.string(),
     updated_at: z.string().optional(),
   })

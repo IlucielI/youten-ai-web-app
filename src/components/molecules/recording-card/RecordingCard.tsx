@@ -21,6 +21,7 @@ import {
   ExternalLink,
   Share2,
   Trash2,
+  Folder,
   FileAudio,
   HardDrive,
 } from 'lucide-react';
@@ -30,6 +31,7 @@ export interface RecordingCardProps {
   recording: RecordingListItemDTO;
   onShare?: (recording: RecordingListItemDTO) => void;
   onDelete?: (recording: RecordingListItemDTO) => void;
+  onMoveFolder?: (recording: RecordingListItemDTO) => void;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
   className?: string;
@@ -85,6 +87,7 @@ export const RecordingCard: React.FC<RecordingCardProps> = ({
   recording,
   onShare,
   onDelete,
+  onMoveFolder,
   open,
   onOpenChange,
   className = '',
@@ -160,6 +163,15 @@ export const RecordingCard: React.FC<RecordingCardProps> = ({
               >
                 <Share2 className="w-4 h-4 text-muted-foreground" />
                 <span>{t('dashboard.table.share')}</span>
+              </DropdownMenuItem>
+            )}
+            {onMoveFolder && (
+              <DropdownMenuItem
+                onClick={() => onMoveFolder(recording)}
+                className="flex items-center gap-2 cursor-pointer text-foreground hover:bg-muted"
+              >
+                <Folder className="w-4 h-4 text-muted-foreground" />
+                <span>Move to Folder</span>
               </DropdownMenuItem>
             )}
             <DropdownMenuSeparator className="bg-border" />

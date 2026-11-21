@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { StatusPill } from '@/components/molecules/status-pill';
 import { UserNavDropdown } from '@/components/molecules/user-nav-dropdown';
+import { WorkspaceSwitcher } from '@/components/molecules/workspace-switcher';
 import { LanguageSwitcher } from '@/components/molecules/language-switcher';
 import { ThemeToggle } from '@/components/molecules/theme-toggle';
 import { YoutenLogo } from '@/components/atoms/youten-logo';
@@ -131,7 +132,8 @@ export const Navbar: React.FC<NavbarProps> = ({
           <LanguageSwitcher />
 
           {activeUser ? (
-            <div className="flex items-center" data-testid="navbar-user-section">
+            <div className="flex items-center gap-2" data-testid="navbar-user-section">
+              <WorkspaceSwitcher />
               <UserNavDropdown
                 name={activeUser.name}
                 email={activeUser.email}
