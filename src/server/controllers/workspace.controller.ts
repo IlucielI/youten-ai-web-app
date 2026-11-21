@@ -186,6 +186,37 @@ export class WorkspaceController extends BaseController {
       return res;
     });
   }
+
+  async listChatSessions(req: Request): Promise<NextResponse> {
+    return this.handle(req, async () => {
+      const url = new URL(req.url);
+      const folderId = url.searchParams.get('folder_id') || undefined;
+      return this.workspaceService.listWorkspaceChatSessions(folderId);
+    });
+  }
+
+  async createChatSession(req: Request): Promise<NextResponse> {
+    const CreateSessionSchema = z.object({
+      title: z.string().trim().max(120).optional(),
+      folder_id: z.string().uuid().nullable().optional(),
+    });
+    return this.handle(req, async () => {
+      const body = await this.getBody(req, CreateSessionSchema);
+      return this.workspaceService.createWorkspaceChatSession(body);
+    });
+  }
+
+  async getChatSessionHistory(req: Request, sessionId: string): Promise<NextResponse> {
+    return this.handle(req, async () => {
+      return this.workspaceService.getWorkspaceChatSessionHistory(sessionId);
+    });
+  }
+
+  async deleteChatSession(req: Request, sessionId: string): Promise<NextResponse> {
+    return this.handle(req, async () => {
+      return this.workspaceService.deleteWorkspaceChatSession(sessionId);
+    });
+  }
 }
 
 /**

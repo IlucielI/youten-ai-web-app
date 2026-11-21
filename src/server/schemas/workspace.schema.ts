@@ -49,6 +49,8 @@ export type WorkspaceAskRequestInput = z.infer<typeof WorkspaceAskRequestSchema>
 export const MeetingSourceCitationSchema = z.object({
   recording_id: z.string().uuid(),
   recording_title: z.string(),
+  folder_id: z.string().uuid().nullable().optional(),
+  folder_name: z.string().nullable().optional(),
   chunk_index: z.number().int().nonnegative(),
   snippet: z.string(),
   start_time: z.number().nonnegative(),

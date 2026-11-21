@@ -18,6 +18,9 @@ import {
   FolderDTO,
   CreateFolderRequest,
   UpdateFolderRequest,
+  WorkspaceChatSessionDTO,
+  CreateWorkspaceChatSessionDTO,
+  WorkspaceChatMessageDTO,
 } from '../dtos';
 import { ApiResponse, BaseResponse } from '../dtos/response.dto';
 import { ResponseStatus, ResponseCode } from '../constants';
@@ -145,6 +148,23 @@ export class WorkspaceRepository implements IWorkspaceRepository {
 
   async moveRecordingFolder(recordingId: string, folderId: string | null): Promise<BaseResponse> {
     return this.http.patch<BaseResponse>(`/v1/recordings/${recordingId}/folder`, { folder_id: folderId });
+  }
+
+  async listWorkspaceChatSessions(folderId?: string): Promise<ApiResponse<WorkspaceChatSessionDTO[]>> {
+    const query = folderId ? `?folder_id=${encodeURIComponent(folderId)}` : '';
+    return this.http.get<ApiResponse<WorkspaceChatSessionDTO[]>>(`/v1/chat/sessions${query}`);
+  }
+
+  async createWorkspaceChatSession(payload: CreateWorkspaceChatSessionDTO): Promise<ApiResponse<WorkspaceChatSessionDTO>> {
+    return this.http.post<ApiResponse<WorkspaceChatSessionDTO>>('/v1/chat/sessions', payload);
+  }
+
+  async getWorkspaceChatSessionHistory(sessionId: string): Promise<ApiResponse<WorkspaceChatMessageDTO[]>> {
+    return this.http.get<ApiResponse<WorkspaceChatMessageDTO[]>>(`/v1/chat/sessions/${sessionId}`);
+  }
+
+  async deleteWorkspaceChatSession(sessionId: string): Promise<BaseResponse> {
+    return this.http.delete<BaseResponse>(`/v1/chat/sessions/${sessionId}`);
   }
 
   private baseSuccessResponse(message: string): BaseResponse {
