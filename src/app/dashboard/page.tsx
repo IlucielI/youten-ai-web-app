@@ -149,8 +149,35 @@ export default function DashboardPage() {
   const [shareToken, setShareToken] = useState<string | null>(null);
 
   // Workspace & Folder State
-  const { activeWorkspace, activeFolderId } = useWorkspaceStore();
+  const { activeWorkspace, activeFolderId, folders } = useWorkspaceStore();
   const [recordingToMove, setRecordingToMove] = useState<RecordingListItemDTO | null>(null);
+  const [workspaceTotalRecordings, setWorkspaceTotalRecordings] = useState<number | undefined>(undefined);
+
+  // Active folder lookup for clear visual filter indicator
+  const activeFolder = useMemo(() => {
+    if (!activeFolderId) return null;
+    const findFolder = (list: typeof folders): (typeof folders)[0] | null => {
+      for (const f of list) {
+        if (f.id === activeFolderId) return f;
+        if (f.children?.length) {
+          const found = findFolder(f.children);
+          if (found) return found;
+        }
+      }
+      return null;
+    };
+    return findFolder(folders);
+  }, [activeFolderId, folders]);
+
+  // Reset page when folder or workspace changes
+  useEffect(() => {
+    setPage(1);
+  }, [activeFolderId]);
+
+  useEffect(() => {
+    setWorkspaceTotalRecordings(undefined);
+    setPage(1);
+  }, [activeWorkspace?.id]);
 
   // 1. Debounce search query
   useEffect(() => {
@@ -217,6 +244,9 @@ export default function DashboardPage() {
     if (selectedTemplate) {
       params.set('template', selectedTemplate);
     }
+    if (activeWorkspace?.id) {
+      params.set('workspace_id', activeWorkspace.id);
+    }
     if (activeFolderId) {
       params.set('folder_id', activeFolderId);
     }
@@ -234,6 +264,12 @@ export default function DashboardPage() {
           setRecordings(rawItems);
 
           const pag = !Array.isArray(res.data) ? res.data?.pagination : undefined;
+          const currentTotal = pag?.total_items ?? res.pagination?.totalItems ?? rawItems.length;
+
+          if (!activeFolderId && !debouncedSearch.trim() && !selectedStatus && !selectedTemplate) {
+            setWorkspaceTotalRecordings(currentTotal);
+          }
+
           if (pag) {
             setTotalItems(pag.total_items ?? rawItems.length);
             setTotalPages(pag.total_pages ?? 1);
@@ -421,7 +457,7 @@ export default function DashboardPage() {
         <div className="flex flex-col lg:flex-row items-start gap-6">
           {/* Left Folder Sidebar */}
           <aside className="w-full lg:w-60 shrink-0 bg-card border border-border rounded-2xl p-4 shadow-xs">
-            <FolderSidebar totalRecordingsCount={totalItems} />
+            <FolderSidebar totalRecordingsCount={workspaceTotalRecordings ?? (!activeFolderId ? totalItems : undefined)} />
           </aside>
 
           {/* Right Main Column */}
@@ -518,6 +554,31 @@ export default function DashboardPage() {
               </Button>
             </div>
           </div>
+
+          {/* Active Folder Filter Indicator */}
+          {activeFolder && (
+            <div className="flex items-center gap-2 pt-2 border-t border-border/60">
+              <span className="text-xs text-muted-foreground font-medium">Filter Folder:</span>
+              <Badge
+                variant="secondary"
+                data-testid="active-folder-badge"
+                className="gap-1.5 py-1 px-2.5 rounded-lg text-xs font-semibold bg-primary/10 text-primary border border-primary/20 flex items-center"
+              >
+                <FolderOpen className="w-3.5 h-3.5 shrink-0 text-primary" />
+                <span>{activeFolder.name}</span>
+                <button
+                  type="button"
+                  data-testid="clear-folder-filter-btn"
+                  onClick={() => useWorkspaceStore.getState().setActiveFolderId(null)}
+                  className="ml-1 text-primary hover:text-foreground cursor-pointer rounded-full p-0.5 transition-colors"
+                  title="Tampilkan semua rekaman"
+                  aria-label="Clear folder filter"
+                >
+                  ✕
+                </button>
+              </Badge>
+            </div>
+          )}
         </section>
 
         {/* Content Section */}

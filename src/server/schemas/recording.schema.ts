@@ -206,6 +206,8 @@ export const RecordingFilterQuerySchema = z.object({
   search: z.string().trim().optional(),
   status: z.string().trim().optional(),
   template: z.string().trim().optional(),
+  folder_id: z.string().trim().optional(),
+  workspace_id: z.string().trim().optional(),
   page: z.coerce.number().int().positive().default(1),
   limit: z.coerce.number().int().positive().max(100).default(10),
   sort_by: z

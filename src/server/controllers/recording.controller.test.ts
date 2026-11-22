@@ -324,14 +324,20 @@ describe('RecordingController', () => {
       timestamp: new Date().toISOString(),
     });
 
-    const req = new Request('http://localhost/api/recordings?page=1&limit=10&search=test', {
+    const req = new Request('http://localhost/api/recordings?page=1&limit=10&search=test&folder_id=11111111-1111-4111-a111-111111111111&workspace_id=22222222-2222-4222-a222-222222222222', {
       method: 'GET',
     });
     const res = await controller.list(req);
     expect(res.status).toBe(200);
     const json = await res.json();
     expect(json.pagination.totalItems).toBe(0);
-    expect(mockService.listRecordings).toHaveBeenCalled();
+    expect(mockService.listRecordings).toHaveBeenCalledWith(
+      expect.objectContaining({
+        search: 'test',
+        folder_id: '11111111-1111-4111-a111-111111111111',
+        workspace_id: '22222222-2222-4222-a222-222222222222',
+      })
+    );
   });
 
   it('handles delete request by id', async () => {
