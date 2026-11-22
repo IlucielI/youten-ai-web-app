@@ -115,6 +115,8 @@ export class RecordingRepository implements IRecordingRepository {
     if (query?.search) params.search = query.search;
     if (query?.template) params.template = query.template;
     if (query?.status) params.status = query.status;
+    if (query?.folder_id) params.folder_id = query.folder_id;
+    if (query?.workspace_id) params.workspace_id = query.workspace_id;
     if (query?.sort_by) params.sort_by = query.sort_by;
     if (query?.sort_order) params.sort_order = query.sort_order;
 

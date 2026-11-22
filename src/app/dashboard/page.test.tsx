@@ -8,6 +8,7 @@ import { UserProfileResponse } from '@/server/dtos/auth.dto';
 import { RecordingListItemDTO } from '@/server/dtos/recording.dto';
 import { RecordingStatus } from '@/server/constants/recording.constant';
 import { toast } from 'sonner';
+import { useWorkspaceStore } from '@/stores/workspace.store';
 
 const mockPush = vi.fn();
 vi.mock('next/navigation', () => ({
@@ -459,6 +460,68 @@ describe('DashboardPage', () => {
       expect(toast.error).toHaveBeenCalledWith('Gagal keluar dari sesi. Silakan coba kembali.');
     });
     expect(mockPush).not.toHaveBeenCalledWith('/login');
+  });
+
+  it('filters recordings by active folder and allows clearing filter', async () => {
+    useWorkspaceStore.setState({
+      activeFolderId: 'fld-123',
+      folders: [
+        {
+          id: 'fld-123',
+          workspace_id: 'ws-1',
+          name: 'Paggr',
+          parent_id: null,
+          created_at: '2026-10-01T00:00:00Z',
+          updated_at: '2026-10-01T00:00:00Z',
+        },
+      ],
+    });
+
+    const apiFetchSpy = vi.spyOn(apiClient, 'apiFetch').mockImplementation(async (url: string) => {
+      if (url === '/api/auth/me') {
+        const res: ApiResponse<UserProfileResponse> = {
+          status: 'success',
+          code: 'SUCCESS',
+          message: 'OK',
+          data: mockUser,
+          timestamp: new Date().toISOString(),
+        };
+        return res as unknown as ApiResponse<never>;
+      }
+      const res: PaginatedResponse<RecordingListItemDTO> = {
+        status: 'success',
+        code: 'SUCCESS',
+        message: 'OK',
+        data: [mockRecordings[0]],
+        pagination: {
+          page: 1,
+          limit: 12,
+          totalItems: 1,
+          totalPages: 1,
+          hasNextPage: false,
+          hasPrevPage: false,
+        },
+        timestamp: new Date().toISOString(),
+      };
+      return res as unknown as ApiResponse<never>;
+    });
+
+    render(<DashboardPage />);
+
+    await waitFor(() => {
+      expect(apiFetchSpy).toHaveBeenCalledWith(
+        expect.stringContaining('folder_id=fld-123')
+      );
+    });
+
+    const badge = await screen.findByTestId('active-folder-badge');
+    expect(badge).toBeInTheDocument();
+    expect(badge).toHaveTextContent('Paggr');
+
+    const clearBtn = screen.getByTestId('clear-folder-filter-btn');
+    fireEvent.click(clearBtn);
+
+    expect(useWorkspaceStore.getState().activeFolderId).toBeNull();
   });
 });
 

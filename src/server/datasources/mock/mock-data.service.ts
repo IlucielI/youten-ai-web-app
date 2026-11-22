@@ -301,7 +301,7 @@ export class MockDataService {
 
   listRecordings(query: RecordingFilterQuery = {}): { items: RecordingListItemDTO[]; total: number } {
     let filtered = [...this.listItems];
-    const { search, template, status, page = 1, limit = 10 } = query;
+    const { search, template, status, folder_id, page = 1, limit = 10 } = query;
 
     if (search) {
       const q = search.toLowerCase();
@@ -314,6 +314,10 @@ export class MockDataService {
 
     if (status) {
       filtered = filtered.filter((r) => r.status === status);
+    }
+
+    if (folder_id) {
+      filtered = filtered.filter((r) => r.folder_id === folder_id);
     }
 
     const startIndex = (page - 1) * limit;

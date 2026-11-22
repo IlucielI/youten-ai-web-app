@@ -142,6 +142,7 @@ export interface RecordingFilterQuery {
   status?: string;
   template?: string;
   folder_id?: string;
+  workspace_id?: string;
   page?: number;
   limit?: number;
   sort_by?: string;
