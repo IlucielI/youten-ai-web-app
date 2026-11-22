@@ -118,6 +118,7 @@ export interface FolderDTO {
   workspace_id: string;
   name: string;
   parent_id?: string | null;
+  recordings_count?: number;
   children?: FolderDTO[];
   created_at: string;
   updated_at?: string;

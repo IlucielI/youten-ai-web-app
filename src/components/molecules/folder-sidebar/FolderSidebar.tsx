@@ -194,78 +194,94 @@ export const FolderSidebar: React.FC<FolderSidebarProps> = ({
           </div>
 
           <div
-            className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity gap-0.5"
+            className="flex items-center gap-1 shrink-0 ml-auto"
             onClick={(e) => e.stopPropagation()}
           >
-            <button
-              type="button"
-              data-testid={`ask-ai-folder-${folder.id}`}
-              onClick={(e) => {
-                e.stopPropagation();
-                useWorkspaceChatStore.getState().openDrawer({
-                  type: 'folder',
-                  folderId: folder.id,
-                  folderName: folder.name,
-                });
-              }}
-              className="p-1 hover:bg-primary/10 rounded text-muted-foreground hover:text-primary transition-colors"
-              title={`Ask AI about ${folder.name}`}
-            >
-              <Sparkles className="h-3.5 w-3.5" />
-            </button>
+            <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity gap-0.5">
+              <button
+                type="button"
+                data-testid={`ask-ai-folder-${folder.id}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  useWorkspaceChatStore.getState().openDrawer({
+                    type: 'folder',
+                    folderId: folder.id,
+                    folderName: folder.name,
+                  });
+                }}
+                className="p-1 hover:bg-primary/10 rounded text-muted-foreground hover:text-primary transition-colors"
+                title={`Ask AI about ${folder.name}`}
+              >
+                <Sparkles className="h-3.5 w-3.5" />
+              </button>
 
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button
-                  type="button"
-                  className="p-1 hover:bg-muted rounded text-muted-foreground hover:text-foreground"
-                >
-                  <MoreVertical className="h-3.5 w-3.5" />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-36 text-xs">
-                <DropdownMenuItem
-                  onClick={() => {
-                    useWorkspaceChatStore.getState().openDrawer({
-                      type: 'folder',
-                      folderId: folder.id,
-                      folderName: folder.name,
-                    });
-                  }}
-                  className="cursor-pointer text-primary focus:text-primary font-medium"
-                >
-                  <Sparkles className="h-3.5 w-3.5 mr-2 text-primary" />
-                  Ask AI
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => {
-                    setParentId(folder.id);
-                    setCreateOpen(true);
-                  }}
-                  className="cursor-pointer"
-                >
-                  <FolderPlus className="h-3.5 w-3.5 mr-2" />
-                  New Subfolder
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => {
-                    setEditFolder(folder);
-                    setEditName(folder.name);
-                  }}
-                  className="cursor-pointer"
-                >
-                  <Pencil className="h-3.5 w-3.5 mr-2" />
-                  Rename
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => setDeleteFolderTarget(folder)}
-                  className="text-destructive focus:text-destructive cursor-pointer"
-                >
-                  <Trash2 className="h-3.5 w-3.5 mr-2" />
-                  Delete
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    type="button"
+                    className="p-1 hover:bg-muted rounded text-muted-foreground hover:text-foreground"
+                  >
+                    <MoreVertical className="h-3.5 w-3.5" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-36 text-xs">
+                  <DropdownMenuItem
+                    onClick={() => {
+                      useWorkspaceChatStore.getState().openDrawer({
+                        type: 'folder',
+                        folderId: folder.id,
+                        folderName: folder.name,
+                      });
+                    }}
+                    className="cursor-pointer text-primary focus:text-primary font-medium"
+                  >
+                    <Sparkles className="h-3.5 w-3.5 mr-2 text-primary" />
+                    Ask AI
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => {
+                      setParentId(folder.id);
+                      setCreateOpen(true);
+                    }}
+                    className="cursor-pointer"
+                  >
+                    <FolderPlus className="h-3.5 w-3.5 mr-2" />
+                    New Subfolder
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => {
+                      setEditFolder(folder);
+                      setEditName(folder.name);
+                    }}
+                    className="cursor-pointer"
+                  >
+                    <Pencil className="h-3.5 w-3.5 mr-2" />
+                    Rename
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => setDeleteFolderTarget(folder)}
+                    className="text-destructive focus:text-destructive cursor-pointer"
+                  >
+                    <Trash2 className="h-3.5 w-3.5 mr-2" />
+                    Delete
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+
+            {folder.recordings_count !== undefined && (
+              <span
+                data-testid={`folder-count-${folder.id}`}
+                className={cn(
+                  'text-[10px] font-semibold px-1.5 py-0.5 rounded-full transition-colors',
+                  isSelected
+                    ? 'bg-primary/20 text-primary'
+                    : 'bg-muted text-muted-foreground'
+                )}
+              >
+                {folder.recordings_count}
+              </span>
+            )}
           </div>
         </div>
 
