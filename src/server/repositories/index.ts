@@ -19,4 +19,6 @@ export * from './template.repository.interface';
 export * from './template.repository';
 export * from './feedback.repository.interface';
 export * from './feedback.repository';
+export * from './calendar.repository.interface';
+export * from './calendar.repository';
 

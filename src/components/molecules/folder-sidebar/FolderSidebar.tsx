@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import {
   Folder,
@@ -13,6 +14,7 @@ import {
   ChevronDown,
   Layers,
   Sparkles,
+  Calendar,
 } from 'lucide-react';
 import { useWorkspaceChatStore } from '@/stores/workspace-chat.store';
 import { Button } from '@/components/atoms/button';
@@ -333,6 +335,17 @@ export const FolderSidebar: React.FC<FolderSidebarProps> = ({
       </div>
 
       <div className="space-y-0.5">
+        <Link
+          href="/dashboard/calendar"
+          data-testid="calendar-nav-link"
+          className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors text-muted-foreground hover:bg-accent hover:text-foreground mb-1"
+        >
+          <div className="flex items-center gap-2 truncate">
+            <Calendar className="h-3.5 w-3.5 shrink-0 text-primary" />
+            <span className="truncate">Calendar Schedule</span>
+          </div>
+        </Link>
+
         <button
           type="button"
           data-testid="all-recordings-nav"

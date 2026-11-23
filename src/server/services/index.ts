@@ -14,4 +14,6 @@ export * from './template.service.interface';
 export * from './template.service';
 export * from './feedback.service.interface';
 export * from './feedback.service';
+export * from './calendar.service.interface';
+export * from './calendar.service';
 
