@@ -35,7 +35,6 @@ export function WorkspaceChatDrawer() {
     isStreaming,
     streamingContent,
     streamingCitations,
-    isLoadingSessions,
     isLoadingHistory,
     error,
     closeDrawer,
@@ -64,10 +63,6 @@ export function WorkspaceChatDrawer() {
   const safeSessions = Array.isArray(sessions) ? sessions : [];
   const safeMessages = Array.isArray(messages) ? messages : [];
   const currentSession = safeSessions.find((s) => s.id === currentSessionId);
-  const scopeLabel =
-    scope.type === 'folder'
-      ? `Folder: ${scope.folderName || 'Selected Folder'}`
-      : 'All Workspace Meetings';
   const drawerTitle =
     scope.type === 'folder'
       ? `Ask Folder AI (${scope.folderName || 'Folder'})`
@@ -99,17 +94,39 @@ export function WorkspaceChatDrawer() {
       {/* Header */}
       <div className="flex items-center justify-between border-b border-border px-4 py-3 bg-muted/40">
         <div className="flex items-center gap-2 min-w-0">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+          <div
+            className={cn(
+              'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors',
+              scope.type === 'folder'
+                ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400'
+                : 'bg-primary/10 text-primary'
+            )}
+          >
             <Sparkles className="h-4 w-4" />
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
               {scope.type === 'folder' ? (
-                <Folder className="h-3 w-3 text-amber-500" />
+                <>
+                  <Folder className="h-3.5 w-3.5 text-amber-500 shrink-0" />
+                  <span
+                    className="truncate font-semibold text-amber-600 dark:text-amber-400"
+                    data-testid="workspace-chat-drawer-title"
+                  >
+                    {drawerTitle}
+                  </span>
+                </>
               ) : (
-                <Layers className="h-3 w-3 text-primary" />
+                <>
+                  <Layers className="h-3.5 w-3.5 text-primary shrink-0" />
+                  <span
+                    className="truncate font-semibold text-primary"
+                    data-testid="workspace-chat-drawer-title"
+                  >
+                    {drawerTitle}
+                  </span>
+                </>
               )}
-              <span className="truncate" data-testid="workspace-chat-drawer-title">{drawerTitle}</span>
             </div>
             {/* Session selector */}
             <div className="relative">
@@ -143,7 +160,7 @@ export function WorkspaceChatDrawer() {
                       <div
                         key={sess.id}
                         className={cn(
-                          'flex items-center justify-between rounded px-2 py-1.5 text-xs cursor-pointer hover:bg-accent transition-colors',
+                          'flex items-center justify-between rounded px-2 py-1.5 text-xs cursor-pointer hover:bg-accent transition-colors group',
                           sess.id === currentSessionId && 'bg-accent/70 font-medium'
                         )}
                         onClick={() => {
@@ -151,7 +168,14 @@ export function WorkspaceChatDrawer() {
                           void selectSession(sess.id);
                         }}
                       >
-                        <span className="truncate flex-1">{sess.title}</span>
+                        <div className="flex items-center gap-1.5 truncate flex-1 mr-1">
+                          {sess.folder_id ? (
+                            <Folder className="h-3 w-3 text-amber-500 shrink-0" />
+                          ) : (
+                            <Layers className="h-3 w-3 text-primary shrink-0" />
+                          )}
+                          <span className="truncate">{sess.title}</span>
+                        </div>
                         <button
                           type="button"
                           onClick={(e) => {
@@ -166,7 +190,7 @@ export function WorkspaceChatDrawer() {
                     ))}
                     {safeSessions.length === 0 && (
                       <div className="p-2 text-center text-xs text-muted-foreground">
-                        No previous chats
+                        No previous chats in this scope
                       </div>
                     )}
                   </div>

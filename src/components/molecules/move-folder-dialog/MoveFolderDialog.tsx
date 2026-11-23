@@ -51,23 +51,6 @@ export const MoveFolderDialog: React.FC<MoveFolderDialogProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const foldersRequestId = useRef(0);
 
-  // Sync state when dialog opens or inputs change
-  useEffect(() => {
-    if (open) {
-      const initialWs = currentWorkspaceId || activeWorkspace?.id || '';
-      setSelectedWorkspaceId(initialWs);
-      setSelectedFolderId(currentFolderId ?? null);
-
-      if (initialWs === activeWorkspace?.id) {
-        foldersRequestId.current++;
-        setIsLoadingFolders(false);
-        setDisplayedFolders(defaultFolders);
-      } else if (initialWs) {
-        fetchWorkspaceFolders(initialWs);
-      }
-    }
-  }, [open, currentFolderId, currentWorkspaceId, activeWorkspace?.id, defaultFolders]);
-
   const fetchWorkspaceFolders = async (wsId: string) => {
     const requestId = ++foldersRequestId.current;
     setIsLoadingFolders(true);
@@ -88,6 +71,23 @@ export const MoveFolderDialog: React.FC<MoveFolderDialogProps> = ({
       }
     }
   };
+
+  // Sync state when dialog opens or inputs change
+  useEffect(() => {
+    if (open) {
+      const initialWs = currentWorkspaceId || activeWorkspace?.id || '';
+      setSelectedWorkspaceId(initialWs);
+      setSelectedFolderId(currentFolderId ?? null);
+
+      if (initialWs === activeWorkspace?.id) {
+        foldersRequestId.current++;
+        setIsLoadingFolders(false);
+        setDisplayedFolders(defaultFolders);
+      } else if (initialWs) {
+        fetchWorkspaceFolders(initialWs);
+      }
+    }
+  }, [open, currentFolderId, currentWorkspaceId, activeWorkspace?.id, defaultFolders]);
 
   const handleWorkspaceChange = (newWsId: string) => {
     setSelectedWorkspaceId(newWsId);

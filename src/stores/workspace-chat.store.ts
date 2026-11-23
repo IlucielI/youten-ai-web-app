@@ -59,16 +59,50 @@ export const useWorkspaceChatStore = create<WorkspaceChatStore>()(
 
       openDrawer: (scope?: ChatScope) => {
         const nextScope = scope || get().scope;
-        set({ isOpen: true, scope: nextScope, error: null }, false, 'workspaceChat/openDrawer');
+        set(
+          {
+            isOpen: true,
+            scope: nextScope,
+            currentSessionId: null,
+            messages: [],
+            streamingContent: '',
+            streamingCitations: [],
+            error: null,
+          },
+          false,
+          'workspaceChat/openDrawer'
+        );
         void get().fetchSessions(nextScope.folderId);
       },
 
       closeDrawer: () => {
-        set({ isOpen: false }, false, 'workspaceChat/closeDrawer');
+        set(
+          {
+            isOpen: false,
+            currentSessionId: null,
+            messages: [],
+            streamingContent: '',
+            streamingCitations: [],
+            error: null,
+          },
+          false,
+          'workspaceChat/closeDrawer'
+        );
       },
 
       setScope: (scope: ChatScope) => {
-        set({ scope, currentSessionId: null, messages: [], error: null }, false, 'workspaceChat/setScope');
+        set(
+          {
+            scope,
+            currentSessionId: null,
+            messages: [],
+            streamingContent: '',
+            streamingCitations: [],
+            error: null,
+          },
+          false,
+          'workspaceChat/setScope'
+        );
         void get().fetchSessions(scope.folderId);
       },
 
@@ -95,11 +129,6 @@ export const useWorkspaceChatStore = create<WorkspaceChatStore>()(
             false,
             'workspaceChat/fetchSessions/success'
           );
-
-          // Auto-select latest session if available and none selected
-          if (!get().currentSessionId && sessions.length > 0) {
-            void get().selectSession(sessions[0].id);
-          }
         } catch (err) {
           const msg = err instanceof Error ? err.message : 'Gagal memuat sesi chat';
           set({ isLoadingSessions: false, error: msg }, false, 'workspaceChat/fetchSessions/error');

@@ -52,7 +52,8 @@ describe('useWorkspaceChatStore', () => {
     await useWorkspaceChatStore.getState().fetchSessions();
 
     expect(useWorkspaceChatStore.getState().sessions).toEqual(mockSessions);
-    expect(useWorkspaceChatStore.getState().currentSessionId).toBe('sess-1');
+    // Initial fetch keeps currentSessionId null for a clean new chat session
+    expect(useWorkspaceChatStore.getState().currentSessionId).toBeNull();
   });
 
   it('should select session and load message history', async () => {

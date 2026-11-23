@@ -36,6 +36,11 @@ describe('RecordingCard Component', () => {
     expect(screen.getByText('Selesai')).toBeInTheDocument();
   });
 
+  it('renders folder badge when recording has folder_name', () => {
+    render(<RecordingCard recording={{ ...mockRecording, folder_name: 'Engineering' }} />);
+    expect(screen.getByText('Engineering')).toBeInTheDocument();
+  });
+
   it('renders dash fallback when file_size_bytes is 0 or uncalculated', () => {
     render(<RecordingCard recording={{ ...mockRecording, file_size_bytes: 0 }} />);
     expect(screen.getByText('-')).toBeInTheDocument();
