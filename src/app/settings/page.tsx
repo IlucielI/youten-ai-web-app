@@ -16,6 +16,7 @@ import { Label } from '@/components/atoms/label';
 import { Progress } from '@/components/atoms/progress';
 import { UserNavDropdown } from '@/components/molecules/user-nav-dropdown';
 import { WorkspaceSettingsTab } from '@/components/organisms/workspace-settings-tab';
+import { GoogleCalendarCard } from '@/components/organisms/google-calendar-card/GoogleCalendarCard';
 import { useWorkspaceStore } from '@/stores/workspace.store';
 import { LanguageSwitcher } from '@/components/molecules/language-switcher';
 import { ThemeToggle } from '@/components/molecules/theme-toggle';
@@ -36,6 +37,7 @@ import {
   EyeOff,
   UploadCloud,
   Users,
+  Calendar,
 } from 'lucide-react';
 
 export default function SettingsPage() {
@@ -47,11 +49,12 @@ export default function SettingsPage() {
   const [authLoading, setAuthLoading] = useState(true);
 
   // Tab State
-  const [activeTab, setActiveTab] = useState<'profile' | 'security' | 'workspaces'>(() => {
+  const [activeTab, setActiveTab] = useState<'profile' | 'security' | 'workspaces' | 'integrations'>(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
-      if (params.get('tab') === 'workspaces') {
-        return 'workspaces';
+      const tabParam = params.get('tab');
+      if (tabParam === 'workspaces' || tabParam === 'integrations' || tabParam === 'security') {
+        return tabParam;
       }
     }
     return 'profile';
@@ -313,6 +316,20 @@ export default function SettingsPage() {
           >
             <Users className="w-4 h-4" />
             <span>Workspace</span>
+          </button>
+          <button
+            type="button"
+            data-testid="tab-integrations"
+            onClick={() => setActiveTab('integrations')}
+            className={cn(
+              'flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 transition-all -mb-px cursor-pointer',
+              activeTab === 'integrations'
+                ? 'border-primary text-primary bg-primary/10 rounded-t-lg'
+                : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
+            )}
+          >
+            <Calendar className="w-4 h-4" />
+            <span>Integrasi</span>
           </button>
         </div>
 
@@ -598,6 +615,13 @@ export default function SettingsPage() {
         {activeTab === 'workspaces' && (
           <div className="space-y-6">
             <WorkspaceSettingsTab />
+          </div>
+        )}
+
+        {/* Tab 4: Integrations (Google Calendar, etc.) */}
+        {activeTab === 'integrations' && (
+          <div className="max-w-3xl mx-auto space-y-6">
+            <GoogleCalendarCard />
           </div>
         )}
       </main>
