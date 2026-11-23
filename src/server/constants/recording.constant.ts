@@ -74,6 +74,7 @@ export const ExportFormat = {
   TXT: 'txt',
   JSON: 'json',
   PDF: 'pdf',
+  DOCX: 'docx',
 } as const;
 
 export type ExportFormat = (typeof ExportFormat)[keyof typeof ExportFormat];

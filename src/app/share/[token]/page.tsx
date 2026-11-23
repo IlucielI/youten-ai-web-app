@@ -44,6 +44,7 @@ import { ExportFormat } from '@/server/constants/recording.constant';
 import { parseTimestamp } from '@/lib/time';
 import { cn } from '@/lib/utils';
 import { useTranslation } from '@/locales';
+import { toast } from 'sonner';
 
 /**
  * Public Read-Only Share Viewer Page.
@@ -233,6 +234,12 @@ export default function SharedRecordingPage() {
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
+
+      if (format === ExportFormat.DOCX) {
+        toast.success(
+          t('recording.exportMenu.docxSuccessToast', 'Dokumen .docx berhasil diunduh. Anda dapat langsung membukanya di Google Docs atau Microsoft Word.')
+        );
+      }
     } catch (err) {
       console.error('Failed to export shared recording:', err);
     }

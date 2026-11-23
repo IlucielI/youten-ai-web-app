@@ -10,13 +10,26 @@ describe('ExportMenu', () => {
     expect(screen.getByTestId('export-menu-trigger')).toHaveTextContent('Ekspor');
   });
 
-  it('displays all 4 export format options when dropdown is triggered', () => {
+  it('displays all 5 export format options when dropdown is triggered', () => {
     render(<ExportMenu open={true} />);
 
+    expect(screen.getByTestId(`export-option-${ExportFormat.DOCX}`)).toBeInTheDocument();
     expect(screen.getByTestId(`export-option-${ExportFormat.PDF}`)).toBeInTheDocument();
     expect(screen.getByTestId(`export-option-${ExportFormat.MARKDOWN}`)).toBeInTheDocument();
     expect(screen.getByTestId(`export-option-${ExportFormat.TXT}`)).toBeInTheDocument();
     expect(screen.getByTestId(`export-option-${ExportFormat.JSON}`)).toBeInTheDocument();
+  });
+
+  it('triggers onExport with DOCX format when selected', async () => {
+    const handleExport = vi.fn().mockResolvedValue(undefined);
+    render(<ExportMenu open={true} onExport={handleExport} />);
+
+    const docxOption = screen.getByTestId(`export-option-${ExportFormat.DOCX}`);
+    fireEvent.click(docxOption);
+
+    await waitFor(() => {
+      expect(handleExport).toHaveBeenCalledWith(ExportFormat.DOCX);
+    });
   });
 
   it('triggers onExport with PDF format when selected by Pro member', async () => {
