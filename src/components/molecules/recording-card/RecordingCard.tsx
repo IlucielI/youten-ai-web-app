@@ -1,8 +1,10 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import Link from 'next/link';
 import { RecordingListItemDTO } from '@/server/dtos/recording.dto';
+import { FolderDTO } from '@/server/dtos/workspace.dto';
+import { useWorkspaceStore } from '@/stores/workspace.store';
 import { RecordingStatus } from '@/server/constants/recording.constant';
 import { formatTime } from '@/lib/time';
 import { Badge } from '@/components/atoms/badge';
@@ -93,6 +95,26 @@ export const RecordingCard: React.FC<RecordingCardProps> = ({
   className = '',
 }) => {
   const { t, locale } = useTranslation();
+  const folders = useWorkspaceStore((state) => state.folders);
+
+  const resolvedFolderName = useMemo(() => {
+    if (recording.folder_name) {
+      return recording.folder_name;
+    }
+    if (!recording.folder_id || !Array.isArray(folders)) return null;
+    const findInTree = (list: FolderDTO[]): string | null => {
+      for (const f of list) {
+        if (f.id === recording.folder_id) return f.name;
+        if (f.children && f.children.length > 0) {
+          const found = findInTree(f.children);
+          if (found) return found;
+        }
+      }
+      return null;
+    };
+    return findInTree(folders);
+  }, [recording.folder_name, recording.folder_id, folders]);
+
   const rawPillConfig = getStatusPillConfig(recording.status);
   const pillConfig = {
     label:
@@ -130,14 +152,27 @@ export const RecordingCard: React.FC<RecordingCardProps> = ({
       data-testid={`recording-card-${recording.id}`}
       className={`group bg-card text-card-foreground rounded-2xl border border-border hover:border-primary/60 shadow-xs hover:shadow-md transition-all duration-200 flex flex-col justify-between p-5 relative overflow-hidden ${className}`}
     >
-      {/* Top Header: Template & Menu */}
+      {/* Top Header: Template, Folder & Menu */}
       <div className="flex items-center justify-between gap-2 mb-3">
-        <Badge
-          variant="secondary"
-          className="text-[11px] font-semibold bg-primary/10 text-primary border border-primary/20"
-        >
-          {templateName}
-        </Badge>
+        <div className="flex items-center gap-1.5 flex-wrap min-w-0">
+          <Badge
+            variant="secondary"
+            className="text-[11px] font-semibold bg-primary/10 text-primary border border-primary/20"
+          >
+            {templateName}
+          </Badge>
+
+          {resolvedFolderName && (
+            <Badge
+              variant="outline"
+              data-testid={`recording-folder-badge-${recording.id}`}
+              className="text-[11px] font-medium bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/30 flex items-center gap-1"
+            >
+              <Folder className="w-3 h-3 text-amber-500 shrink-0" />
+              <span className="truncate max-w-[120px]">{resolvedFolderName}</span>
+            </Badge>
+          )}
+        </div>
 
         <DropdownMenu open={open} onOpenChange={onOpenChange}>
           <DropdownMenuTrigger

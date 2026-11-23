@@ -683,6 +683,22 @@ export default function DashboardPage() {
               <TableBody>
                 {safeRecordings.map((recording) => {
                   const pillConfig = getStatusPillConfig(recording.status);
+                  const recFolderName =
+                    recording.folder_name ||
+                    (() => {
+                      if (!recording.folder_id || !Array.isArray(folders)) return null;
+                      const findInTree = (list: typeof folders): string | null => {
+                        for (const f of list) {
+                          if (f.id === recording.folder_id) return f.name;
+                          if (f.children && f.children.length > 0) {
+                            const found = findInTree(f.children);
+                            if (found) return found;
+                          }
+                        }
+                        return null;
+                      };
+                      return findInTree(folders);
+                    })();
                   const templateName =
                     getTemplateLabel(recording.selected_template) ||
                     templateLabels[recording.selected_template] ||
@@ -710,12 +726,24 @@ export default function DashboardPage() {
                         </p>
                       </TableCell>
                       <TableCell>
-                        <Badge
-                          variant="secondary"
-                          className="text-[11px] font-medium bg-primary/10 text-primary border border-primary/20"
-                        >
-                          {templateName}
-                        </Badge>
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <Badge
+                            variant="secondary"
+                            className="text-[11px] font-medium bg-primary/10 text-primary border border-primary/20"
+                          >
+                            {templateName}
+                          </Badge>
+                          {recFolderName && (
+                            <Badge
+                              variant="outline"
+                              data-testid={`table-recording-folder-badge-${recording.id}`}
+                              className="text-[10px] font-medium bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/30 flex items-center gap-1"
+                            >
+                              <Folder className="w-2.5 h-2.5 text-amber-500 shrink-0" />
+                              <span className="truncate max-w-[100px]">{recFolderName}</span>
+                            </Badge>
+                          )}
+                        </div>
                       </TableCell>
                       <TableCell>
                         <StatusPill label={pillConfig.label} status={pillConfig.status} />

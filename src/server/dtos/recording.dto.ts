@@ -127,6 +127,7 @@ export interface RecordingListItemDTO {
   detected_language?: string | null;
   output_language: string;
   folder_id?: string | null;
+  folder_name?: string | null;
   workspace_id?: string | null;
   created_at: string;
   updated_at: string;
