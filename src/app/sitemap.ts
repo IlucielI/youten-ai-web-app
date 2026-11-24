@@ -1,7 +1,7 @@
 import type { MetadataRoute } from 'next';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://youten.ai';
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://youten.bayuanugerah.my.id';
   const now = new Date();
 
   return [

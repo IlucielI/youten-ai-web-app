@@ -9,25 +9,29 @@ const inter = Inter({
   display: 'swap',
 });
 
-const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://youten.ai';
+const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://youten.bayuanugerah.my.id';
 
 export const metadata: Metadata = {
   metadataBase: new URL(appUrl),
   title: {
-    default: 'Youten AI — AI Speech Transcription & Intelligent Meeting Synthesis Platform',
+    default: 'Youten AI — Enterprise AI Speech Transcription & Meeting Intelligence',
     template: '%s | Youten AI',
   },
   description:
-    'Enterprise-grade AI conversation transcription with multi-speaker diarization, intelligent meeting synthesis, and semantic search.',
+    'Enterprise-grade AI conversation transcription with multi-speaker diarization, intelligent meeting synthesis, automated action items, and semantic search.',
   keywords: [
     'ai transcription',
-    'automated meeting notes',
+    'ai meeting assistant',
     'speech to text',
     'meeting summarizer',
-    'diarization',
-    'youten ai',
+    'speaker diarization',
+    'automated meeting notes',
+    'voice to text converter',
     'audio transcription',
-    'ai voice intelligence',
+    'meeting minutes generator',
+    'whisper ai',
+    'youten ai',
+    'otter ai alternative',
   ],
   authors: [{ name: 'Youten AI Team', url: appUrl }],
   creator: 'Youten AI',
@@ -48,31 +52,35 @@ export const metadata: Metadata = {
     alternateLocale: ['id_ID'],
     url: appUrl,
     siteName: 'Youten AI',
-    title: 'Youten AI — AI Speech Transcription & Intelligent Meeting Synthesis Platform',
+    title: 'Youten AI — Enterprise AI Speech Transcription & Meeting Intelligence',
     description:
-      'Intelligent transcription, strategic decision highlights, and AI-powered Q&A for meetings, interviews, lectures, and voice memos.',
+      'Transform meetings and audio recordings into accurate speaker-labeled transcripts, strategic executive summaries, and searchable team knowledge.',
     images: [
       {
-        url: '/icon.svg',
-        width: 512,
-        height: 512,
-        alt: 'Youten AI Logo',
+        url: '/og-image.png',
+        width: 1200,
+        height: 630,
+        type: 'image/png',
+        alt: 'Youten AI — Enterprise AI Speech Transcription & Meeting Intelligence',
       },
     ],
   },
   twitter: {
-    card: 'summary',
-    title: 'Youten AI — AI Speech Transcription & Intelligent Meeting Synthesis Platform',
+    card: 'summary_large_image',
+    title: 'Youten AI — Enterprise AI Speech Transcription & Meeting Intelligence',
     description:
-      'Intelligent transcription, strategic decision highlights, and AI-powered Q&A for meetings and voice memos.',
-    images: ['/icon.svg'],
+      'Transform meetings and audio recordings into accurate speaker-labeled transcripts, strategic executive summaries, and searchable team knowledge.',
+    images: ['/og-image.png'],
   },
   alternates: {
     canonical: '/',
     languages: {
-      'en-US': '/?lang=en',
+      'en-US': '/',
       'id-ID': '/?lang=id',
     },
+  },
+  verification: {
+    google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || undefined,
   },
   robots: {
     index: true,
@@ -99,6 +107,16 @@ const jsonLd = {
       description: 'Enterprise-grade AI conversation transcription and intelligence platform.',
     },
     {
+      '@type': 'WebSite',
+      '@id': `${appUrl}/#website`,
+      url: appUrl,
+      name: 'Youten AI',
+      description: 'Enterprise AI Speech Transcription & Intelligent Meeting Synthesis Platform',
+      publisher: {
+        '@id': `${appUrl}/#organization`,
+      },
+    },
+    {
       '@type': 'SoftwareApplication',
       '@id': `${appUrl}/#application`,
       name: 'Youten AI',
@@ -110,7 +128,7 @@ const jsonLd = {
         priceCurrency: 'USD',
       },
       description:
-        'Intelligent transcription, strategic decision highlights, and AI-powered Q&A for meetings, interviews, and voice memos.',
+        'Intelligent transcription, multi-speaker diarization, strategic decision highlights, and AI-powered Q&A for meetings, interviews, and voice memos.',
     },
   ],
 };
