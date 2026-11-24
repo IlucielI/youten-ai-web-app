@@ -13,7 +13,6 @@ import { RecordingStatus } from '@/server/constants/recording.constant';
 import { formatTime } from '@/lib/time';
 import { Button } from '@/components/atoms/button';
 import { Badge } from '@/components/atoms/badge';
-import { YoutenLogo } from '@/components/atoms/youten-logo';
 import { Skeleton } from '@/components/atoms/skeleton';
 import {
   Table,
@@ -41,15 +40,12 @@ import {
 import { StatusPill } from '@/components/molecules/status-pill';
 import { EmptyState } from '@/components/molecules/empty-state';
 import { ShareDialog } from '@/components/molecules/share-dialog';
-import { UserNavDropdown } from '@/components/molecules/user-nav-dropdown';
-import { WorkspaceSwitcher } from '@/components/molecules/workspace-switcher';
 import { FolderSidebar } from '@/components/molecules/folder-sidebar';
 import { MoveFolderDialog } from '@/components/molecules/move-folder-dialog';
 import { WorkspaceChatDrawer } from '@/components/organisms/workspace-chat-drawer';
 import { useWorkspaceStore } from '@/stores/workspace.store';
 import { useWorkspaceChatStore } from '@/stores/workspace-chat.store';
-import { LanguageSwitcher } from '@/components/molecules/language-switcher';
-import { ThemeToggle } from '@/components/molecules/theme-toggle';
+import { Navbar } from '@/components/organisms/navbar';
 import { Footer } from '@/components/organisms/footer';
 import { toast } from 'sonner';
 import { useTemplates } from '@/hooks';
@@ -379,26 +375,12 @@ export default function DashboardPage() {
 
   return (
     <div data-testid="dashboard-page" className="min-h-screen bg-background text-foreground font-sans flex flex-col">
-      {/* Top Navigation */}
-      <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-md border-b border-border/80 shadow-2xs">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          {/* Brand Logo */}
-          <Link href="/" className="flex items-center gap-2.5 group">
-            <YoutenLogo size="sm" className="group-hover:scale-105 transition-transform" />
-            <span className="font-extrabold text-base tracking-tight text-foreground group-hover:text-primary transition-colors">
-              Youten AI
-            </span>
-          </Link>
-
-          {/* Right Header Controls */}
-          <div className="flex items-center gap-2.5 sm:gap-3">
-            <WorkspaceSwitcher />
-            <ThemeToggle />
-            <LanguageSwitcher />
-            <UserNavDropdown user={user} onLogout={handleLogout} />
-          </div>
-        </div>
-      </header>
+      {/* Global Application Navbar */}
+      <Navbar
+        user={user ? { name: user.full_name || user.email, email: user.email } : null}
+        onLogout={handleLogout}
+        currentPath="/dashboard"
+      />
 
       {/* Main Workspace Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
@@ -585,7 +567,7 @@ export default function DashboardPage() {
         {dataLoading ? (
           /* Skeletons */
           viewMode === 'grid' ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
               {Array.from({ length: 6 }).map((_, i) => (
                 <div key={i} className="p-5 bg-card rounded-2xl border border-border space-y-4">
                   <div className="flex justify-between">
@@ -655,7 +637,7 @@ export default function DashboardPage() {
           />
         ) : viewMode === 'grid' ? (
           /* Grid View */
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
             {safeRecordings.map((recording) => (
               <RecordingCard
                 key={recording.id}
