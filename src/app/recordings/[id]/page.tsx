@@ -721,9 +721,7 @@ export default function RecordingDetailPage() {
       URL.revokeObjectURL(url);
 
       if (format === ExportFormat.DOCX) {
-        toast.success(
-          t('recording.exportMenu.docxSuccessToast', 'Dokumen .docx berhasil diunduh. Anda dapat langsung membukanya di Google Docs atau Microsoft Word.')
-        );
+        toast.success(t('recording.exportMenu.docxSuccessToast'));
       }
     } catch (err: unknown) {
       console.warn('Backend export failed, falling back to local exporter:', err);
