@@ -109,7 +109,7 @@ export const WorkspaceSwitcher: React.FC<WorkspaceSwitcherProps> = ({ className 
             Workspaces
           </DropdownMenuLabel>
           <div className="max-h-56 overflow-y-auto">
-            {workspaces.map((ws) => {
+            {(Array.isArray(workspaces) ? workspaces : []).map((ws) => {
               const isSelected = activeWorkspace?.id === ws.id;
               return (
                 <DropdownMenuItem
