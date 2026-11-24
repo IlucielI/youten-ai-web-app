@@ -241,7 +241,7 @@ export const RecordingCard: React.FC<RecordingCardProps> = ({
       </div>
 
       {/* Metadata footer */}
-      <div className="pt-3 border-t border-border/80 flex items-center justify-between text-xs text-muted-foreground gap-2">
+      <div className="pt-3 border-t border-border/80 flex flex-wrap items-center justify-between text-xs text-muted-foreground gap-2">
         <div className="flex items-center gap-3 min-w-0">
           <span className="inline-flex items-center gap-1 shrink-0 whitespace-nowrap">
             <Calendar className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
