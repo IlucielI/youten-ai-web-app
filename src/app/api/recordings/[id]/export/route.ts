@@ -101,7 +101,7 @@ export async function GET(
       }
 
       const contentType = upstreamRes.headers.get('content-type') || 
-        (format === 'pdf' ? 'application/pdf' : format === 'json' ? 'application/json' : 'text/plain');
+        (format === 'pdf' ? 'application/pdf' : format === 'docx' ? 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' : format === 'json' ? 'application/json' : 'text/plain');
       const contentDisposition = upstreamRes.headers.get('content-disposition') || 
         `attachment; filename="recording-${id}.${format === 'markdown' ? 'md' : format}"`;
 
@@ -127,6 +127,18 @@ export async function GET(
       status: 200,
       headers: {
         'Content-Type': 'application/pdf',
+        'Content-Disposition': `attachment; filename="${filename}"`,
+        'Cache-Control': 'no-cache',
+      },
+    });
+  }
+
+  if (format === 'docx') {
+    const mockDocx = new Uint8Array([0x50, 0x4b, 0x03, 0x04, 0x0a, 0x00, 0x00, 0x00, 0x00, 0x00]);
+    return new Response(mockDocx as unknown as BodyInit, {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
         'Content-Disposition': `attachment; filename="${filename}"`,
         'Cache-Control': 'no-cache',
       },

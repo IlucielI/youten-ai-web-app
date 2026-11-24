@@ -50,6 +50,13 @@ export function ExportMenu({
 
   const exportOptions = [
     {
+      format: ExportFormat.DOCX,
+      label: t('recording.exportMenu.formats.docx.label'),
+      description: t('recording.exportMenu.formats.docx.description'),
+      icon: FileText,
+      extension: '.docx',
+    },
+    {
       format: ExportFormat.PDF,
       label: t('recording.exportMenu.formats.pdf.label'),
       description: t('recording.exportMenu.formats.pdf.description'),

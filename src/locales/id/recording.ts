@@ -92,9 +92,14 @@ export const idRecording = {
   exportMenu: {
     buttonLabel: 'Ekspor',
     exportingLabel: 'Mengekspor...',
+    docxSuccessToast: 'Dokumen .docx berhasil diunduh. Anda dapat langsung membukanya di Google Docs atau Microsoft Word.',
     selectFormatHeader: 'PILIH FORMAT EKSPOR',
     selectFormatVersionHeader: 'PILIH FORMAT EKSPOR (VERSI {version})',
     formats: {
+      docx: {
+        label: 'Google Docs / Word (.docx)',
+        description: 'Format dokumen editable kompatibel dengan Google Docs & Word',
+      },
       pdf: {
         label: 'Dokumen PDF',
         description: 'Laporan ringkasan & transkrip siap cetak',

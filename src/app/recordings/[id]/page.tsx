@@ -719,6 +719,12 @@ export default function RecordingDetailPage() {
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
+
+      if (format === ExportFormat.DOCX) {
+        toast.success(
+          t('recording.exportMenu.docxSuccessToast', 'Dokumen .docx berhasil diunduh. Anda dapat langsung membukanya di Google Docs atau Microsoft Word.')
+        );
+      }
     } catch (err: unknown) {
       console.warn('Backend export failed, falling back to local exporter:', err);
       // Fallback for offline mode

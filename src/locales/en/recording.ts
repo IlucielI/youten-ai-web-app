@@ -94,9 +94,14 @@ export const enRecording: typeof idRecording = {
   exportMenu: {
     buttonLabel: 'Export',
     exportingLabel: 'Exporting...',
+    docxSuccessToast: 'Document .docx downloaded successfully. You can open it directly in Google Docs or Microsoft Word.',
     selectFormatHeader: 'SELECT EXPORT FORMAT',
     selectFormatVersionHeader: 'SELECT EXPORT FORMAT (VERSION {version})',
     formats: {
+      docx: {
+        label: 'Google Docs / Word (.docx)',
+        description: 'Editable document format compatible with Google Docs & Word',
+      },
       pdf: {
         label: 'PDF Document',
         description: 'Print-ready summary & transcript report',
