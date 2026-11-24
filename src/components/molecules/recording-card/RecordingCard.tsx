@@ -25,7 +25,6 @@ import {
   Trash2,
   Folder,
   FileAudio,
-  HardDrive,
 } from 'lucide-react';
 import { useTranslation } from '@/locales';
 
@@ -224,37 +223,37 @@ export const RecordingCard: React.FC<RecordingCardProps> = ({
       </div>
 
       {/* Main Info */}
-      <div className="space-y-2 mb-4 flex-1">
+      <div className="space-y-2 mb-4 flex-1 min-w-0">
         <Link
           href={`/recordings/${recording.id}`}
           className="font-bold text-foreground group-hover:text-primary transition-colors line-clamp-2 text-base leading-snug"
         >
           {recording.title || recording.original_filename}
         </Link>
-        <p className="text-xs text-muted-foreground truncate flex items-center gap-1.5">
+        <div className="text-xs text-muted-foreground flex items-center gap-1.5 min-w-0">
           <FileAudio className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-          <span className="truncate">{recording.original_filename}</span>
-        </p>
+          <span className="truncate" title={recording.original_filename}>
+            {recording.original_filename}
+          </span>
+          <span className="shrink-0 text-muted-foreground/60">•</span>
+          <span className="shrink-0 whitespace-nowrap font-medium">{fileSizeDisplay}</span>
+        </div>
       </div>
 
       {/* Metadata footer */}
-      <div className="pt-3 border-t border-border/80 flex items-center justify-between text-xs text-muted-foreground">
-        <div className="flex items-center gap-3">
-          <span className="flex items-center gap-1">
-            <Clock className="w-3.5 h-3.5 text-muted-foreground" />
-            {formatTime(recording.duration_seconds)}
+      <div className="pt-3 border-t border-border/80 flex items-center justify-between text-xs text-muted-foreground gap-2">
+        <div className="flex items-center gap-3 min-w-0">
+          <span className="inline-flex items-center gap-1 shrink-0 whitespace-nowrap">
+            <Calendar className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+            <span>{formattedDate}</span>
           </span>
-          <span className="flex items-center gap-1">
-            <HardDrive className="w-3.5 h-3.5 text-muted-foreground" />
-            {fileSizeDisplay}
-          </span>
-          <span className="hidden sm:flex items-center gap-1">
-            <Calendar className="w-3.5 h-3.5 text-muted-foreground" />
-            {formattedDate}
+          <span className="inline-flex items-center gap-1 shrink-0 whitespace-nowrap">
+            <Clock className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+            <span>{formatTime(recording.duration_seconds)}</span>
           </span>
         </div>
 
-        <div>
+        <div className="shrink-0">
           <StatusPill label={pillConfig.label} status={pillConfig.status} />
         </div>
       </div>

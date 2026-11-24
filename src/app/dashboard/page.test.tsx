@@ -129,6 +129,7 @@ describe('DashboardPage', () => {
     expect(await screen.findByText('Weekly Standup Engineering')).toBeInTheDocument();
     expect(screen.getByText('Product Discovery Sprint')).toBeInTheDocument();
     expect(screen.getAllByText('Daily Standup').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByTestId('navbar-user-section')).toBeInTheDocument();
   });
 
   it('filters recordings by search query after debounce', async () => {
