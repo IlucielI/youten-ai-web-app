@@ -42,7 +42,7 @@ function GoogleCalendarCallbackContent() {
         setStatus('success');
         toast.success('Google Calendar successfully connected!');
         setTimeout(() => {
-          router.push('/settings?tab=integrations');
+          router.push('/settings');
         }, 1500);
       })
       .catch((err: unknown) => {
@@ -74,7 +74,7 @@ function GoogleCalendarCallbackContent() {
                 {errorMessage}
               </div>
               <Button
-                onClick={() => router.push('/settings?tab=integrations')}
+                onClick={() => router.push('/settings')}
                 className="w-full"
               >
                 Back to Settings
