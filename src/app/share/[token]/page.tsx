@@ -236,9 +236,7 @@ export default function SharedRecordingPage() {
       URL.revokeObjectURL(url);
 
       if (format === ExportFormat.DOCX) {
-        toast.success(
-          t('recording.exportMenu.docxSuccessToast', 'Dokumen .docx berhasil diunduh. Anda dapat langsung membukanya di Google Docs atau Microsoft Word.')
-        );
+        toast.success(t('recording.exportMenu.docxSuccessToast'));
       }
     } catch (err) {
       console.error('Failed to export shared recording:', err);
