@@ -567,7 +567,7 @@ export default function DashboardPage() {
         {dataLoading ? (
           /* Skeletons */
           viewMode === 'grid' ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-5">
               {Array.from({ length: 6 }).map((_, i) => (
                 <div key={i} className="p-5 bg-card rounded-2xl border border-border space-y-4">
                   <div className="flex justify-between">
@@ -637,7 +637,7 @@ export default function DashboardPage() {
           />
         ) : viewMode === 'grid' ? (
           /* Grid View */
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-5">
             {safeRecordings.map((recording) => (
               <RecordingCard
                 key={recording.id}
