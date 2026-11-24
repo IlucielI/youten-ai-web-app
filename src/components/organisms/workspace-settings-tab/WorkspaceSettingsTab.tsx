@@ -80,7 +80,6 @@ export const WorkspaceSettingsTab: React.FC = () => {
     workspaces,
     activeWorkspace,
     fetchWorkspaces,
-    setActiveWorkspace,
     createWorkspace,
   } = useWorkspaceStore();
 
@@ -183,12 +182,6 @@ export const WorkspaceSettingsTab: React.FC = () => {
   const effectiveRole = (currentWorkspace?.role || callerMember?.role || 'member').toLowerCase();
   const canManageMembers = effectiveRole === 'owner' || effectiveRole === 'admin';
   const isActiveInDashboard = activeWorkspace?.id === currentWorkspace?.id;
-
-  const handleSetActiveWorkspace = async () => {
-    if (!currentWorkspace) return;
-    await setActiveWorkspace(currentWorkspace);
-    toast.success(`Switched global active workspace to: ${currentWorkspace.name}`);
-  };
 
   const handleCreateWorkspace = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -405,17 +398,6 @@ export const WorkspaceSettingsTab: React.FC = () => {
                 </div>
 
                 <DropdownMenuSeparator />
-
-                {!isActiveInDashboard && (
-                  <DropdownMenuItem
-                    data-testid="set-as-active-workspace-btn"
-                    onClick={() => void handleSetActiveWorkspace()}
-                    className="flex items-center gap-2 text-xs py-2 cursor-pointer text-emerald-600 focus:text-emerald-600 font-medium"
-                  >
-                    <Check className="h-3.5 w-3.5" />
-                    <span>Jadikan Workspace Aktif</span>
-                  </DropdownMenuItem>
-                )}
 
                 <DropdownMenuItem
                   data-testid="create-workspace-menu-item"

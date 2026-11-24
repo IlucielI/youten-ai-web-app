@@ -185,7 +185,7 @@ describe('WorkspaceSettingsTab', () => {
     expect(inviteBtn).toBeDisabled();
   });
 
-  it('allows setting the selected workspace as the global active workspace', async () => {
+  it('does not display a "Jadikan Workspace Aktif" button inside the dropdown menu', async () => {
     vi.spyOn(apiClient, 'apiFetch').mockImplementation(async (url: string) => {
       if (url === '/api/workspaces/ws-2/members') return { data: membersWs2 };
       if (url === '/api/workspaces/ws-2/invites') return { data: [] };
@@ -206,16 +206,11 @@ describe('WorkspaceSettingsTab', () => {
       expect(screen.getByText('Engineering Team')).toBeInTheDocument();
     });
 
-    // Open dropdown again and click "Jadikan Workspace Aktif"
+    // Open dropdown again and confirm "Jadikan Workspace Aktif" is NOT present
     const triggerAgain = screen.getByTestId('workspace-settings-dropdown-trigger');
     fireEvent.pointerDown(triggerAgain, { button: 0 });
     fireEvent.click(triggerAgain);
-    const setActiveBtn = await screen.findByTestId('set-as-active-workspace-btn');
-    fireEvent.click(setActiveBtn);
-
-    await waitFor(() => {
-      expect(toast.success).toHaveBeenCalledWith('Switched global active workspace to: Engineering Team');
-    });
+    expect(screen.queryByTestId('set-as-active-workspace-btn')).toBeNull();
   });
 
   it('sends an invitation when owner/admin fills the invite form', async () => {

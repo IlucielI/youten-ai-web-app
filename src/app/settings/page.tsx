@@ -2,25 +2,19 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { apiFetch } from '@/lib/api-client';
 import { cn } from '@/lib/utils';
 import { ApiResponse, BaseResponse } from '@/server/dtos/response.dto';
 import { UserProfileResponse, UserResponse } from '@/server/dtos/auth.dto';
 import { useAuthStore } from '@/stores/auth.store';
 import { Button } from '@/components/atoms/button';
-import { YoutenLogo } from '@/components/atoms/youten-logo';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/atoms/card';
 import { Input } from '@/components/atoms/input';
 import { Label } from '@/components/atoms/label';
 import { Progress } from '@/components/atoms/progress';
-import { UserNavDropdown } from '@/components/molecules/user-nav-dropdown';
-import { WorkspaceSwitcher } from '@/components/molecules/workspace-switcher';
+import { Navbar } from '@/components/organisms/navbar';
 import { WorkspaceSettingsTab } from '@/components/organisms/workspace-settings-tab';
-import { GoogleCalendarCard } from '@/components/organisms/google-calendar-card/GoogleCalendarCard';
 import { useWorkspaceStore } from '@/stores/workspace.store';
-import { LanguageSwitcher } from '@/components/molecules/language-switcher';
-import { ThemeToggle } from '@/components/molecules/theme-toggle';
 import { Footer } from '@/components/organisms/footer';
 import { toast } from 'sonner';
 import { useTranslation } from '@/locales';
@@ -38,7 +32,6 @@ import {
   EyeOff,
   UploadCloud,
   Users,
-  Calendar,
 } from 'lucide-react';
 
 export default function SettingsPage() {
@@ -50,11 +43,11 @@ export default function SettingsPage() {
   const [authLoading, setAuthLoading] = useState(true);
 
   // Tab State
-  const [activeTab, setActiveTab] = useState<'profile' | 'security' | 'workspaces' | 'integrations'>(() => {
+  const [activeTab, setActiveTab] = useState<'profile' | 'security' | 'workspaces'>(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const tabParam = params.get('tab');
-      if (tabParam === 'workspaces' || tabParam === 'integrations' || tabParam === 'security') {
+      if (tabParam === 'workspaces' || tabParam === 'security') {
         return tabParam;
       }
     }
@@ -234,28 +227,12 @@ export default function SettingsPage() {
 
   return (
     <div data-testid="settings-page" className="min-h-screen bg-background text-foreground font-sans flex flex-col">
-      {/* Top Navigation */}
-      <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-md border-b border-border/80 shadow-2xs">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          {/* Brand Logo */}
-          <div className="flex items-center gap-6">
-            <Link href="/" className="flex items-center gap-2.5 group">
-              <YoutenLogo size="sm" className="group-hover:scale-105 transition-transform" />
-              <span className="font-extrabold text-base tracking-tight text-foreground group-hover:text-primary transition-colors">
-                Youten AI
-              </span>
-            </Link>
-          </div>
-
-          {/* Right Header Controls */}
-          <div className="flex items-center gap-3">
-            <WorkspaceSwitcher className="hidden sm:flex" />
-            <ThemeToggle />
-            <LanguageSwitcher />
-            <UserNavDropdown user={user} onLogout={handleLogout} />
-          </div>
-        </div>
-      </header>
+      {/* Global Application Navbar */}
+      <Navbar
+        user={user ? { name: user.full_name || user.email, email: user.email } : null}
+        onLogout={handleLogout}
+        currentPath="/settings"
+      />
 
       {/* Main Container */}
       <main className="max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 flex-1">
@@ -318,20 +295,6 @@ export default function SettingsPage() {
           >
             <Users className="w-4 h-4" />
             <span>Workspace</span>
-          </button>
-          <button
-            type="button"
-            data-testid="tab-integrations"
-            onClick={() => setActiveTab('integrations')}
-            className={cn(
-              'flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 transition-all -mb-px cursor-pointer',
-              activeTab === 'integrations'
-                ? 'border-primary text-primary bg-primary/10 rounded-t-lg'
-                : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
-            )}
-          >
-            <Calendar className="w-4 h-4" />
-            <span>Integrasi</span>
           </button>
         </div>
 
@@ -617,13 +580,6 @@ export default function SettingsPage() {
         {activeTab === 'workspaces' && (
           <div className="space-y-6">
             <WorkspaceSettingsTab />
-          </div>
-        )}
-
-        {/* Tab 4: Integrations (Google Calendar, etc.) */}
-        {activeTab === 'integrations' && (
-          <div className="max-w-3xl mx-auto space-y-6">
-            <GoogleCalendarCard />
           </div>
         )}
       </main>
