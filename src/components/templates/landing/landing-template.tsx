@@ -1,0 +1,245 @@
+'use client';
+
+import React from 'react';
+import Link from 'next/link';
+import { Navbar } from '@/components/organisms/navbar';
+import { Footer } from '@/components/organisms/footer';
+import { UploadDropzone } from '@/components/organisms/upload-dropzone';
+import { UrlImportForm } from '@/components/molecules/url-import-form';
+import { BrowserRecorder } from '@/components/organisms/browser-recorder';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/atoms/tabs';
+import { Badge } from '@/components/atoms/badge';
+import { MeetingBotForm } from '@/components/organisms/meeting-bot-form';
+import { LiveBotTracker } from '@/components/organisms/live-bot-tracker';
+import {
+  UploadCloud,
+  Link as LinkIcon,
+  Mic,
+  Bot,
+  Sparkles,
+  Info,
+  AlertTriangle,
+  ArrowRight,
+} from 'lucide-react';
+import { useLandingIngestion } from '@/hooks/use-landing-ingestion';
+
+export const LandingTemplate: React.FC = () => {
+  const {
+    t,
+    activeTab,
+    setActiveTab,
+    isUrlImporting,
+    quotaExhausted,
+    errorMessage,
+    currentUser,
+    activeBotSession,
+    handleUploadFile,
+    handleUploadComplete,
+    handleUrlImport,
+    handleProcessLiveRecording,
+  } = useLandingIngestion();
+
+  return (
+    <div className="min-h-screen flex flex-col bg-background text-foreground selection:bg-primary/20 selection:text-primary">
+      {/* Global Navbar */}
+      <Navbar
+        brandName="Youten AI"
+        ctaText={t('navbar.ctaText')}
+        ctaHref="/login"
+        links={[]}
+      />
+
+      {/* Hero Section */}
+      <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16 space-y-8">
+        <div className="text-center space-y-4 max-w-3xl mx-auto">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary border border-primary/20 animate-fade-in">
+            <Sparkles className="h-3.5 w-3.5" />
+            <span>{t('landing.hero.badge')}</span>
+          </div>
+
+          <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-foreground leading-[1.15]">
+            {t('landing.hero.title')}
+          </h1>
+
+          <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+            {t('landing.hero.subtitle')}
+          </p>
+        </div>
+
+        {/* Quota Banner: Authenticated vs Guest */}
+        {currentUser ? (
+          <div
+            data-testid="user-quota-banner"
+            className="max-w-5xl mx-auto rounded-xl border border-primary/30 bg-primary/10 p-4 flex items-center justify-between gap-4 text-xs sm:text-sm text-foreground shadow-sm"
+          >
+            <div className="flex items-center gap-2.5">
+              <Sparkles className="h-4 w-4 text-primary shrink-0" />
+              <span>
+                {t('landing.quota.welcome')}, <strong>{currentUser.full_name || currentUser.email}</strong>! {t('landing.quota.remainingQuota')}{' '}
+                <strong>{currentUser.quota_remaining ?? currentUser.daily_quota ?? 9998}</strong> {t('landing.quota.recordingsUnit')}
+              </span>
+            </div>
+            <Link
+              href="/dashboard"
+              className="shrink-0 font-semibold text-primary hover:underline inline-flex items-center gap-1"
+            >
+              {t('landing.quota.userCta')} <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
+        ) : (
+          <div
+            data-testid="guest-quota-banner"
+            className="max-w-5xl mx-auto rounded-xl border border-primary/30 bg-primary/10 p-4 flex items-center justify-between gap-4 text-xs sm:text-sm text-foreground shadow-sm"
+          >
+            <div className="flex items-center gap-2.5">
+              <Info className="h-4 w-4 text-primary shrink-0" />
+              <span>
+                <strong>{t('landing.quota.guestBannerPrefix')}</strong> {t('landing.quota.guestBannerSuffix')}
+              </span>
+            </div>
+            <Link
+              href="/login"
+              className="shrink-0 font-semibold text-primary hover:underline inline-flex items-center gap-1"
+            >
+              {t('landing.quota.guestCta')} <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
+        )}
+
+        {/* Quota Exhaustion Alert */}
+        {quotaExhausted && (
+          <div
+            data-testid="quota-alert"
+            className="max-w-5xl mx-auto rounded-xl border border-destructive/30 bg-destructive/10 p-4 flex items-center gap-3 text-destructive text-xs sm:text-sm"
+          >
+            <AlertTriangle className="h-4 w-4 shrink-0" />
+            <div className="flex-1 leading-snug">
+              <strong>{t('landing.quota.exhaustedTitle')}</strong> {t('landing.quota.exhaustedUsage')}{' '}
+              <Link href="/login" className="underline font-semibold">
+                {t('landing.quota.loginText')}
+              </Link>{' '}
+              {t('landing.quota.orText')}{' '}
+              <Link href="/register" className="underline font-semibold">
+                {t('landing.quota.registerText')}
+              </Link>{' '}
+              {t('landing.quota.exhaustedSuffix')}
+            </div>
+          </div>
+        )}
+
+        {/* Generic Error Message */}
+        {errorMessage && !quotaExhausted && (
+          <div
+            data-testid="landing-error-message"
+            className="max-w-5xl mx-auto rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-destructive text-xs"
+          >
+            {errorMessage}
+          </div>
+        )}
+
+        {/* Ingestion Hub Card Container */}
+        <div className="max-w-5xl mx-auto rounded-2xl border border-border/80 bg-card p-5 sm:p-8 shadow-xl shadow-primary/5">
+          <Tabs
+            value={activeTab}
+            onValueChange={(val) => setActiveTab(val as typeof activeTab)}
+            className="w-full"
+          >
+            <TabsList className="grid grid-cols-4 w-full mb-6 h-11 p-1 bg-muted/60 border border-border/40">
+              <TabsTrigger
+                value="upload"
+                data-testid="tab-upload"
+                onClick={() => setActiveTab('upload')}
+                className="flex items-center justify-center gap-2 text-xs sm:text-sm font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm truncate min-w-0"
+              >
+                <UploadCloud className="h-4 w-4 shrink-0" />
+                <span className="hidden sm:inline">{t('landing.tabs.upload')}</span>
+                <span className="sm:hidden">{t('landing.tabs.uploadShort')}</span>
+              </TabsTrigger>
+              <TabsTrigger
+                value="url"
+                data-testid="tab-url"
+                onClick={() => setActiveTab('url')}
+                className="flex items-center justify-center gap-2 text-xs sm:text-sm font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm truncate min-w-0"
+              >
+                <LinkIcon className="h-4 w-4 shrink-0" />
+                <span className="hidden sm:inline">{t('landing.tabs.url')}</span>
+                <span className="sm:hidden">{t('landing.tabs.urlShort')}</span>
+              </TabsTrigger>
+              <TabsTrigger
+                value="record"
+                data-testid="tab-record"
+                onClick={() => setActiveTab('record')}
+                className="flex items-center justify-center gap-2 text-xs sm:text-sm font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm truncate min-w-0"
+              >
+                <Mic className="h-4 w-4 shrink-0" />
+                <span className="hidden sm:inline">{t('landing.tabs.record')}</span>
+                <span className="sm:hidden">{t('landing.tabs.recordShort')}</span>
+              </TabsTrigger>
+              <TabsTrigger
+                value="bot"
+                data-testid="tab-bot"
+                disabled
+                className="flex items-center justify-center gap-1.5 text-xs sm:text-sm font-medium opacity-60 cursor-not-allowed data-[state=active]:bg-background data-[state=active]:shadow-sm truncate min-w-0"
+              >
+                <Bot className="h-4 w-4 shrink-0" />
+                <span className="hidden sm:inline">{t('landing.tabs.bot')}</span>
+                <span className="sm:hidden">{t('landing.tabs.botShort')}</span>
+                <span className="hidden sm:inline-flex">
+                  <Badge
+                    variant="secondary"
+                    className="ml-1 text-[10px] px-1.5 py-0 font-normal tracking-wide bg-muted-foreground/15 text-muted-foreground border-transparent"
+                  >
+                    {t('landing.tabs.comingSoonBadge')}
+                  </Badge>
+                </span>
+              </TabsTrigger>
+            </TabsList>
+
+            {/* Tab 1: Upload File */}
+            <TabsContent value="upload" className="outline-none">
+              <UploadDropzone
+                maxSizeMB={currentUser?.max_file_size_mb ?? 500}
+                className="max-w-3xl"
+                onUploadFile={handleUploadFile}
+                onUploadComplete={handleUploadComplete}
+              />
+            </TabsContent>
+
+            {/* Tab 2: URL Import */}
+            <TabsContent value="url" className="outline-none">
+              <UrlImportForm
+                maxSizeMB={currentUser?.max_file_size_mb ?? 500}
+                className="max-w-3xl"
+                onSubmit={handleUrlImport}
+                isLoading={isUrlImporting}
+              />
+            </TabsContent>
+
+            {/* Tab 3: Live Browser Recording */}
+            <TabsContent value="record" className="outline-none">
+              <BrowserRecorder
+                className="max-w-3xl"
+                onProcessRecording={handleProcessLiveRecording}
+              />
+            </TabsContent>
+
+            {/* Tab 4: Meeting Voice Bot */}
+            <TabsContent value="bot" className="outline-none">
+              <div data-testid="voice-bot-tab-content">
+                {activeBotSession ? (
+                  <LiveBotTracker />
+                ) : (
+                  <MeetingBotForm />
+                )}
+              </div>
+            </TabsContent>
+          </Tabs>
+        </div>
+      </main>
+
+      {/* Global Application Footer */}
+      <Footer />
+    </div>
+  );
+};
+
