@@ -7,12 +7,14 @@ import type { MeetingSourceCitationDTO } from '@/server/dtos/workspace.dto';
 export interface UseRecordingChatStreamOptions {
   recordingId: string;
   recordingTitle?: string;
+  shareToken?: string;
   initialIsOpen?: boolean;
 }
 
 export function useRecordingChatStream({
   recordingId,
   recordingTitle = '',
+  shareToken,
   initialIsOpen = false,
 }: UseRecordingChatStreamOptions) {
   const [isChatOpen, setIsChatOpen] = useState<boolean>(initialIsOpen);
@@ -48,6 +50,9 @@ export function useRecordingChatStream({
         if (ownershipToken) {
           headers['x-ownership-token'] = ownershipToken;
         }
+        if (shareToken) {
+          headers['x-share-token'] = shareToken;
+        }
 
         const res = await fetch(`/api/recordings/${recordingId}/chat`, {
           method: 'POST',
@@ -55,6 +60,7 @@ export function useRecordingChatStream({
           body: JSON.stringify({
             message: text,
             ownership_token: ownershipToken,
+            share_token: shareToken,
             session_id: sessionId || undefined,
           }),
         });
@@ -72,6 +78,9 @@ export function useRecordingChatStream({
         const decoder = new TextDecoder();
         let buffer = '';
         let currentEventType = '';
+
+        const getSessionStorageKey = () =>
+          shareToken ? `youten_share_chat_session_${shareToken}` : `youten_chat_session_${recordingId}`;
 
         const processLine = (line: string) => {
           const trimmed = line.trim();
@@ -92,7 +101,7 @@ export function useRecordingChatStream({
               if (currentEventType === 'session' && data.session_id) {
                 setSessionId(data.session_id);
                 if (typeof window !== 'undefined') {
-                  localStorage.setItem(`youten_chat_session_${recordingId}`, data.session_id);
+                  localStorage.setItem(getSessionStorageKey(), data.session_id);
                 }
               } else if (currentEventType === 'token' && data.token) {
                 fullContent += data.token;
@@ -101,7 +110,7 @@ export function useRecordingChatStream({
                 if (data.session_id) {
                   setSessionId(data.session_id);
                   if (typeof window !== 'undefined') {
-                    localStorage.setItem(`youten_chat_session_${recordingId}`, data.session_id);
+                    localStorage.setItem(getSessionStorageKey(), data.session_id);
                   }
                 }
                 if (data.content && !fullContent) {
@@ -160,6 +169,7 @@ export function useRecordingChatStream({
     [
       recordingId,
       recordingTitle,
+      shareToken,
       sessionId,
       startAssistantStream,
       appendStreamChunk,
