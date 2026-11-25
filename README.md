@@ -75,6 +75,7 @@ Each atom is housed in its own dedicated kebab-case folder with an `index.ts` re
 | `Breadcrumb` | Hierarchy navigation trail with customizable root and current page |
 | `Callout` | Informational banners (`info`, `warning`, `success`, `danger`) |
 | `EmptyState` | Empty state placeholder with graphic icon, title, description, and action button |
+| `GuestWarningBanner` | Warning banner and account-claim CTA for unauthenticated/guest sessions |
 | `SearchInput` | Search input with icon and focus ring |
 | `StatCard` | KPI / metric card with trend indicators (up/down/neutral) and icon styling |
 | `StatusPill` | Pill badge displaying system health status (`online`, `busy`, `offline`, `warning`) |
@@ -87,12 +88,16 @@ Each atom is housed in its own dedicated kebab-case folder with an `index.ts` re
 | `Navbar` | Responsive top navigation bar with brand logo, links, status pill, and mobile toggle |
 | `Sidebar` | Dashboard / CMS sidebar navigation with active route detection and user profile card |
 | `Topbar` | Dashboard header with breadcrumb navigation and action controls |
+| `TranscriptCanvas` | Interactive transcript viewer with keyword search, speaker tags, and audio seek |
 
 ### 4. Templates (`src/components/templates/`)
 | Template | Description |
 |----------|-------------|
 | `AppLayout` | Customer / Web App layout with `Navbar`, dynamic content area, and footer |
 | `DashboardLayout` | Admin / Backoffice layout with `Sidebar`, `Topbar`, and scrollable viewport |
+| `RecordingDetailTemplate` | Full recording review canvas (Summary, Transcript, Chapters, Analytics, AI Chat) |
+
+> 💡 **Thin Page Invariant**: Route entry pages (`src/app/**/page.tsx`) must strictly remain lightweight wrappers (< 100 lines) delegating presentation to the Templates layer, with business logic decoupled into custom hooks and utilities.
 
 ---
 

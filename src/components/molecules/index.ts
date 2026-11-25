@@ -31,3 +31,4 @@ export * from './feedback-button';
 export * from './workspace-switcher';
 export * from './folder-sidebar';
 export * from './move-folder-dialog';
+export * from './guest-warning-banner';

@@ -77,14 +77,29 @@ This document defines the architectural invariants, conventions, and workflows f
   - Wrap API execution in `handleApiError(error, options)` (`src/server/errors/error-handler.ts`).
   - Unexpected internal crashes (e.g. database connection errors, stack traces) **MUST NEVER** leak to the client in production. They must be masked as generic `INTERNAL_SERVER_ERROR` with a correlated `requestId`.
 
-### 2.6. Atomic Design System Hierarchy
+### 2.6. Atomic Design System Hierarchy & Thin Page Invariant
 - Frontend components live in `src/components/` structured into 4 tiers:
   - `atoms/`: Fundamental primitives (`button`, `card`, `dialog`, `input`, etc.).
-  - `molecules/`: Simple compound components (`stat-card`, `status-pill`, `callout`, etc.).
-  - `organisms/`: Complex layouts (`navbar`, `sidebar`, `topbar`).
-  - `templates/`: Page skeletons (`app-layout`, `dashboard-layout`).
+  - `molecules/`: Simple compound components (`stat-card`, `status-pill`, `callout`, `guest-warning-banner`, etc.).
+  - `organisms/`: Complex layouts (`navbar`, `sidebar`, `topbar`, `transcript-canvas`, etc.).
+  - `templates/`: Page skeletons (`app-layout`, `dashboard-layout`, `recording-detail`).
 - **Folder Convention**: Every component must have its own dedicated folder in `kebab-case` with the component file and an `index.ts` re-export.
 - **Class Merging Utility**: Always import `cn` from `@/lib/utils` (`import { cn } from "@/lib/utils"`). Never install or import from an external `cn` package.
+
+#### Strictly Forbidden: Monolithic "God Component" Pages
+- Next.js App Router entry pages (`src/app/**/page.tsx`) **MUST REMAIN THIN WRAPPERS** (strictly `< 100` lines of code).
+- A `page.tsx` file must only:
+  1. Extract route parameters (`useParams`, `useSearchParams`, or RSC props).
+  2. Wire custom hooks or pass props to a dedicated **Template** component (`src/components/templates/`).
+- **NEVER** write inline layout hierarchies, raw HTML/JSX tags for banners, tab bodies, modals, or long handlers directly inside `page.tsx`.
+
+#### Strictly Forbidden: Ad-Hoc Inline Element Inventions
+- Never create raw inline elements (e.g. ad-hoc search bars, alert banners, custom chips) inside pages when an atomic component already exists or should be created.
+- Check existing `atoms/`, `molecules/`, and `organisms/` first before introducing new markup. If a new UI piece is required, extract it into its proper atomic tier.
+
+#### Separation of Concerns: Decoupled Hooks & Utilities
+- **Data Fetching**: Multi-effect API orchestration and caching belong in custom hooks (`src/hooks/use-*.ts`), not inlined into page components.
+- **Low-Level JS & DOM Behavior**: File exports/downloads (Blob, `URL.createObjectURL`, link clicks), SSE streaming readers, and complex transforms belong strictly in pure utilities (`src/lib/`) or custom hooks, keeping them 100% testable in isolation.
 
 ### 2.7. Client State Management (Zustand)
 - Client stores live in `src/stores/` (e.g. `src/stores/ui.store.ts`).
