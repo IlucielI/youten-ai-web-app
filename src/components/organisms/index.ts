@@ -18,3 +18,4 @@ export * from './footer';
 export * from './recording-header';
 export * from './feedback-dialog';
 export * from './workspace-settings-tab';
+export * from './transcript-canvas';
