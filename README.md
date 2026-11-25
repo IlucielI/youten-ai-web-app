@@ -95,9 +95,21 @@ Each atom is housed in its own dedicated kebab-case folder with an `index.ts` re
 |----------|-------------|
 | `AppLayout` | Customer / Web App layout with `Navbar`, dynamic content area, and footer |
 | `DashboardLayout` | Admin / Backoffice layout with `Sidebar`, `Topbar`, and scrollable viewport |
+| `DashboardTemplate` | Complete dashboard with 2-column recording grid, folder sidebar, and status pills |
 | `RecordingDetailTemplate` | Full recording review canvas (Summary, Transcript, Chapters, Analytics, AI Chat) |
+| `RecordingProcessingTemplate` | Live pipeline processing progress canvas with stage indicators |
+| `SharedRecordingTemplate` | Public shared recording viewer with export and isolated chat stream |
+| `SettingsTemplate` | Comprehensive user settings (Profile, Security, Workspaces) |
+| `LandingTemplate` | Landing page hero and unified ingestion hub (Upload, URL, Record, Bot) |
+| `GoogleCalendarCallbackTemplate` | Google Calendar OAuth callback status confirmation view |
+| `LoginTemplate` | Authentication sign-in form with guest session claiming |
+| `RegisterTemplate` | New user registration form |
+| `ForgotPasswordTemplate` | Password reset request form |
+| `ResetPasswordTemplate` | Secure password reset form with token validation |
+| `VerifyEmailTemplate` | 6-digit OTP and magic token email verification canvas |
+| `WorkspaceInvitationTemplate` | Team collaboration workspace invitation acceptance canvas |
 
-> 💡 **Thin Page Invariant**: Route entry pages (`src/app/**/page.tsx`) must strictly remain lightweight wrappers (< 100 lines) delegating presentation to the Templates layer, with business logic decoupled into custom hooks and utilities.
+> 💡 **Thin Page Invariant**: Route entry pages (`src/app/**/page.tsx`) must strictly remain lightweight wrappers (< 100 lines, target < 25 lines) delegating presentation to the Templates layer, with stateful logic decoupled into custom hooks (`src/hooks/`) and DOM/API utilities (`src/lib/`).
 
 ---
 
