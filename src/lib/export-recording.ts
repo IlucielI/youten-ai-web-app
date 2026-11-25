@@ -1,12 +1,47 @@
 import { ExportFormat } from '@/server/constants/recording.constant';
-import { RecordingDetailDto } from '@/server/schemas/recording.schema';
 import { SummaryData } from '@/components/organisms/summary-viewer';
 import { formatTime } from '@/lib/time';
+
+export interface ExportableSegment {
+  speaker_name?: string | null;
+  speaker_label?: string | null;
+  start_time?: number;
+  end_time?: number;
+  text?: string;
+}
+
+export interface ExportableChapter {
+  title?: string | null;
+  start_time?: number;
+  end_time?: number;
+  summary?: string | null;
+}
+
+export interface ExportableHighlight {
+  title?: string | null;
+  start_time?: number;
+  end_time?: number;
+  source?: string | null;
+}
+
+export interface ExportableSummary {
+  markdown_content?: string | null;
+}
+
+export interface ExportableRecording {
+  title: string;
+  duration_seconds?: number;
+  created_at?: string;
+  active_summary?: ExportableSummary | null;
+  segments?: ExportableSegment[];
+  chapters?: ExportableChapter[];
+  highlights?: ExportableHighlight[];
+}
 
 export interface ExportRecordingOptions {
   recordingId: string;
   format: ExportFormat;
-  recording: RecordingDetailDto;
+  recording: ExportableRecording;
   activeSummaryData?: SummaryData | null;
   speakerLabels?: Record<string, string>;
   ownershipToken?: string;
@@ -106,9 +141,12 @@ export async function exportRecordingFile({
           (recording.segments || [])
             .map(
               (s) =>
-                `[${formatTime(s.start_time)}] ${
-                  speakerLabels[s.speaker_label] || s.speaker_name || s.speaker_label
-                }: ${s.text}`
+                `[${formatTime(s.start_time ?? 0)}] ${
+                  (s.speaker_label && speakerLabels[s.speaker_label]) ||
+                  s.speaker_name ||
+                  s.speaker_label ||
+                  'Speaker'
+                }: ${s.text || ''}`
             )
             .join('\n');
       } else if (format === ExportFormat.JSON) {
