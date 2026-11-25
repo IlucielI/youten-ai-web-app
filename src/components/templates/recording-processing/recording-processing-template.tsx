@@ -113,7 +113,7 @@ export const RecordingProcessingTemplate: React.FC<RecordingProcessingTemplatePr
                 </h1>
                 <p className="text-xs text-muted-foreground flex items-center gap-1.5 mt-0.5">
                   <Sparkles className="w-3.5 h-3.5 text-primary shrink-0" />
-                  <span>AI Diarization &amp; Intelligent Synthesis</span>
+                  <span>AI-Powered Diarization &amp; Intelligent Synthesis</span>
                 </p>
               </div>
             </div>
