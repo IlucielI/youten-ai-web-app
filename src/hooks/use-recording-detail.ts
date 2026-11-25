@@ -156,6 +156,7 @@ export function useRecordingDetail(recordingId: string) {
             { headers: chatHeaders }
           )
             .then((chatRes) => {
+              if (!isMounted) return;
               if (chatRes && chatRes.data && Array.isArray(chatRes.data) && chatRes.data.length > 0) {
                 setMessages(
                   chatRes.data.map((m) => ({

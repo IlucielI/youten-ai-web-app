@@ -107,4 +107,20 @@ describe('export-recording utility', () => {
     expect(revokeObjectUrlSpy).toHaveBeenCalled();
     expect(onSuccess).toHaveBeenCalledWith(ExportFormat.TXT);
   });
+
+  it('rejects DOCX export when backend fails instead of corrupted fallback', async () => {
+    vi.spyOn(globalThis, 'fetch').mockRejectedValueOnce(new Error('Backend 500'));
+    const onError = vi.fn();
+
+    await expect(
+      exportRecordingFile({
+        recordingId: 'rec-test-1',
+        format: ExportFormat.DOCX,
+        recording: mockRecording,
+        onError,
+      })
+    ).rejects.toThrow(/requires backend processing/);
+
+    expect(onError).toHaveBeenCalled();
+  });
 });

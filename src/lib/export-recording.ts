@@ -89,6 +89,12 @@ export async function exportRecordingFile({
     onSuccess?.(format);
   } catch (err: unknown) {
     console.warn('Backend export failed, falling back to local exporter:', err);
+    if (format === ExportFormat.DOCX || format === ExportFormat.PDF) {
+      const error = new Error(`Export format ${format} requires backend processing and is unavailable offline.`);
+      onError?.(error);
+      throw error;
+    }
+
     try {
       const ext = format === ExportFormat.MARKDOWN ? 'md' : format;
       const filename = `${recording.title.replace(/[^a-zA-Z0-9_-]/g, '_')}.${ext}`;
