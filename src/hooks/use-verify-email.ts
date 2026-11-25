@@ -27,6 +27,16 @@ export function useVerifyEmail() {
   const [isResending, setIsResending] = useState(false);
 
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const redirectTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Clear pending timers on unmount
+  useEffect(() => {
+    return () => {
+      if (redirectTimerRef.current) {
+        clearTimeout(redirectTimerRef.current);
+      }
+    };
+  }, []);
 
   // Cooldown countdown timer
   useEffect(() => {
@@ -67,7 +77,8 @@ export function useVerifyEmail() {
             await claimSingleRecording(claimId);
           }
 
-          setTimeout(() => {
+          if (!isMounted) return;
+          redirectTimerRef.current = setTimeout(() => {
             if (claimId) {
               router.push(`/recordings/${claimId}`);
             } else {
@@ -90,9 +101,12 @@ export function useVerifyEmail() {
       }
     };
 
-    verifyMagicToken();
+    void verifyMagicToken();
     return () => {
       isMounted = false;
+      if (redirectTimerRef.current) {
+        clearTimeout(redirectTimerRef.current);
+      }
     };
   }, [rawToken, router, claimId, t]);
 
@@ -136,7 +150,7 @@ export function useVerifyEmail() {
             await claimSingleRecording(claimId);
           }
 
-          setTimeout(() => {
+          redirectTimerRef.current = setTimeout(() => {
             if (claimId) {
               router.push(`/recordings/${claimId}`);
             } else {
@@ -264,4 +278,3 @@ export function useVerifyEmail() {
     handleResend,
   };
 }
-

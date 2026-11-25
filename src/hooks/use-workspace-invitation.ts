@@ -18,7 +18,11 @@ export function useWorkspaceInvitation() {
   const [accepted, setAccepted] = useState(false);
 
   useEffect(() => {
-    if (!token) return;
+    if (!token) {
+      setLoading(false);
+      setError('Invitation token is missing.');
+      return;
+    }
 
     let isMounted = true;
     apiFetch<ApiResponse<WorkspaceInvitationDTO>>(`/api/workspaces/invitations/${token}`)
@@ -88,4 +92,3 @@ export function useWorkspaceInvitation() {
     handleAccept,
   };
 }
-

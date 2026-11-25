@@ -8,6 +8,13 @@ import { useAuthStore } from '@/stores/auth.store';
 import { useTranslation } from '@/locales';
 import { toast } from 'sonner';
 
+function getSafeRedirectUrl(target: string | null | undefined, fallback = '/dashboard'): string {
+  if (target && target.startsWith('/') && !target.startsWith('//')) {
+    return target;
+  }
+  return fallback;
+}
+
 export function useRegisterForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -23,18 +30,16 @@ export function useRegisterForm() {
 
   // Prevent authenticated users from seeing the registration screen again
   useEffect(() => {
-    const hasRedirect = searchParams.get('redirect') || searchParams.get('from');
-    if (hasRedirect) {
-      useAuthStore.getState().setUser(null);
-      return;
-    }
-
     const user = useAuthStore.getState().user;
     if (user) {
+      const destination = getSafeRedirectUrl(
+        searchParams.get('redirect') || searchParams.get('from'),
+        '/dashboard'
+      );
       if (typeof router.replace === 'function') {
-        router.replace('/dashboard');
+        router.replace(destination);
       } else {
-        router.push('/dashboard');
+        router.push(destination);
       }
     }
   }, [router, searchParams]);
@@ -103,4 +108,3 @@ export function useRegisterForm() {
     handleSubmit,
   };
 }
-

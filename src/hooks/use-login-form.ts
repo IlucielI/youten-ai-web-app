@@ -8,6 +8,13 @@ import { useTokenStore } from '@/stores/token.store';
 import { useAuthStore } from '@/stores/auth.store';
 import { useTranslation } from '@/locales';
 
+function getSafeRedirectUrl(target: string | null | undefined, fallback = '/dashboard'): string {
+  if (target && target.startsWith('/') && !target.startsWith('//')) {
+    return target;
+  }
+  return fallback;
+}
+
 export function useLoginForm() {
   const router = useRouter();
   const { t, locale } = useTranslation();
@@ -24,18 +31,16 @@ export function useLoginForm() {
 
   // Prevent authenticated users from seeing the login screen again
   useEffect(() => {
-    const hasRedirect = searchParams.get('redirect') || searchParams.get('from');
-    if (hasRedirect) {
-      useAuthStore.getState().setUser(null);
-      return;
-    }
-
     const user = useAuthStore.getState().user;
     if (user) {
+      const destination = getSafeRedirectUrl(
+        searchParams.get('redirect') || searchParams.get('from'),
+        '/dashboard'
+      );
       if (typeof router.replace === 'function') {
-        router.replace('/dashboard');
+        router.replace(destination);
       } else {
-        router.push('/dashboard');
+        router.push(destination);
       }
     }
   }, [router, searchParams]);
@@ -76,8 +81,9 @@ export function useLoginForm() {
             await claimSingleRecording(claimId);
             router.push(`/recordings/${claimId}`);
           } else {
-            const redirectTo = searchParams.get('redirect') || searchParams.get('from');
-            router.push(redirectTo || '/');
+            const rawRedirect = searchParams.get('redirect') || searchParams.get('from');
+            const safeDestination = getSafeRedirectUrl(rawRedirect, '/');
+            router.push(safeDestination);
           }
         } else {
           setErrorMessage(
@@ -138,4 +144,3 @@ export function useLoginForm() {
     handleSubmit,
   };
 }
-
