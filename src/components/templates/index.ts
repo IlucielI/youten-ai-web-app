@@ -3,4 +3,5 @@ export * from './dashboard';
 export * from './dashboard-layout';
 export * from './recording-detail';
 export * from './recording-processing';
+export * from './settings';
 export * from './shared-recording';
