@@ -151,7 +151,7 @@ export const RecordingCard: React.FC<RecordingCardProps> = ({
       data-testid={`recording-card-${recording.id}`}
       className={`group bg-card text-card-foreground rounded-2xl border border-border hover:border-primary/60 shadow-xs hover:shadow-md transition-all duration-200 flex flex-col justify-between p-5 relative overflow-hidden ${className}`}
     >
-      {/* Top Header: Template, Folder, Status Pill & Menu */}
+      {/* Top Header: Template, Folder & Menu */}
       <div className="flex items-center justify-between gap-2 mb-3">
         <div className="flex items-center gap-1.5 flex-wrap min-w-0">
           <Badge
@@ -173,56 +173,53 @@ export const RecordingCard: React.FC<RecordingCardProps> = ({
           )}
         </div>
 
-        <div className="flex items-center gap-1.5 shrink-0">
-          <StatusPill label={pillConfig.label} status={pillConfig.status} className="px-2.5 py-1 text-[11px]" />
-          <DropdownMenu open={open} onOpenChange={onOpenChange}>
-            <DropdownMenuTrigger
-              aria-label={`Menu pilihan untuk ${recording.title}`}
-              className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors focus:outline-none"
-            >
-              <MoreVertical className="w-4 h-4" />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-44 border-border bg-popover text-popover-foreground">
-              <DropdownMenuItem asChild>
-                <Link
-                  href={`/recordings/${recording.id}`}
-                  className="flex items-center gap-2 cursor-pointer text-foreground hover:bg-muted"
-                >
-                  <ExternalLink className="w-4 h-4 text-muted-foreground" />
-                  <span>{t('dashboard.table.viewDetail')}</span>
-                </Link>
+        <DropdownMenu open={open} onOpenChange={onOpenChange}>
+          <DropdownMenuTrigger
+            aria-label={`Menu pilihan untuk ${recording.title}`}
+            className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors focus:outline-none"
+          >
+            <MoreVertical className="w-4 h-4" />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-44 border-border bg-popover text-popover-foreground">
+            <DropdownMenuItem asChild>
+              <Link
+                href={`/recordings/${recording.id}`}
+                className="flex items-center gap-2 cursor-pointer text-foreground hover:bg-muted"
+              >
+                <ExternalLink className="w-4 h-4 text-muted-foreground" />
+                <span>{t('dashboard.table.viewDetail')}</span>
+              </Link>
+            </DropdownMenuItem>
+            {onShare && (
+              <DropdownMenuItem
+                onClick={() => onShare(recording)}
+                className="flex items-center gap-2 cursor-pointer text-foreground hover:bg-muted"
+              >
+                <Share2 className="w-4 h-4 text-muted-foreground" />
+                <span>{t('dashboard.table.share')}</span>
               </DropdownMenuItem>
-              {onShare && (
-                <DropdownMenuItem
-                  onClick={() => onShare(recording)}
-                  className="flex items-center gap-2 cursor-pointer text-foreground hover:bg-muted"
-                >
-                  <Share2 className="w-4 h-4 text-muted-foreground" />
-                  <span>{t('dashboard.table.share')}</span>
-                </DropdownMenuItem>
-              )}
-              {onMoveFolder && (
-                <DropdownMenuItem
-                  onClick={() => onMoveFolder(recording)}
-                  className="flex items-center gap-2 cursor-pointer text-foreground hover:bg-muted"
-                >
-                  <Folder className="w-4 h-4 text-muted-foreground" />
-                  <span>Move to Folder</span>
-                </DropdownMenuItem>
-              )}
-              <DropdownMenuSeparator className="bg-border" />
-              {onDelete && (
-                <DropdownMenuItem
-                  onClick={() => onDelete(recording)}
-                  className="flex items-center gap-2 text-destructive focus:text-destructive hover:bg-destructive/10 cursor-pointer"
-                >
-                  <Trash2 className="w-4 h-4 text-destructive" />
-                  <span>{t('dashboard.table.delete')}</span>
-                </DropdownMenuItem>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+            )}
+            {onMoveFolder && (
+              <DropdownMenuItem
+                onClick={() => onMoveFolder(recording)}
+                className="flex items-center gap-2 cursor-pointer text-foreground hover:bg-muted"
+              >
+                <Folder className="w-4 h-4 text-muted-foreground" />
+                <span>Move to Folder</span>
+              </DropdownMenuItem>
+            )}
+            <DropdownMenuSeparator className="bg-border" />
+            {onDelete && (
+              <DropdownMenuItem
+                onClick={() => onDelete(recording)}
+                className="flex items-center gap-2 text-destructive focus:text-destructive hover:bg-destructive/10 cursor-pointer"
+              >
+                <Trash2 className="w-4 h-4 text-destructive" />
+                <span>{t('dashboard.table.delete')}</span>
+              </DropdownMenuItem>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       {/* Main Info */}
@@ -238,11 +235,13 @@ export const RecordingCard: React.FC<RecordingCardProps> = ({
           <span className="truncate" title={recording.original_filename}>
             {recording.original_filename}
           </span>
+          <span className="shrink-0 text-muted-foreground/60">•</span>
+          <span className="shrink-0 whitespace-nowrap font-medium">{fileSizeDisplay}</span>
         </div>
       </div>
 
       {/* Metadata footer */}
-      <div className="pt-3 border-t border-border/80 flex items-center justify-between text-xs text-muted-foreground gap-2">
+      <div className="pt-3 border-t border-border/80 flex flex-wrap items-center justify-between text-xs text-muted-foreground gap-2">
         <div className="flex items-center gap-3 min-w-0">
           <span className="inline-flex items-center gap-1.5 shrink-0 whitespace-nowrap">
             <Calendar className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
@@ -254,9 +253,9 @@ export const RecordingCard: React.FC<RecordingCardProps> = ({
           </span>
         </div>
 
-        <span className="shrink-0 whitespace-nowrap font-medium text-muted-foreground">
-          {fileSizeDisplay}
-        </span>
+        <div className="shrink-0">
+          <StatusPill label={pillConfig.label} status={pillConfig.status} />
+        </div>
       </div>
     </div>
   );
