@@ -28,6 +28,11 @@ fi
 # 2. Build multi-arch application image
 echo "==> Building multi-arch application image (${PLATFORMS}) with tag: ${IMAGE_TAG}..."
 
+EXTRA_TAG_ARGS=""
+if [ "$ACTION" != "--push" ]; then
+  EXTRA_TAG_ARGS="-t code-base-nextjs:latest"
+fi
+
 docker buildx build \
   --builder "$BUILDER" \
   --platform "$PLATFORMS" \
@@ -37,7 +42,7 @@ docker buildx build \
   $ACTION \
   -f deployment/Dockerfile \
   -t "$IMAGE_TAG" \
-  -t "code-base-nextjs:latest" \
+  $EXTRA_TAG_ARGS \
   .
 
 echo "==> Successfully built ${IMAGE_TAG} for ${PLATFORMS}"
