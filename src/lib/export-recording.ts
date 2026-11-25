@@ -114,7 +114,10 @@ export async function exportRecordingFile({
       } else if (format === ExportFormat.JSON) {
         content = JSON.stringify(recording, null, 2);
       } else {
-        content = recording.active_summary?.markdown_content || recording.title;
+        content =
+          activeSummaryData?.markdown_content ||
+          recording.active_summary?.markdown_content ||
+          recording.title;
       }
 
       const mimeType =
@@ -140,6 +143,13 @@ function downloadBlob(blob: Blob, filename: string): void {
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
-  URL.revokeObjectURL(url);
+
+  if (typeof window !== 'undefined') {
+    window.setTimeout(() => {
+      URL.revokeObjectURL(url);
+    }, 1000);
+  } else {
+    URL.revokeObjectURL(url);
+  }
 }
 

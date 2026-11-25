@@ -38,7 +38,7 @@ export const TranscriptCanvas: React.FC<TranscriptCanvasProps> = ({
     if (!segments || segments.length === 0) return [];
     if (!transcriptSearch.trim()) return segments;
 
-    const query = transcriptSearch.toLowerCase();
+    const query = transcriptSearch.trim().toLowerCase();
     return segments.filter(
       (s) =>
         s.text.toLowerCase().includes(query) ||

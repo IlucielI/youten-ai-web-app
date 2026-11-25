@@ -71,56 +71,73 @@ export function useRecordingChatStream({
         const reader = res.body.getReader();
         const decoder = new TextDecoder();
         let buffer = '';
+        let currentEventType = '';
+
+        const processLine = (line: string) => {
+          const trimmed = line.trim();
+          if (!trimmed) {
+            currentEventType = '';
+            return;
+          }
+          if (trimmed.startsWith('event:')) {
+            currentEventType = trimmed.slice(6).trim();
+            return;
+          }
+          if (trimmed.startsWith('data:')) {
+            const rawData = trimmed.slice(5).trim();
+            if (!rawData) return;
+
+            try {
+              const data = JSON.parse(rawData);
+              if (currentEventType === 'session' && data.session_id) {
+                setSessionId(data.session_id);
+                if (typeof window !== 'undefined') {
+                  localStorage.setItem(`youten_chat_session_${recordingId}`, data.session_id);
+                }
+              } else if (currentEventType === 'token' && data.token) {
+                fullContent += data.token;
+                appendStreamChunk(data.token);
+              } else if (currentEventType === 'done') {
+                if (data.session_id) {
+                  setSessionId(data.session_id);
+                  if (typeof window !== 'undefined') {
+                    localStorage.setItem(`youten_chat_session_${recordingId}`, data.session_id);
+                  }
+                }
+                if (data.content && !fullContent) {
+                  fullContent = data.content;
+                }
+                if (Array.isArray(data.citations)) {
+                  rawCitations = data.citations;
+                }
+              } else if (currentEventType === 'error') {
+                throw new Error(data.error || 'Terjadi kesalahan pada respon AI');
+              }
+            } catch (parseErr) {
+              if (currentEventType === 'error') throw parseErr;
+            }
+          }
+        };
 
         while (true) {
           const { value, done } = await reader.read();
-          if (done) break;
+          if (done) {
+            buffer += decoder.decode();
+            if (buffer.trim()) {
+              const remainingLines = buffer.split('\n');
+              for (const line of remainingLines) {
+                processLine(line);
+              }
+            }
+            break;
+          }
 
           buffer += decoder.decode(value, { stream: true });
           const lines = buffer.split('\n');
           buffer = lines.pop() || '';
 
-          for (let i = 0; i < lines.length; i++) {
-            const line = lines[i]?.trim() || '';
-            if (line.startsWith('event:')) {
-              const eventType = line.slice(6).trim();
-              const nextLine = lines[i + 1]?.trim() || '';
-              if (nextLine.startsWith('data:')) {
-                i++;
-                const rawData = nextLine.slice(5).trim();
-                if (!rawData) continue;
-
-                try {
-                  const data = JSON.parse(rawData);
-                  if (eventType === 'session' && data.session_id) {
-                    setSessionId(data.session_id);
-                    if (typeof window !== 'undefined') {
-                      localStorage.setItem(`youten_chat_session_${recordingId}`, data.session_id);
-                    }
-                  } else if (eventType === 'token' && data.token) {
-                    fullContent += data.token;
-                    appendStreamChunk(data.token);
-                  } else if (eventType === 'done') {
-                    if (data.session_id) {
-                      setSessionId(data.session_id);
-                      if (typeof window !== 'undefined') {
-                        localStorage.setItem(`youten_chat_session_${recordingId}`, data.session_id);
-                      }
-                    }
-                    if (data.content && !fullContent) {
-                      fullContent = data.content;
-                    }
-                    if (Array.isArray(data.citations)) {
-                      rawCitations = data.citations;
-                    }
-                  } else if (eventType === 'error') {
-                    throw new Error(data.error || 'Terjadi kesalahan pada respon AI');
-                  }
-                } catch (parseErr) {
-                  if (eventType === 'error') throw parseErr;
-                }
-              }
-            }
+          for (const line of lines) {
+            processLine(line);
           }
         }
 

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { exportRecordingFile, getStoredGuestToken } from './export-recording';
 import { ExportFormat } from '@/server/constants/recording.constant';
 import type { RecordingDetailDto } from '@/server/schemas/recording.schema';
@@ -47,6 +47,11 @@ const mockRecording: RecordingDetailDto = {
 describe('export-recording utility', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it('retrieves guest token from localStorage when present', () => {
@@ -85,6 +90,7 @@ describe('export-recording utility', () => {
     });
 
     expect(createObjectUrlSpy).toHaveBeenCalled();
+    vi.advanceTimersByTime(1000);
     expect(revokeObjectUrlSpy).toHaveBeenCalled();
     expect(onSuccess).toHaveBeenCalledWith(ExportFormat.PDF);
   });
@@ -104,6 +110,7 @@ describe('export-recording utility', () => {
     });
 
     expect(createObjectUrlSpy).toHaveBeenCalled();
+    vi.advanceTimersByTime(1000);
     expect(revokeObjectUrlSpy).toHaveBeenCalled();
     expect(onSuccess).toHaveBeenCalledWith(ExportFormat.TXT);
   });
