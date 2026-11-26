@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useChatStore } from '@/stores/chat.store';
 import { useTokenStore } from '@/stores/token.store';
+import { fetchWithAuth } from '@/lib/api-client';
 import { parseTimestamp } from '@/lib/time';
 import type { MeetingSourceCitationDTO } from '@/server/dtos/workspace.dto';
 
@@ -24,6 +25,7 @@ export function useRecordingChatStream({
   const startAssistantStream = useChatStore((state) => state.startAssistantStream);
   const appendStreamChunk = useChatStore((state) => state.appendStreamChunk);
   const finalizeAssistantMessage = useChatStore((state) => state.finalizeAssistantMessage);
+  const discardFailedStream = useChatStore((state) => state.discardFailedStream);
   const setChatError = useChatStore((state) => state.setChatError);
 
   const toggleChat = useCallback(() => {
@@ -54,7 +56,7 @@ export function useRecordingChatStream({
           headers['x-share-token'] = shareToken;
         }
 
-        const res = await fetch(`/api/recordings/${recordingId}/chat`, {
+        const res = await fetchWithAuth(`/api/recordings/${recordingId}/chat`, {
           method: 'POST',
           headers,
           body: JSON.stringify({
@@ -162,8 +164,12 @@ export function useRecordingChatStream({
         finalizeAssistantMessage(assistantMsgId, fullContent, mappedCitations);
       } catch (err: unknown) {
         const errMsg = err instanceof Error ? err.message : 'Terjadi kesalahan koneksi AI';
+        if (fullContent.trim()) {
+          finalizeAssistantMessage(assistantMsgId, fullContent);
+        } else {
+          discardFailedStream(assistantMsgId);
+        }
         setChatError(errMsg);
-        finalizeAssistantMessage(assistantMsgId, fullContent);
       }
     },
     [
@@ -175,6 +181,7 @@ export function useRecordingChatStream({
       appendStreamChunk,
       setSessionId,
       finalizeAssistantMessage,
+      discardFailedStream,
       setChatError,
     ]
   );

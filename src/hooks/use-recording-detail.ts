@@ -32,6 +32,10 @@ export function useRecordingDetail(recordingId: string) {
   });
 
   const { t, locale } = useTranslation();
+  const localeRef = useRef(locale);
+  useEffect(() => {
+    localeRef.current = locale;
+  }, [locale]);
 
   const [recording, setRecording] = useState<RecordingDetailDto | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -80,21 +84,28 @@ export function useRecordingDetail(recordingId: string) {
   const setSessionId = useChatStore((state) => state.setSessionId);
   const setMessages = useChatStore((state) => state.setMessages);
 
-  // Check auth for guest claim
+  // Check authenticated user profile after recording loads (used for guest claim UI & Pro PDF export gating)
+  const loadedRecordingId = recording?.id;
   useEffect(() => {
-    if (!recording?.is_guest) return;
+    if (!loadedRecordingId) return;
+    let mounted = true;
     apiFetch<ApiResponse<UserProfileResponse>>('/api/auth/me')
       .then((res) => {
+        if (!mounted) return;
         if (res && (res.status === 'success' || (res.status as string) === 'SUCCESS') && res.data) {
           setIsLoggedIn(true);
           setCurrentUser(res.data);
         }
       })
       .catch(() => {
+        if (!mounted) return;
         setIsLoggedIn(false);
         setCurrentUser(null);
       });
-  }, [recording?.is_guest]);
+    return () => {
+      mounted = false;
+    };
+  }, [loadedRecordingId]);
 
   const handleManualClaim = useCallback(async () => {
     if (!recording) return;
@@ -118,7 +129,7 @@ export function useRecordingDetail(recordingId: string) {
       .then((res) => {
         if (!isMounted) return;
         if (!res.data) {
-          throw new Error(locale === 'en' ? 'Recording data not found.' : 'Data rekaman tidak ditemukan.');
+          throw new Error(localeRef.current === 'en' ? 'Recording data not found.' : 'Data rekaman tidak ditemukan.');
         }
 
         const data = res.data;
@@ -279,7 +290,7 @@ export function useRecordingDetail(recordingId: string) {
         const msg =
           err instanceof Error
             ? err.message
-            : locale === 'en'
+            : localeRef.current === 'en'
             ? 'Failed to load recording details.'
             : 'Gagal memuat detail rekaman.';
         setErrorMessage(msg);
@@ -288,7 +299,7 @@ export function useRecordingDetail(recordingId: string) {
     return () => {
       isMounted = false;
     };
-  }, [recordingId, setAudioUrl, setRecordingIdChat, setSessionId, setMessages, locale]);
+  }, [recordingId, setAudioUrl, setRecordingIdChat, setSessionId, setMessages]);
 
   // Handle speaker rename
   const handleSaveSpeakerLabel = useCallback(
@@ -321,8 +332,14 @@ export function useRecordingDetail(recordingId: string) {
           method: 'PUT',
           body: JSON.stringify({ speakers: updated }),
         });
-      } catch {
-        // Graceful fallback
+      } catch (err: unknown) {
+        const msg =
+          err instanceof Error
+            ? err.message
+            : localeRef.current === 'en'
+            ? 'Failed to save speaker label'
+            : 'Gagal menyimpan nama pembicara';
+        toast.error(msg);
       }
     },
     [recording, recordingId, speakerLabels]
@@ -605,22 +622,14 @@ export function useRecordingDetail(recordingId: string) {
       const ownershipToken = getStoredGuestToken(recordingId);
 
       try {
-        const res = await fetch(`/api/recordings/${recordingId}/segments/${segmentId}`, {
+        await apiFetch(`/api/recordings/${recordingId}/segments/${segmentId}`, {
           method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-            ...(ownershipToken ? { 'x-ownership-token': ownershipToken } : {}),
-          },
+          headers: ownershipToken ? { 'x-ownership-token': ownershipToken } : undefined,
           body: JSON.stringify({
             text: newText,
             ownership_token: ownershipToken,
           }),
         });
-
-        if (!res.ok) {
-          const errJson = await res.json().catch(() => ({}));
-          throw new Error(errJson.message || 'Gagal menyimpan perubahan teks');
-        }
 
         setRecording((prev) => {
           if (!prev) return prev;

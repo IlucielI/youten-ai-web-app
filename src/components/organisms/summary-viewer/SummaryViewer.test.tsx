@@ -655,4 +655,58 @@ Peran individu terhadap negara dan organisasi.
     // Ensure raw JSON brackets do not leak
     expect(screen.queryByText(/\{"custom_topic"/)).not.toBeInTheDocument();
   });
+
+  it('repairs malformed MOM JSON syntax typo in markdown_content and renders MomRenderer', () => {
+    const malformedMomJson = `{
+      "meeting_title": "Alignin TICS NBS x INSIGNIA",
+      "meeting_goal": "Menyepakati arsitektur AWS",
+      "executive_summary": "Finalisasi arsitektur Silver-Gold Layer.",
+      "meeting_dynamics": {
+        "speaker_talk_time": [{"speaker": "Ki", "percentage": 43.1, "duration_minutes": 25}],
+        "consensus_score": "85%",
+        "sentiment_trajectory": "Kolaboratif"
+      ],
+      "stakeholder_perspectives": {
+        "executive_brief": "Governance AWS terjaga.",
+        "engineering_focus": "ClickHouse + S3 Parquet.",
+        "product_delivery": "100% migrasi tracker."
+      },
+      "key_decisions": [
+        {
+          "decision": "Gunakan 3 EC2 instance",
+          "root_cause_trigger": "Keamanan cloud",
+          "contested_points": "On-prem vs EC2",
+          "quantitative_impact": "3 instance",
+          "approved_by": "Pak Oka"
+        }
+      ],
+      "action_items": [
+        {
+          "task": "Tarik sampel data S3",
+          "pic": "Alfan",
+          "due_date": "Segera",
+          "priority": "P0",
+          "definition_of_done": "Sampel diterima",
+          "cost_of_inaction": "Blocked"
+        }
+      ],
+      "open_issues": ["Kredensial AWS belum dibuka"],
+      "next_meeting": "Evaluasi staging"
+    }`;
+
+    render(
+      <SummaryViewer
+        summary={{
+          template_category: TemplateKey.MOM,
+          structured_data: {},
+          markdown_content: malformedMomJson,
+        }}
+      />
+    );
+
+    expect(screen.getByTestId('mom-summary-renderer')).toBeInTheDocument();
+    expect(screen.getByText('Alignin TICS NBS x INSIGNIA')).toBeInTheDocument();
+    expect(screen.getByText('Tarik sampel data S3')).toBeInTheDocument();
+    expect(screen.queryByText(/"meeting_title"/)).not.toBeInTheDocument();
+  });
 });

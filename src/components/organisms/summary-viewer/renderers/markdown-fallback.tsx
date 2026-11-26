@@ -6,6 +6,7 @@ import remarkGfm from 'remark-gfm';
 import { Card, CardContent } from '@/components/atoms/card';
 import { FileText, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { repairAndParseJsonObject } from '@/lib/json-repair';
 import { useTranslation } from '@/locales';
 
 export interface MarkdownFallbackProps {
@@ -180,26 +181,12 @@ export function formatJSONAsMarkdown(data: Record<string, unknown>): string {
  */
 export function cleanMarkdownContent(raw: string): string {
   if (!raw) return '';
-  const trimmed = raw.trim();
 
-  // Failsafe: if raw string is JSON, format it cleanly as Markdown
-  if (
-    (trimmed.startsWith('{') && trimmed.endsWith('}')) ||
-    (trimmed.startsWith('```json') && trimmed.includes('{')) ||
-    (trimmed.startsWith('```') && trimmed.includes('{'))
-  ) {
-    try {
-      const jsonStr = trimmed.startsWith('```')
-        ? trimmed.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '')
-        : trimmed;
-      const parsed = JSON.parse(jsonStr);
-      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
-        const formatted = formatJSONAsMarkdown(parsed as Record<string, unknown>);
-        if (formatted) return formatted;
-      }
-    } catch {
-      // ignore JSON parse error, proceed to standard cleaning
-    }
+  // Failsafe: if raw string is JSON (including slightly malformed LLM JSON), format it cleanly as Markdown
+  const parsed = repairAndParseJsonObject(raw);
+  if (parsed) {
+    const formatted = formatJSONAsMarkdown(parsed);
+    if (formatted) return formatted;
   }
 
   return raw

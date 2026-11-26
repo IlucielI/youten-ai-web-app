@@ -35,6 +35,7 @@ export interface ChatActions {
     fullContent?: string,
     citations?: MeetingSourceCitationDTO[]
   ) => void;
+  discardFailedStream: (id: string) => void;
   setChatError: (error: string | null) => void;
   clearChat: () => void;
 }
@@ -172,6 +173,19 @@ export const useChatStore = create<ChatStore>()(
           }),
           false,
           'chat/finalizeAssistantMessage'
+        );
+      },
+
+      discardFailedStream: (id: string) => {
+        set(
+          (state) => ({
+            isStreaming: false,
+            streamingContent: '',
+            streamingCitations: [],
+            messages: state.messages.filter((msg) => msg.id !== id),
+          }),
+          false,
+          'chat/discardFailedStream'
         );
       },
 

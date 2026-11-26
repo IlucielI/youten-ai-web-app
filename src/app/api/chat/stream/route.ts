@@ -1,8 +1,6 @@
 import { env, isTest } from '@/server/config';
 import { StreamWorkspaceChatSchema } from '@/server/schemas/workspace-chat.schema';
-import { AUTH_COOKIE_NAME, GUEST_COOKIE_NAME, WORKSPACE_COOKIE_NAME } from '@/server/constants';
-import { authRepository } from '@/server/repositories';
-import { cookies } from 'next/headers';
+import { resolveBffStreamAuth, unauthorizedRefreshResponse } from '@/server/utils/stream-auth';
 
 export async function POST(req: Request) {
   let bodyJson: unknown;
@@ -30,50 +28,19 @@ export async function POST(req: Request) {
   if (!isTest && !env.MOCK_CORE_API && env.CORE_API_URL) {
     const upstreamUrl = `${env.CORE_API_URL.replace(/\/$/, '')}/v1/chat/stream`;
 
+    const { headers: authHeaders, requiresRefresh } = await resolveBffStreamAuth({
+      req,
+      allowAnon: true,
+    });
+    if (requiresRefresh) {
+      return unauthorizedRefreshResponse();
+    }
+
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       Accept: 'text/event-stream',
+      ...authHeaders,
     };
-
-    const reqId = req.headers.get('x-request-id');
-    if (reqId) headers['x-request-id'] = reqId;
-    const authHeader = req.headers.get('authorization');
-    if (authHeader) headers['authorization'] = authHeader;
-    const cookieHeader = req.headers.get('cookie');
-    if (cookieHeader) headers['cookie'] = cookieHeader;
-
-    const reqWsId = req.headers.get('x-workspace-id');
-    if (reqWsId) headers['x-workspace-id'] = reqWsId;
-
-    try {
-      const cookieStore = await cookies();
-      const authCookie = cookieStore.get(AUTH_COOKIE_NAME);
-      if (authCookie?.value && !headers['authorization']) {
-        headers['authorization'] = `Bearer ${authCookie.value}`;
-      } else {
-        const guestCookie = cookieStore.get(GUEST_COOKIE_NAME);
-        if (guestCookie?.value && !headers['authorization']) {
-          headers['authorization'] = `Bearer ${guestCookie.value}`;
-        }
-      }
-      const wsCookie = cookieStore.get(WORKSPACE_COOKIE_NAME);
-      if (wsCookie?.value && !headers['x-workspace-id']) {
-        headers['x-workspace-id'] = wsCookie.value;
-      }
-    } catch {
-      // Ignore cookie parsing error outside request context
-    }
-
-    if (!headers['authorization']) {
-      try {
-        const anonToken = await authRepository.getGatewayAnonToken();
-        if (anonToken) {
-          headers['authorization'] = `Bearer ${anonToken}`;
-        }
-      } catch {
-        // Ignore fallback error
-      }
-    }
 
     try {
       const upstreamRes = await fetch(upstreamUrl, {

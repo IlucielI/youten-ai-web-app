@@ -47,8 +47,12 @@ export function useRecordingProcessing({ recordingId }: UseRecordingProcessingOp
   const errorMessage = usePipelineStore((state) => state.errorMessage);
 
   const routerRef = useRef(router);
+  const tRef = useRef(t);
+  const localeRef = useRef(locale);
   useEffect(() => {
     routerRef.current = router;
+    tRef.current = t;
+    localeRef.current = locale;
   });
 
   const lastInitializedIdRef = useRef<string | null>(null);
@@ -145,6 +149,11 @@ export function useRecordingProcessing({ recordingId }: UseRecordingProcessingOp
     [locale]
   );
 
+  const getStatusMetaRef = useRef(getStatusMeta);
+  useEffect(() => {
+    getStatusMetaRef.current = getStatusMeta;
+  }, [getStatusMeta]);
+
   /**
    * Connect to real-time Server-Sent Events (SSE) progress stream.
    */
@@ -180,13 +189,13 @@ export function useRecordingProcessing({ recordingId }: UseRecordingProcessingOp
           };
 
           const recStatus = payload.status;
-          const meta = getStatusMeta(recStatus || '');
+          const meta = getStatusMetaRef.current(recStatus || '');
           const errCode = payload.error_code || payload.errorCode || 'ERR_PIPELINE_FAILED';
           const errMsg =
             payload.error_message ||
             payload.errorMessage ||
             payload.message ||
-            (locale === 'en' ? 'Recording processing failed.' : 'Pemrosesan rekaman gagal.');
+            (localeRef.current === 'en' ? 'Recording processing failed.' : 'Pemrosesan rekaman gagal.');
 
           if (recStatus === RecordingStatus.COMPLETED) {
             usePipelineStore.getState().setCompleted(payload.message || meta.message);
@@ -231,7 +240,7 @@ export function useRecordingProcessing({ recordingId }: UseRecordingProcessingOp
         }
       };
     },
-    [locale, getStatusMeta]
+    []
   );
 
   /**
@@ -268,7 +277,7 @@ export function useRecordingProcessing({ recordingId }: UseRecordingProcessingOp
           if (!recStatus) return;
 
           if (recStatus === RecordingStatus.COMPLETED) {
-            const meta = getStatusMeta(RecordingStatus.COMPLETED);
+            const meta = getStatusMetaRef.current(RecordingStatus.COMPLETED);
             usePipelineStore.getState().setCompleted(meta.message);
             const isInitial =
               !usePipelineStore.getState().isProcessing && usePipelineStore.getState().progress === 0;
@@ -282,12 +291,12 @@ export function useRecordingProcessing({ recordingId }: UseRecordingProcessingOp
           if (recStatus === RecordingStatus.FAILED) {
             usePipelineStore.getState().setFailure({
               code: res.data?.error_code || 'ERR_PIPELINE_FAILED',
-              message: res.data?.error_message || t('pipeline.errors.haltedMessage'),
+              message: res.data?.error_message || tRef.current('pipeline.errors.haltedMessage'),
             });
             return;
           }
 
-          const meta = getStatusMeta(recStatus);
+          const meta = getStatusMetaRef.current(recStatus);
           usePipelineStore.getState().updateProgress({
             status: recStatus,
             stage: meta.stage,
@@ -297,7 +306,7 @@ export function useRecordingProcessing({ recordingId }: UseRecordingProcessingOp
         })
         .catch(() => {
           if (!isMounted) return;
-          setRecordingTitle(t('pipeline.errors.defaultAudioTitle'));
+          setRecordingTitle(tRef.current('pipeline.errors.defaultAudioTitle'));
         });
     };
 
@@ -321,7 +330,7 @@ export function useRecordingProcessing({ recordingId }: UseRecordingProcessingOp
         eventSourceRef.current = null;
       }
     };
-  }, [recordingId, connectSSE, getStatusMeta, t, locale]);
+  }, [recordingId, connectSSE]);
 
   /**
    * Handle retry action on failure.

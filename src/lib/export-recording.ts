@@ -1,5 +1,6 @@
 import { ExportFormat } from '@/server/constants/recording.constant';
 import { SummaryData } from '@/components/organisms/summary-viewer';
+import { fetchWithAuth } from '@/lib/api-client';
 import { formatTime } from '@/lib/time';
 
 export interface ExportableSegment {
@@ -99,7 +100,7 @@ export async function exportRecordingFile({
       headers['x-ownership-token'] = token;
     }
 
-    const res = await fetch(`/api/recordings/${recordingId}/export?${params.toString()}`, {
+    const res = await fetchWithAuth(`/api/recordings/${recordingId}/export?${params.toString()}`, {
       method: 'GET',
       headers,
     });

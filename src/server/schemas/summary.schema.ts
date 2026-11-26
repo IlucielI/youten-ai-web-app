@@ -18,7 +18,7 @@ import {
 
 export const MomStructuredDataSchema = z.object({
   meeting_title: z.string(),
-  meeting_goal: z.string().optional(),
+  meeting_goal: z.string().nullable().optional(),
   executive_summary: z.string(),
   meeting_dynamics: z.object({
     speaker_talk_time: z.array(
@@ -55,8 +55,8 @@ export const MomStructuredDataSchema = z.object({
       cost_of_inaction: z.string(),
     })
   ),
-  open_issues: z.array(z.string()),
-  next_meeting: z.string().optional(),
+  open_issues: z.array(z.string()).default([]),
+  next_meeting: z.string().nullable().optional(),
 });
 export type MomStructuredData = z.infer<typeof MomStructuredDataSchema>;
 
