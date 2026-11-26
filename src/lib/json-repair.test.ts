@@ -39,5 +39,10 @@ describe('repairAndParseJsonObject', () => {
     const res = repairAndParseJsonObject('{"meeting_title": "Trailing\\');
     expect(res).toEqual({ meeting_title: 'Trailing\\' });
   });
+
+  it('extracts and parses JSON preceded by explanatory prose', () => {
+    const res = repairAndParseJsonObject('Here is the summary:\n{"meeting_title": "Briefing"}');
+    expect(res).toEqual({ meeting_title: 'Briefing' });
+  });
 });
 

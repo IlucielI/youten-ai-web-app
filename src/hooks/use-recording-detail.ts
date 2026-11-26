@@ -85,8 +85,9 @@ export function useRecordingDetail(recordingId: string) {
   const setMessages = useChatStore((state) => state.setMessages);
 
   // Check authenticated user profile after recording loads (used for guest claim UI & Pro PDF export gating)
+  const loadedRecordingId = recording?.id;
   useEffect(() => {
-    if (!recording) return;
+    if (!loadedRecordingId) return;
     let mounted = true;
     apiFetch<ApiResponse<UserProfileResponse>>('/api/auth/me')
       .then((res) => {
@@ -104,7 +105,7 @@ export function useRecordingDetail(recordingId: string) {
     return () => {
       mounted = false;
     };
-  }, [recording]);
+  }, [loadedRecordingId]);
 
   const handleManualClaim = useCallback(async () => {
     if (!recording) return;

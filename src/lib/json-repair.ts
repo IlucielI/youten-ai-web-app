@@ -15,9 +15,12 @@ export function cleanMarkdownJsonString(raw: string): string {
   trimmed = trimmed.trim();
 
   const startObj = trimmed.indexOf('{');
-  const endObj = trimmed.lastIndexOf('}');
-  if (startObj !== -1 && endObj !== -1 && endObj > startObj) {
-    return trimmed.slice(startObj, endObj + 1);
+  if (startObj !== -1) {
+    const endObj = Math.max(trimmed.lastIndexOf('}'), trimmed.lastIndexOf(']'));
+    if (endObj > startObj) {
+      return trimmed.slice(startObj, endObj + 1);
+    }
+    return trimmed.slice(startObj);
   }
 
   return trimmed;
@@ -111,15 +114,8 @@ export function repairJsonBrackets(input: string): string {
 export function repairAndParseJsonObject(raw: string): Record<string, unknown> | null {
   if (!raw || typeof raw !== 'string') return null;
 
-  const trimmed = raw.trim();
-  const looksLikeJson =
-    trimmed.startsWith('{') ||
-    trimmed.startsWith('```json') ||
-    (trimmed.startsWith('```') && trimmed.includes('{'));
-
-  if (!looksLikeJson) return null;
-
-  const cleaned = cleanMarkdownJsonString(trimmed);
+  const cleaned = cleanMarkdownJsonString(raw);
+  if (!cleaned || !cleaned.includes('{')) return null;
   try {
     const parsed = JSON.parse(cleaned);
     if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
