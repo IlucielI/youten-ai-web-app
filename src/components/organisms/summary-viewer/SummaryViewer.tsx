@@ -30,6 +30,7 @@ import {
 import { Skeleton } from '@/components/atoms/skeleton';
 import { Sparkles, Compass } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { repairAndParseJsonObject } from '@/lib/json-repair';
 import { useTranslation } from '@/locales';
 
 export interface SummaryData {
@@ -62,23 +63,9 @@ export function SummaryViewer({ summary, isLoading = false, className }: Summary
 
     // Auto-parse fallback: If structured_data is empty or missing, but markdown_content contains JSON
     if (Object.keys(rawData).length === 0 && markdown_content) {
-      const trimmed = markdown_content.trim();
-      if (
-        (trimmed.startsWith('{') && trimmed.endsWith('}')) ||
-        (trimmed.startsWith('```json') && trimmed.includes('{')) ||
-        (trimmed.startsWith('```') && trimmed.includes('{'))
-      ) {
-        try {
-          const jsonStr = trimmed.startsWith('```')
-            ? trimmed.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '')
-            : trimmed;
-          const parsedJSON = JSON.parse(jsonStr);
-          if (parsedJSON && typeof parsedJSON === 'object' && !Array.isArray(parsedJSON)) {
-            rawData = parsedJSON as Record<string, unknown>;
-          }
-        } catch {
-          // ignore parsing error, retain original rawData
-        }
+      const parsedJSON = repairAndParseJsonObject(markdown_content);
+      if (parsedJSON) {
+        rawData = parsedJSON;
       }
     }
 

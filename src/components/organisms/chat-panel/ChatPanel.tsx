@@ -463,9 +463,25 @@ export function ChatPanel({
 
       {/* Error Banner */}
       {error && (
-        <div className="mx-4 mb-2 rounded-lg border border-rose-500/30 bg-rose-500/10 p-2.5 flex items-center gap-2 text-xs text-rose-300">
-          <AlertCircle className="h-4 w-4 shrink-0 text-rose-400" />
-          <span className="flex-1 truncate">{error}</span>
+        <div
+          data-testid="chat-error-banner"
+          className="mx-4 mb-2 rounded-lg border border-destructive/30 bg-destructive/10 p-2.5 flex items-center gap-2 text-xs text-destructive"
+        >
+          <AlertCircle className="h-4 w-4 shrink-0" />
+          <span className="flex-1 break-words">{error}</span>
+          {onSendMessage && lastUserPrompt && !isStreaming && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => void handleSend(lastUserPrompt)}
+              className="h-6 px-2 text-[11px] gap-1 shrink-0 border-destructive/30 hover:bg-destructive/15 cursor-pointer"
+              data-testid="error-retry-chat-btn"
+            >
+              <RefreshCw className="w-3 h-3" />
+              {t('recording.chat.retryButton')}
+            </Button>
+          )}
         </div>
       )}
 

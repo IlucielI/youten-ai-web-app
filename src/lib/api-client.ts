@@ -40,19 +40,22 @@ export interface ApiFetchOptions extends RequestInit {
 }
 
 /**
- * Standard typed client fetcher for browser/client components.
- * Automatically injects headers, parses JSON, handles transparent 401 silent refresh,
- * and transforms HTTP errors into typed ApiClientError.
+ * Shared authenticated fetch wrapper for browser/client components.
+ * Automatically injects guest ownership headers and performs transparent single-flight
+ * silent token refresh on 401 responses, returning the raw Response (ideal for SSE streams & blobs).
  */
-export async function apiFetch<T>(
+export async function fetchWithAuth(
   endpoint: string,
   options: ApiFetchOptions = {}
-): Promise<T> {
+): Promise<Response> {
   const { _retry, ...fetchOptions } = options;
   const headers: Record<string, string> = {
-    Accept: 'application/json',
     ...(fetchOptions.headers as Record<string, string>),
   };
+
+  if (!headers.Accept && !headers.accept) {
+    headers.Accept = 'application/json';
+  }
 
   // Automatically attach guest ownership token if available in localStorage for this recording
   if (typeof window !== 'undefined' && !headers['x-ownership-token']) {
@@ -96,12 +99,26 @@ export async function apiFetch<T>(
   if (response.status === 401 && !_retry && !isAuthBypassEndpoint) {
     const refreshed = await executeSilentRefresh();
     if (refreshed) {
-      return apiFetch<T>(endpoint, {
+      return fetchWithAuth(endpoint, {
         ...options,
         _retry: true,
       });
     }
   }
+
+  return response;
+}
+
+/**
+ * Standard typed client fetcher for browser/client components.
+ * Automatically injects headers, parses JSON, handles transparent 401 silent refresh,
+ * and transforms HTTP errors into typed ApiClientError.
+ */
+export async function apiFetch<T>(
+  endpoint: string,
+  options: ApiFetchOptions = {}
+): Promise<T> {
+  const response = await fetchWithAuth(endpoint, options);
 
   if (response.status === 204) {
     return undefined as unknown as T;

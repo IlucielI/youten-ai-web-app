@@ -1,8 +1,6 @@
 import { env, isTest } from '@/server/config';
 import { RecordingChatRequestSchema } from '@/server/schemas/chat.schema';
-import { AUTH_COOKIE_NAME, GUEST_COOKIE_NAME } from '@/server/constants';
-import { authRepository } from '@/server/repositories';
-import { cookies } from 'next/headers';
+import { resolveBffStreamAuth, unauthorizedRefreshResponse } from '@/server/utils/stream-auth';
 
 export async function POST(
   req: Request,
@@ -47,48 +45,24 @@ export async function POST(
   if (!isTest && !env.MOCK_CORE_API && env.CORE_API_URL) {
     const upstreamUrl = `${env.CORE_API_URL.replace(/\/$/, '')}/v1/recordings/${id}/chat`;
 
+    const { headers: authHeaders, requiresRefresh } = await resolveBffStreamAuth({
+      req,
+      allowAnon: true,
+    });
+    if (requiresRefresh) {
+      return unauthorizedRefreshResponse();
+    }
+
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       Accept: 'text/event-stream',
+      ...authHeaders,
     };
     if (token) {
       headers['x-ownership-token'] = token;
     }
     if (shareToken) {
       headers['x-share-token'] = shareToken;
-    }
-    const reqId = req.headers.get('x-request-id');
-    if (reqId) headers['x-request-id'] = reqId;
-    const authHeader = req.headers.get('authorization');
-    if (authHeader) headers['authorization'] = authHeader;
-    const cookieHeader = req.headers.get('cookie');
-    if (cookieHeader) headers['cookie'] = cookieHeader;
-
-    try {
-      const cookieStore = await cookies();
-      const authCookie = cookieStore.get(AUTH_COOKIE_NAME);
-      if (authCookie?.value && !headers['authorization']) {
-        headers['authorization'] = `Bearer ${authCookie.value}`;
-      } else {
-        const guestCookie = cookieStore.get(GUEST_COOKIE_NAME);
-        if (guestCookie?.value && !headers['authorization']) {
-          headers['authorization'] = `Bearer ${guestCookie.value}`;
-        }
-      }
-    } catch {
-      // Ignore cookie parsing error outside request context
-    }
-
-    // Attach gateway anonymous token if still missing authorization header
-    if (!headers['authorization']) {
-      try {
-        const anonToken = await authRepository.getGatewayAnonToken();
-        if (anonToken) {
-          headers['authorization'] = `Bearer ${anonToken}`;
-        }
-      } catch {
-        // Ignore fallback error
-      }
     }
 
     try {
@@ -218,43 +192,20 @@ export async function GET(
       upstreamUrl.searchParams.set('share_token', shareToken);
     }
 
+    const { headers: authHeaders, requiresRefresh } = await resolveBffStreamAuth({
+      req,
+      allowAnon: true,
+    });
+    if (requiresRefresh) {
+      return unauthorizedRefreshResponse();
+    }
+
     const headers: Record<string, string> = {
       Accept: 'application/json',
+      ...authHeaders,
     };
     if (token) headers['x-ownership-token'] = token;
     if (shareToken) headers['x-share-token'] = shareToken;
-    const reqId = req.headers.get('x-request-id');
-    if (reqId) headers['x-request-id'] = reqId;
-    const authHeader = req.headers.get('authorization');
-    if (authHeader) headers['authorization'] = authHeader;
-    const cookieHeader = req.headers.get('cookie');
-    if (cookieHeader) headers['cookie'] = cookieHeader;
-
-    try {
-      const cookieStore = await cookies();
-      const authCookie = cookieStore.get(AUTH_COOKIE_NAME);
-      if (authCookie?.value && !headers['authorization']) {
-        headers['authorization'] = `Bearer ${authCookie.value}`;
-      } else {
-        const guestCookie = cookieStore.get(GUEST_COOKIE_NAME);
-        if (guestCookie?.value && !headers['authorization']) {
-          headers['authorization'] = `Bearer ${guestCookie.value}`;
-        }
-      }
-    } catch {
-      // Ignore cookie parsing error outside request context
-    }
-
-    if (!headers['authorization']) {
-      try {
-        const anonToken = await authRepository.getGatewayAnonToken();
-        if (anonToken) {
-          headers['authorization'] = `Bearer ${anonToken}`;
-        }
-      } catch {
-        // Ignore fallback error
-      }
-    }
 
     try {
       const upstreamRes = await fetch(upstreamUrl.toString(), {

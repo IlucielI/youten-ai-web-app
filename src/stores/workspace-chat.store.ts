@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
+import { fetchWithAuth } from '@/lib/api-client';
 import { MeetingSourceCitationDTO, WorkspaceChatMessageDTO, WorkspaceChatSessionDTO } from '../server/dtos';
 
 export interface ChatScope {
@@ -110,7 +111,7 @@ export const useWorkspaceChatStore = create<WorkspaceChatStore>()(
         set({ isLoadingSessions: true, error: null }, false, 'workspaceChat/fetchSessions/start');
         try {
           const query = folderId ? `?folder_id=${encodeURIComponent(folderId)}` : '';
-          const res = await fetch(`/api/chat/sessions${query}`);
+          const res = await fetchWithAuth(`/api/chat/sessions${query}`);
           if (!res.ok) {
             throw new Error('Gagal memuat sesi chat');
           }
@@ -138,7 +139,7 @@ export const useWorkspaceChatStore = create<WorkspaceChatStore>()(
       selectSession: async (sessionId: string) => {
         set({ currentSessionId: sessionId, isLoadingHistory: true, error: null }, false, 'workspaceChat/selectSession/start');
         try {
-          const res = await fetch(`/api/chat/sessions/${sessionId}`);
+          const res = await fetchWithAuth(`/api/chat/sessions/${sessionId}`);
           if (!res.ok) {
             throw new Error('Gagal memuat riwayat percakapan');
           }
@@ -166,7 +167,7 @@ export const useWorkspaceChatStore = create<WorkspaceChatStore>()(
       createNewSession: async (title?: string) => {
         const { scope } = get();
         try {
-          const res = await fetch('/api/chat/sessions', {
+          const res = await fetchWithAuth('/api/chat/sessions', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -199,7 +200,7 @@ export const useWorkspaceChatStore = create<WorkspaceChatStore>()(
 
       deleteSession: async (sessionId: string) => {
         try {
-          const res = await fetch(`/api/chat/sessions/${sessionId}`, { method: 'DELETE' });
+          const res = await fetchWithAuth(`/api/chat/sessions/${sessionId}`, { method: 'DELETE' });
           if (!res.ok) {
             throw new Error('Gagal menghapus sesi chat');
           }
@@ -260,7 +261,7 @@ export const useWorkspaceChatStore = create<WorkspaceChatStore>()(
         );
 
         try {
-          const res = await fetch('/api/chat/stream', {
+          const res = await fetchWithAuth('/api/chat/stream', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({

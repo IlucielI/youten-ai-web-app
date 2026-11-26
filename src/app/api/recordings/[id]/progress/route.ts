@@ -1,8 +1,7 @@
 import { recordingService } from '@/server/services/recording.service';
-import { authRepository } from '@/server/repositories/auth.repository';
-import { RecordingStatus, AUTH_COOKIE_NAME, GUEST_COOKIE_NAME } from '@/server/constants';
+import { RecordingStatus } from '@/server/constants';
 import { env, isTest } from '@/server/config';
-import { cookies } from 'next/headers';
+import { resolveBffStreamAuth, unauthorizedRefreshResponse } from '@/server/utils/stream-auth';
 
 export async function GET(
   req: Request,
@@ -21,45 +20,21 @@ export async function GET(
     const queryString = queryParams.toString() ? `?${queryParams.toString()}` : '';
     const upstreamUrl = `${env.CORE_API_URL.replace(/\/$/, '')}/v1/recordings/${id}/progress${queryString}`;
 
+    const { headers: authHeaders, requiresRefresh } = await resolveBffStreamAuth({
+      req,
+      allowAnon: true,
+      forwardOwnershipFromGuestCookie: true,
+    });
+    if (requiresRefresh) {
+      return unauthorizedRefreshResponse();
+    }
+
     const headers: Record<string, string> = {
       Accept: 'text/event-stream',
+      ...authHeaders,
     };
     if (token) {
       headers['x-ownership-token'] = token;
-    }
-    const reqId = req.headers.get('x-request-id');
-    if (reqId) headers['x-request-id'] = reqId;
-    const authHeader = req.headers.get('authorization');
-    if (authHeader) headers['authorization'] = authHeader;
-    const cookieHeader = req.headers.get('cookie');
-    if (cookieHeader) headers['cookie'] = cookieHeader;
-
-    try {
-      const cookieStore = await cookies();
-      const authCookie = cookieStore.get(AUTH_COOKIE_NAME);
-      if (authCookie?.value && !headers['authorization']) {
-        headers['authorization'] = `Bearer ${authCookie.value}`;
-      } else {
-        const guestCookie = cookieStore.get(GUEST_COOKIE_NAME);
-        if (guestCookie?.value && !headers['authorization'] && !headers['x-ownership-token']) {
-          headers['authorization'] = `Bearer ${guestCookie.value}`;
-          headers['x-ownership-token'] = guestCookie.value;
-        }
-      }
-    } catch {
-      // Ignore cookie parsing error outside request context
-    }
-
-    // Attach gateway anonymous token if still missing authorization header
-    if (!headers['authorization']) {
-      try {
-        const anonToken = await authRepository.getGatewayAnonToken();
-        if (anonToken) {
-          headers['authorization'] = `Bearer ${anonToken}`;
-        }
-      } catch {
-        // Ignore resolution error
-      }
     }
 
     try {
