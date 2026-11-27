@@ -14,7 +14,9 @@ import {
   GatewayTimeoutError,
 } from '../../errors/app.error';
 
-const mockCookiesGet = vi.fn();
+const { mockCookiesGet } = vi.hoisted(() => ({
+  mockCookiesGet: vi.fn(),
+}));
 vi.mock('next/headers', () => ({
   cookies: vi.fn(async () => ({
     get: mockCookiesGet,
