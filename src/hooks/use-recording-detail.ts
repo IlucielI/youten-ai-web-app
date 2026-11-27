@@ -192,6 +192,7 @@ export function useRecordingDetail(recordingId: string) {
             id: initialVerId,
             version: data.active_summary.version || 1,
             template_category: data.active_summary.template_category || data.selected_template,
+            custom_angle: data.active_summary.custom_angle,
             structured_data: data.active_summary.structured_data || null,
             markdown_content: data.active_summary.markdown_content,
             is_active: true,

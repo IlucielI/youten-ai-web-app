@@ -28,6 +28,15 @@ export function useVerifyEmail() {
 
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const redirectTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const inFlightVerificationRef = useRef<{
+    token: string;
+    promise: Promise<ApiResponse<AuthResponse>>;
+  } | null>(null);
+  const appliedTokenRef = useRef<string | null>(null);
+  const tRef = useRef(t);
+  useEffect(() => {
+    tRef.current = t;
+  }, [t]);
 
   // Clear pending timers on unmount
   useEffect(() => {
@@ -49,23 +58,34 @@ export function useVerifyEmail() {
 
   // Magic link auto-verification when ?token= query param is present
   useEffect(() => {
-    if (!rawToken) return;
+    const trimmedToken = rawToken?.trim();
+    if (!trimmedToken || appliedTokenRef.current === trimmedToken) return;
 
     let isMounted = true;
     const verifyMagicToken = async () => {
       setIsVerifyingToken(true);
       setErrorMessage(null);
       try {
-        const response = await apiFetch<ApiResponse<AuthResponse>>('/api/auth/verify-email', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ token: rawToken.trim() }),
-        });
+        let requestPromise: Promise<ApiResponse<AuthResponse>>;
+        if (inFlightVerificationRef.current?.token === trimmedToken) {
+          requestPromise = inFlightVerificationRef.current.promise;
+        } else {
+          requestPromise = apiFetch<ApiResponse<AuthResponse>>('/api/auth/verify-email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token: trimmedToken }),
+          });
+          inFlightVerificationRef.current = { token: trimmedToken, promise: requestPromise };
+        }
+
+        const response = await requestPromise;
+        if (!isMounted) return;
 
         if (response && response.status === 'success' && response.data) {
-          if (!isMounted) return;
+          if (appliedTokenRef.current === trimmedToken) return;
+          appliedTokenRef.current = trimmedToken;
           setIsSuccess(true);
-          toast.success(t('notifications.success.emailVerified'));
+          toast.success(tRef.current('notifications.success.emailVerified'));
 
           useTokenStore.getState().clearAnonSession();
           if (response.data.user) {
@@ -86,13 +106,14 @@ export function useVerifyEmail() {
             }
           }, 1500);
         } else {
-          if (!isMounted) return;
-          setErrorMessage(response?.message || t('auth.verification.invalidOrExpiredToken'));
+          inFlightVerificationRef.current = null;
+          setErrorMessage(response?.message || tRef.current('auth.verification.invalidOrExpiredToken'));
         }
       } catch (err: unknown) {
+        inFlightVerificationRef.current = null;
         if (!isMounted) return;
         const msg =
-          err instanceof Error ? err.message : t('auth.verification.invalidOrExpiredToken');
+          err instanceof Error ? err.message : tRef.current('auth.verification.invalidOrExpiredToken');
         setErrorMessage(msg);
       } finally {
         if (isMounted) {
@@ -108,7 +129,7 @@ export function useVerifyEmail() {
         clearTimeout(redirectTimerRef.current);
       }
     };
-  }, [rawToken, router, claimId, t]);
+  }, [rawToken, router, claimId]);
 
   const handleSubmitCode = useCallback(
     async (codeToSubmit?: string) => {

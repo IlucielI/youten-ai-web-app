@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { BaseController } from './base.controller';
-import { UnauthorizedError } from '../errors/app.error';
+import { UnauthorizedError, ForbiddenError } from '../errors/app.error';
 import { IAuthService } from '../services/auth.service.interface';
 import { authService as defaultAuthService } from '../services/auth.service';
 import {
@@ -165,7 +165,18 @@ export class AuthController extends BaseController {
       return response;
     } catch (error) {
       const action = this.resolveActionName(error, 'AuthController.refreshToken');
-      return this.error(error, { requestId, action });
+      const response = this.error(error, { requestId, action });
+      if (error instanceof UnauthorizedError || error instanceof ForbiddenError) {
+        response.cookies.set(AUTH_COOKIE_NAME, '', {
+          ...AUTH_COOKIE_CONFIG,
+          maxAge: 0,
+        });
+        response.cookies.set(REFRESH_COOKIE_NAME, '', {
+          ...AUTH_COOKIE_CONFIG,
+          maxAge: 0,
+        });
+      }
+      return response;
     }
   }
 

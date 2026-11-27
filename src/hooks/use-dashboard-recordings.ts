@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useMemo } from 'react';
+import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { apiFetch, ApiClientError } from '@/lib/api-client';
 import { ApiResponse, BaseResponse } from '@/server/dtos/response.dto';
@@ -35,6 +35,10 @@ export interface RecordingsApiResponse {
 export function useDashboardRecordings() {
   const router = useRouter();
   const { t, locale } = useTranslation();
+  const tRef = useRef(t);
+  useEffect(() => {
+    tRef.current = t;
+  }, [t]);
   const { templates, getTemplateLabel } = useTemplates();
 
   const statusSelectOptions: SearchableSelectOption[] = useMemo(
@@ -222,7 +226,7 @@ export function useDashboardRecordings() {
             setTotalPages(1);
           }
         } else {
-          setDataError(t('dashboard.error.fetchFailed'));
+          setDataError(tRef.current('dashboard.error.fetchFailed'));
         }
       })
       .catch((err) => {
@@ -230,7 +234,7 @@ export function useDashboardRecordings() {
         if (err instanceof ApiClientError) {
           setDataError(err.message);
         } else {
-          setDataError(t('dashboard.error.defaultMessage'));
+          setDataError(tRef.current('dashboard.error.defaultMessage'));
         }
       })
       .finally(() => {
@@ -251,7 +255,6 @@ export function useDashboardRecordings() {
     selectedStatus,
     selectedTemplate,
     refreshKey,
-    t,
     activeWorkspace?.id,
     activeFolderId,
   ]);

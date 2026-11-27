@@ -18,6 +18,7 @@ export interface HttpRequestOptions<T = unknown> {
   schema?: z.ZodType<T>;
   next?: NextFetchOptions;
   cache?: RequestCache;
+  allowAnonFallback?: boolean;
 }
 
 export interface IHttpClient {

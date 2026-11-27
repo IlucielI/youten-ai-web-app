@@ -120,8 +120,8 @@ export const useWorkspaceChatStore = create<WorkspaceChatStore>()(
           const sessions: WorkspaceChatSessionDTO[] = Array.isArray(raw)
             ? raw
             : Array.isArray(raw?.sessions)
-            ? raw.sessions
-            : [];
+              ? raw.sessions
+              : [];
           set(
             {
               sessions,
@@ -148,8 +148,8 @@ export const useWorkspaceChatStore = create<WorkspaceChatStore>()(
           const messages: WorkspaceChatMessageDTO[] = Array.isArray(raw)
             ? raw
             : Array.isArray(raw?.messages)
-            ? raw.messages
-            : [];
+              ? raw.messages
+              : [];
           set(
             {
               messages,

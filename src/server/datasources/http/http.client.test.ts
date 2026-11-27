@@ -2,6 +2,11 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { z } from 'zod';
 import { HttpClient } from './http.client';
 import {
+  AUTH_COOKIE_NAME,
+  REFRESH_COOKIE_NAME,
+  GUEST_COOKIE_NAME,
+} from '../../constants/auth.constant';
+import {
   BadRequestError,
   UnauthorizedError,
   NotFoundError,
@@ -9,11 +14,23 @@ import {
   GatewayTimeoutError,
 } from '../../errors/app.error';
 
+const { mockCookiesGet } = vi.hoisted(() => ({
+  mockCookiesGet: vi.fn(),
+}));
+vi.mock('next/headers', () => ({
+  cookies: vi.fn(async () => ({
+    get: mockCookiesGet,
+  })),
+  headers: vi.fn(async () => new Headers()),
+}));
+
 describe('HttpClient DataSource', () => {
   const originalFetch = global.fetch;
 
   beforeEach(() => {
     vi.restoreAllMocks();
+    mockCookiesGet.mockReset();
+    mockCookiesGet.mockReturnValue(undefined);
   });
 
   afterEach(() => {
@@ -299,6 +316,79 @@ describe('HttpClient DataSource', () => {
       expect.objectContaining({
         headers: expect.objectContaining({
           Authorization: 'Bearer explicit-user-token',
+        }),
+      })
+    );
+  });
+
+  it('should throw UnauthorizedError when AUTH_COOKIE_NAME is missing while REFRESH_COOKIE_NAME exists', async () => {
+    mockCookiesGet.mockImplementation((name: string) => {
+      if (name === REFRESH_COOKIE_NAME) return { value: 'valid-refresh-jwt' };
+      if (name === GUEST_COOKIE_NAME) return { value: 'stale-guest-jwt' };
+      return undefined;
+    });
+    const resolver = vi.fn().mockResolvedValue('Bearer anon-jwt');
+    global.fetch = vi.fn();
+
+    const client = new HttpClient({
+      baseUrl: 'https://api.internal.com',
+      authHeaderResolver: resolver,
+    });
+
+    await expect(client.get('/v1/recordings/rec-1')).rejects.toThrow(UnauthorizedError);
+    expect(resolver).not.toHaveBeenCalled();
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  it('should allow anon fallback when allowAnonFallback is true even with REFRESH_COOKIE_NAME', async () => {
+    mockCookiesGet.mockImplementation((name: string) => {
+      if (name === REFRESH_COOKIE_NAME) return { value: 'valid-refresh-jwt' };
+      return undefined;
+    });
+    const resolver = vi.fn().mockResolvedValue('Bearer anon-gateway-jwt');
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ status: 'success' }),
+    });
+
+    const client = new HttpClient({
+      baseUrl: 'https://api.internal.com',
+      authHeaderResolver: resolver,
+    });
+
+    await client.post('/v1/auth/refresh', { refresh_token: 'valid-refresh-jwt' }, { allowAnonFallback: true });
+    expect(resolver).toHaveBeenCalledOnce();
+    expect(global.fetch).toHaveBeenCalledWith(
+      'https://api.internal.com/v1/auth/refresh',
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          Authorization: 'Bearer anon-gateway-jwt',
+        }),
+      })
+    );
+  });
+
+  it('should attach AUTH_COOKIE_NAME directly when both auth and refresh cookies exist', async () => {
+    mockCookiesGet.mockImplementation((name: string) => {
+      if (name === AUTH_COOKIE_NAME) return { value: 'user-access-jwt' };
+      if (name === REFRESH_COOKIE_NAME) return { value: 'user-refresh-jwt' };
+      return undefined;
+    });
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ success: true }),
+    });
+
+    const client = new HttpClient({ baseUrl: 'https://api.internal.com' });
+    await client.get('/v1/recordings');
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      'https://api.internal.com/v1/recordings',
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          Authorization: 'Bearer user-access-jwt',
         }),
       })
     );

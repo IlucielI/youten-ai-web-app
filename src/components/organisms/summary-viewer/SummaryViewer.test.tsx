@@ -709,4 +709,99 @@ Peran individu terhadap negara dan organisasi.
     expect(screen.getByText('Tarik sampel data S3')).toBeInTheDocument();
     expect(screen.queryByText(/"meeting_title"/)).not.toBeInTheDocument();
   });
+
+  it('renders enriched GENERAL structured template with discussion_topics and open_points even when core_themes and notable_quotes are omitted', () => {
+    render(
+      <SummaryViewer
+        summary={{
+          template_category: TemplateKey.GENERAL,
+          structured_data: {
+            executive_overview: 'Ringkasan rapat arsitektur Q1.',
+            discussion_topics: [
+              {
+                topic: 'Migrasi Database',
+                key_points: ['Gunakan read replica', 'Monitor connection pool'],
+              },
+            ],
+            open_points: ['Jadwal cutover belum final'],
+            action_items: [
+              {
+                task: 'Siapkan runbook migrasi',
+                pic: 'Bayu',
+                due_date: 'Jumat',
+                priority: 'P1',
+              },
+            ],
+            key_takeaways: ['Downtime di bawah 5 menit'],
+          },
+        }}
+      />
+    );
+
+    expect(screen.getByTestId('general-summary-renderer')).toBeInTheDocument();
+    expect(screen.getByText('Migrasi Database')).toBeInTheDocument();
+    expect(screen.getByText('Jadwal cutover belum final')).toBeInTheDocument();
+    expect(screen.getByText('Siapkan runbook migrasi')).toBeInTheDocument();
+  });
+
+  it('renders enriched MOM and TECH_REVIEW templates cleanly even with null optional fields', () => {
+    const { rerender } = render(
+      <SummaryViewer
+        summary={{
+          template_category: TemplateKey.MOM,
+          structured_data: {
+            meeting_title: 'Weekly Sync Null-Safe',
+            meeting_goal: null,
+            executive_summary: 'Sinkronisasi progres mingguan.',
+            discussion_topics: [{ topic: 'Topik A', key_points: ['Poin 1'] }],
+            meeting_dynamics: {
+              speaker_talk_time: [],
+              consensus_score: '90%',
+              sentiment_trajectory: 'Positif',
+            },
+            stakeholder_perspectives: {
+              executive_brief: 'On track',
+              engineering_focus: 'Stabil',
+              product_delivery: 'Sesuai jadwal',
+            },
+            key_decisions: [],
+            action_items: [],
+            open_issues: null,
+            open_points: ['Pertanyaan terbuka dari tim QA'],
+            next_meeting: null,
+          },
+        }}
+      />
+    );
+
+    expect(screen.getByTestId('mom-summary-renderer')).toBeInTheDocument();
+    expect(screen.getByText('Topik A')).toBeInTheDocument();
+    expect(screen.getByText('Pertanyaan terbuka dari tim QA')).toBeInTheDocument();
+
+    rerender(
+      <SummaryViewer
+        summary={{
+          template_category: TemplateKey.TECH_REVIEW,
+          structured_data: {
+            context: 'Review arsitektur caching',
+            discussion_topics: [{ topic: 'Redis Eviction', key_points: ['Gunakan allkeys-lru'] }],
+            decisions_adopted: [{ decision: 'Pakai Redis 7', technical_justification: 'Stabil' }],
+            rejected_alternatives: [{ alternative: 'In-memory map', rejection_reason: 'Tidak terdistribusi' }],
+            nfr_assessment: {
+              security: 'TLS aktif',
+              performance_scalability: '< 2ms p99',
+              reliability_resilience: 'Sentinel HA',
+            },
+            technical_debt_impact: null,
+            open_points: ['Uji beban peak traffic'],
+            action_items: [{ task: 'Setup alert memory', assignee: 'Andi', target_sprint: 'Sprint 14' }],
+          },
+        }}
+      />
+    );
+
+    expect(screen.getByTestId('tech-review-summary-renderer')).toBeInTheDocument();
+    expect(screen.getByText('Redis Eviction')).toBeInTheDocument();
+    expect(screen.getByText('Uji beban peak traffic')).toBeInTheDocument();
+  });
 });

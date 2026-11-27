@@ -2,7 +2,8 @@ import React from 'react';
 import type { GeneralStructuredData } from '@/server/schemas/summary.schema';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/atoms/card';
 import { Badge } from '@/components/atoms/badge';
-import { FileText, CheckCircle2, Quote, Layers, Link as LinkIcon } from 'lucide-react';
+import { FileText, CheckCircle2, Quote, Layers, Link as LinkIcon, ShieldAlert, ListTodo } from 'lucide-react';
+import { DiscussionTopicsSection } from './discussion-topics-section';
 import { cn } from '@/lib/utils';
 import { useTranslation } from '@/locales';
 
@@ -32,6 +33,12 @@ export function GeneralRenderer({ data, className }: GeneralRendererProps) {
           {data.executive_overview}
         </p>
       </div>
+
+      {/* Discussion Topics (Enriched General Format) */}
+      <DiscussionTopicsSection
+        title="Pembahasan Per Topik"
+        topics={data.discussion_topics || []}
+      />
 
       {/* Core Themes (Cornell Cues & Notes Layout) */}
       {data.core_themes && data.core_themes.length > 0 && (
@@ -109,6 +116,61 @@ export function GeneralRenderer({ data, className }: GeneralRendererProps) {
             ))}
           </div>
         </div>
+      )}
+
+      {/* Action Items & Open Points (Enriched General Format) */}
+      {data.action_items && data.action_items.length > 0 && (
+        <div className="space-y-3 max-w-full min-w-0">
+          <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+            <ListTodo className="h-4 w-4 text-primary shrink-0" />
+            <span>Rencana Tindak Lanjut ({data.action_items.length})</span>
+          </h3>
+          <div className="overflow-x-auto max-w-full rounded-lg border border-border/60 bg-card/40">
+            <table className="min-w-[500px] w-full text-left text-xs">
+              <thead className="bg-secondary/40 text-muted-foreground border-b border-border/60">
+                <tr>
+                  <th className="py-2.5 px-3 font-semibold">Tugas</th>
+                  <th className="py-2.5 px-3 font-semibold w-[150px]">PIC</th>
+                  <th className="py-2.5 px-3 font-semibold w-[130px]">Tenggat</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border/40">
+                {data.action_items.map((item, idx) => (
+                  <tr key={idx} className="hover:bg-accent/20 transition-colors">
+                    <td className="py-2.5 px-3 font-medium text-foreground break-words">
+                      <span>{item.task}</span>
+                      {item.priority && (
+                        <Badge variant="outline" className="ml-2 text-[10px] font-bold">
+                          {item.priority}
+                        </Badge>
+                      )}
+                    </td>
+                    <td className="py-2.5 px-3 text-muted-foreground font-medium break-words">{item.pic}</td>
+                    <td className="py-2.5 px-3 text-muted-foreground whitespace-nowrap">{item.due_date}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {data.open_points && data.open_points.length > 0 && (
+        <Card className="border-border/60 bg-card/40 max-w-full overflow-hidden">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xs font-semibold flex items-center gap-1.5 text-amber-400">
+              <ShieldAlert className="h-3.5 w-3.5 shrink-0" />
+              <span>Isu & Pertanyaan Terbuka ({data.open_points.length})</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ul className="list-disc list-inside space-y-1 text-xs text-muted-foreground">
+              {data.open_points.map((point, idx) => (
+                <li key={idx} className="break-words">{point}</li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
       )}
 
       {/* Referenced Resources */}

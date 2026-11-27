@@ -4,6 +4,7 @@ import { REQUEST_ID_HEADER } from '../../context/request.context';
 import {
   AUTH_COOKIE_NAME,
   GUEST_COOKIE_NAME,
+  REFRESH_COOKIE_NAME,
   WORKSPACE_COOKIE_NAME,
   ANON_TOKEN_HEADER,
   OWNERSHIP_TOKEN_HEADER,
@@ -107,16 +108,23 @@ export class HttpClient implements IHttpClient {
     };
 
     // 1. Session token resolution:
+    let sessionAuthExpired = false;
     if (options?.token) {
       headers['Authorization'] = `Bearer ${options.token}`;
     } else if (this.autoForwardSession && !headers['Authorization'] && !headers['authorization']) {
       try {
         const cookieStore = await getNextCookies();
         const token = cookieStore.get(AUTH_COOKIE_NAME)?.value;
+        const refreshToken = cookieStore.get(REFRESH_COOKIE_NAME)?.value;
+
         if (token) {
           headers['Authorization'] = `Bearer ${token}`;
-        } else {
-          // If no user auth token, check for guest session token
+        } else if (refreshToken && !options?.allowAnonFallback) {
+          // User session exists via refresh token, but access token expired -> fail closed with 401
+          // instead of silently downgrading to guest or anonymous gateway session.
+          sessionAuthExpired = true;
+        } else if (!refreshToken) {
+          // If no user auth session, check for guest session token
           const guestToken = cookieStore.get(GUEST_COOKIE_NAME)?.value;
           if (guestToken) {
             headers['Authorization'] = `Bearer ${guestToken}`;
@@ -128,6 +136,10 @@ export class HttpClient implements IHttpClient {
       } catch {
         // Outside Next.js request context (tests, background jobs)
       }
+    }
+
+    if (sessionAuthExpired) {
+      throw new UnauthorizedError('Session access token expired', undefined, 'UNAUTHORIZED');
     }
 
     // 1b. Fallback to authHeaderResolver if no session or guest token found:
