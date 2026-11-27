@@ -2,7 +2,8 @@ import React from 'react';
 import type { TechReviewStructuredData } from '@/server/schemas/summary.schema';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/atoms/card';
 import { Badge } from '@/components/atoms/badge';
-import { Cpu, CheckCircle2, XCircle, ShieldCheck, Zap, Server, AlertTriangle, ListTodo } from 'lucide-react';
+import { Cpu, CheckCircle2, XCircle, ShieldCheck, Zap, Server, AlertTriangle, ListTodo, ShieldAlert } from 'lucide-react';
+import { DiscussionTopicsSection } from './discussion-topics-section';
 import { cn } from '@/lib/utils';
 
 export interface TechReviewRendererProps {
@@ -29,6 +30,12 @@ export function TechReviewRenderer({ data, className }: TechReviewRendererProps)
           {data.context}
         </p>
       </div>
+
+      {/* Discussion Topics */}
+      <DiscussionTopicsSection
+        title="Sub Pembahasan Teknis"
+        topics={data.discussion_topics || []}
+      />
 
       {/* Decisions Adopted & Rejected Alternatives */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-full">
@@ -174,6 +181,25 @@ export function TechReviewRenderer({ data, className }: TechReviewRendererProps)
             </table>
           </div>
         </div>
+      )}
+
+      {/* Open Points */}
+      {data.open_points && data.open_points.length > 0 && (
+        <Card className="border-border/60 bg-card/40 max-w-full overflow-hidden">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xs font-semibold flex items-center gap-1.5 text-amber-400">
+              <ShieldAlert className="h-3.5 w-3.5 shrink-0" />
+              <span>Risiko & Isu Terbuka ({data.open_points.length})</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ul className="list-disc list-inside space-y-1 text-xs text-muted-foreground">
+              {data.open_points.map((point, idx) => (
+                <li key={idx} className="break-words">{point}</li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
       )}
     </div>
   );

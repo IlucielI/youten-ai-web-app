@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { apiFetch } from '@/lib/api-client';
+import { apiFetch, ApiClientError } from '@/lib/api-client';
 import { ApiResponse } from '@/server/dtos/response.dto';
 import { WorkspaceInvitationDTO, WorkspaceMemberDTO } from '@/server/dtos/workspace.dto';
 import { useWorkspaceStore } from '@/stores/workspace.store';
@@ -70,7 +70,11 @@ export function useWorkspaceInvitation() {
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Failed to accept invitation.';
-      if (msg.includes('Unauthorized') || msg.includes('401')) {
+      const isUnauthorized =
+        (err instanceof ApiClientError && err.status === 401) ||
+        msg.toLowerCase().includes('unauthorized') ||
+        msg.includes('401');
+      if (isUnauthorized) {
         toast.error('Please log in first to accept this invitation.');
         router.push(`/login?redirect=/invitations/${token}`);
       } else {

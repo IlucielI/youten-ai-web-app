@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useAuthStore } from '@/stores/auth.store';
 import { usePlayerStore } from '@/stores/player.store';
 import { useChatStore } from '@/stores/chat.store';
@@ -20,6 +20,10 @@ export interface UseSharedRecordingOptions {
 
 export function useSharedRecording({ token }: UseSharedRecordingOptions) {
   const { t } = useTranslation();
+  const tRef = useRef(t);
+  useEffect(() => {
+    tRef.current = t;
+  }, [t]);
 
   const [recording, setRecording] = useState<SharedRecordingResponse | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -65,6 +69,8 @@ export function useSharedRecording({ token }: UseSharedRecordingOptions) {
     if (!token) return;
 
     let isMounted = true;
+    setIsLoading(true);
+    setErrorMessage(null);
     apiFetch<ApiResponse<SharedRecordingResponse>>(`/api/recordings/shared/${token}`)
       .then((res) => {
         if (!isMounted) return;
@@ -75,12 +81,12 @@ export function useSharedRecording({ token }: UseSharedRecordingOptions) {
             setAudioUrl(streamUrl);
           }
         } else {
-          setErrorMessage(t('share.unavailableDesc'));
+          setErrorMessage(tRef.current('share.unavailableDesc'));
         }
       })
       .catch((err: unknown) => {
         if (!isMounted) return;
-        const msg = err instanceof Error ? err.message : t('share.unavailableDesc');
+        const msg = err instanceof Error ? err.message : tRef.current('share.unavailableDesc');
         setErrorMessage(msg);
       })
       .finally(() => {
@@ -92,7 +98,7 @@ export function useSharedRecording({ token }: UseSharedRecordingOptions) {
     return () => {
       isMounted = false;
     };
-  }, [token, setAudioUrl, t]);
+  }, [token, setAudioUrl]);
 
   /**
    * Initialize isolated Ask AI session and restore chat history for share link visitor.

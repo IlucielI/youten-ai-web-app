@@ -1,5 +1,6 @@
 import { ExportFormat } from '@/server/constants/recording.constant';
 import { SummaryData } from '@/components/organisms/summary-viewer';
+import { cleanMarkdownContent } from '@/components/organisms/summary-viewer/renderers/markdown-fallback';
 import { fetchWithAuth } from '@/lib/api-client';
 import { formatTime } from '@/lib/time';
 
@@ -136,9 +137,13 @@ export async function exportRecordingFile({
       const filename = `${recording.title.replace(/[^a-zA-Z0-9_-]/g, '_')}.${ext}`;
       let content = '';
 
+      const summaryMarkdown = cleanMarkdownContent(
+        activeSummaryData?.markdown_content || recording.active_summary?.markdown_content || ''
+      );
+
       if (format === ExportFormat.TXT) {
         content =
-          `# ${recording.title}\n\n${recording.active_summary?.markdown_content || ''}\n\n## Transkrip\n` +
+          `# ${recording.title}\n\n${summaryMarkdown}\n\n## Transkrip\n` +
           (recording.segments || [])
             .map(
               (s) =>
@@ -153,10 +158,7 @@ export async function exportRecordingFile({
       } else if (format === ExportFormat.JSON) {
         content = JSON.stringify(recording, null, 2);
       } else {
-        content =
-          activeSummaryData?.markdown_content ||
-          recording.active_summary?.markdown_content ||
-          recording.title;
+        content = summaryMarkdown || recording.title;
       }
 
       const mimeType =

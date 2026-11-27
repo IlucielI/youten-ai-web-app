@@ -9,6 +9,21 @@ import {
   DailyStandupSprintStatus,
 } from '../constants/template.constant';
 
+const nullableString = z.string().nullable().optional();
+
+function nullableArray<T extends z.ZodTypeAny>(itemSchema: T) {
+  return z.preprocess((val) => (val == null ? [] : val), z.array(itemSchema));
+}
+
+function nullableOptionalArray<T extends z.ZodTypeAny>(itemSchema: T) {
+  return z.preprocess((val) => (val == null ? undefined : val), z.array(itemSchema).optional());
+}
+
+export const DiscussionTopicItemSchema = z.object({
+  topic: z.string(),
+  key_points: nullableArray(z.string()),
+});
+
 /**
  * -----------------------------------------------------------------------------
  * 1. Polymorphic Template Structured Data Schemas
@@ -18,10 +33,11 @@ import {
 
 export const MomStructuredDataSchema = z.object({
   meeting_title: z.string(),
-  meeting_goal: z.string().nullable().optional(),
+  meeting_goal: nullableString,
   executive_summary: z.string(),
+  discussion_topics: nullableOptionalArray(DiscussionTopicItemSchema),
   meeting_dynamics: z.object({
-    speaker_talk_time: z.array(
+    speaker_talk_time: nullableArray(
       z.object({
         speaker: z.string(),
         percentage: z.number(),
@@ -36,7 +52,7 @@ export const MomStructuredDataSchema = z.object({
     engineering_focus: z.string(),
     product_delivery: z.string(),
   }),
-  key_decisions: z.array(
+  key_decisions: nullableArray(
     z.object({
       decision: z.string(),
       root_cause_trigger: z.string(),
@@ -45,7 +61,7 @@ export const MomStructuredDataSchema = z.object({
       approved_by: z.string(),
     })
   ),
-  action_items: z.array(
+  action_items: nullableArray(
     z.object({
       task: z.string(),
       pic: z.string(),
@@ -55,8 +71,9 @@ export const MomStructuredDataSchema = z.object({
       cost_of_inaction: z.string(),
     })
   ),
-  open_issues: z.array(z.string()).default([]),
-  next_meeting: z.string().nullable().optional(),
+  open_issues: nullableArray(z.string()),
+  open_points: nullableOptionalArray(z.string()),
+  next_meeting: nullableString,
 });
 export type MomStructuredData = z.infer<typeof MomStructuredDataSchema>;
 
@@ -70,14 +87,14 @@ export const OneOnOneStructuredDataSchema = z.object({
     ]),
     summary: z.string(),
   }),
-  key_wins: z.array(z.string()),
-  blockers: z.array(z.string()),
+  key_wins: nullableArray(z.string()),
+  blockers: nullableArray(z.string()),
   feedback_exchanged: z.object({
-    for_report: z.array(z.string()),
-    for_manager: z.array(z.string()),
+    for_report: nullableArray(z.string()),
+    for_manager: nullableArray(z.string()),
   }),
-  growth_notes: z.string().optional(),
-  commitments: z.array(
+  growth_notes: nullableString,
+  commitments: nullableArray(
     z.object({
       party: z.enum([OneOnOneParty.MANAGER, OneOnOneParty.REPORT]),
       action_item: z.string(),
@@ -98,7 +115,7 @@ export const InterviewStructuredDataSchema = z.object({
     InterviewRecommendation.STRONG_REJECT,
   ]),
   justification: z.string(),
-  competency_scores: z.array(
+  competency_scores: nullableArray(
     z.object({
       competency: z.string(),
       rating: z.enum([
@@ -110,22 +127,23 @@ export const InterviewStructuredDataSchema = z.object({
       evidence: z.string(),
     })
   ),
-  strengths: z.array(z.string()),
-  concerns: z.array(z.string()),
-  culture_fit_notes: z.string().optional(),
-  next_round_probes: z.array(z.string()).optional(),
+  strengths: nullableArray(z.string()),
+  concerns: nullableArray(z.string()),
+  culture_fit_notes: nullableString,
+  next_round_probes: nullableArray(z.string()),
 });
 export type InterviewStructuredData = z.infer<typeof InterviewStructuredDataSchema>;
 
 export const TechReviewStructuredDataSchema = z.object({
   context: z.string(),
-  decisions_adopted: z.array(
+  discussion_topics: nullableOptionalArray(DiscussionTopicItemSchema),
+  decisions_adopted: nullableArray(
     z.object({
       decision: z.string(),
       technical_justification: z.string(),
     })
   ),
-  rejected_alternatives: z.array(
+  rejected_alternatives: nullableArray(
     z.object({
       alternative: z.string(),
       rejection_reason: z.string(),
@@ -136,12 +154,15 @@ export const TechReviewStructuredDataSchema = z.object({
     performance_scalability: z.string(),
     reliability_resilience: z.string(),
   }),
-  technical_debt_impact: z.string().optional(),
-  action_items: z.array(
+  technical_debt_impact: nullableString,
+  open_points: nullableOptionalArray(z.string()),
+  action_items: nullableArray(
     z.object({
       task: z.string(),
       assignee: z.string(),
       target_sprint: z.string(),
+      due_date: nullableString,
+      priority: nullableString,
     })
   ),
 });
@@ -149,23 +170,23 @@ export type TechReviewStructuredData = z.infer<typeof TechReviewStructuredDataSc
 
 export const SalesDiscoveryStructuredDataSchema = z.object({
   prospect_company: z.string(),
-  deal_stage_suggested: z.string().optional(),
-  pain_points: z.array(
+  deal_stage_suggested: nullableString,
+  pain_points: nullableArray(
     z.object({
       pain: z.string(),
       cost_of_inaction: z.string(),
     })
   ),
-  desired_outcomes: z.array(z.string()),
+  desired_outcomes: nullableArray(z.string()),
   meddpicc: z.object({
     metrics: z.string(),
     economic_buyer: z.string(),
     decision_criteria: z.string(),
     champion: z.string(),
-    competition: z.string().optional(),
+    competition: nullableString,
   }),
-  objections: z.array(z.string()),
-  next_steps: z.array(
+  objections: nullableArray(z.string()),
+  next_steps: nullableArray(
     z.object({
       action: z.string(),
       owner: z.string(),
@@ -184,43 +205,51 @@ export const DailyStandupStructuredDataSchema = z.object({
     ]),
     summary: z.string(),
   }),
-  member_updates: z.array(
+  member_updates: nullableArray(
     z.object({
       member_name: z.string(),
-      yesterday: z.array(z.string()),
-      today: z.array(z.string()),
-      blockers: z.array(z.string()).optional(),
+      yesterday: nullableArray(z.string()),
+      today: nullableArray(z.string()),
+      blockers: nullableArray(z.string()),
     })
   ),
-  critical_blockers: z.array(z.string()),
-  parking_lot_discussions: z
-    .array(
-      z.object({
-        topic: z.string(),
-        participants: z.array(z.string()),
-      })
-    )
-    .optional(),
+  critical_blockers: nullableArray(z.string()),
+  parking_lot_discussions: nullableArray(
+    z.object({
+      topic: z.string(),
+      participants: nullableArray(z.string()),
+    })
+  ),
 });
 export type DailyStandupStructuredData = z.infer<typeof DailyStandupStructuredDataSchema>;
 
 export const GeneralStructuredDataSchema = z.object({
   executive_overview: z.string(),
-  core_themes: z.array(
+  discussion_topics: nullableOptionalArray(DiscussionTopicItemSchema),
+  open_points: nullableOptionalArray(z.string()),
+  action_items: nullableOptionalArray(
     z.object({
-      theme: z.string(),
-      summary_points: z.array(z.string()),
+      task: z.string(),
+      pic: z.string(),
+      due_date: z.string(),
+      priority: nullableString,
     })
   ),
-  key_takeaways: z.array(z.string()),
-  notable_quotes: z.array(
+  core_themes: nullableOptionalArray(
+    z.object({
+      theme: z.string(),
+      summary_points: nullableArray(z.string()),
+    })
+  ),
+  key_takeaways: nullableArray(z.string()),
+  notable_quotes: nullableOptionalArray(
     z.object({
       quote: z.string(),
       speaker: z.string(),
-      context: z.string(),
+      context: nullableString,
     })
   ),
-  referenced_resources: z.array(z.string()).optional(),
+  referenced_resources: nullableOptionalArray(z.string()),
 });
 export type GeneralStructuredData = z.infer<typeof GeneralStructuredDataSchema>;
 
@@ -229,63 +258,62 @@ export const PodcastStructuredDataSchema = z.object({
   show_notes: z.string(),
   guest_overview: z
     .object({
-      guest_name: z.string().optional(),
-      guest_title: z.string().optional(),
-      bio_or_background: z.string().optional(),
+      guest_name: nullableString,
+      guest_title: nullableString,
+      bio_or_background: nullableString,
     })
+    .nullable()
     .optional(),
-  topic_chapters: z.array(
+  topic_chapters: nullableArray(
     z.object({
       timestamp: z.string(),
       topic: z.string(),
       summary: z.string(),
     })
   ),
-  key_takeaways: z.array(z.string()),
-  golden_quotes: z.array(
+  key_takeaways: nullableArray(z.string()),
+  golden_quotes: nullableArray(
     z.object({
       quote: z.string(),
       speaker: z.string(),
-      context: z.string().optional(),
+      context: nullableString,
     })
   ),
-  referenced_resources: z
-    .array(
-      z.object({
-        title: z.string().optional(),
-        type: z.string().optional(),
-        description: z.string().optional(),
-        url: z.string().optional(),
-      })
-    )
-    .optional(),
+  referenced_resources: nullableArray(
+    z.object({
+      title: nullableString,
+      type: nullableString,
+      description: nullableString,
+      url: nullableString,
+    })
+  ),
 });
 export type PodcastStructuredData = z.infer<typeof PodcastStructuredDataSchema>;
 
 export const LectureStructuredDataSchema = z.object({
   lecture_title: z.string(),
   course_summary: z.string(),
-  learning_objectives: z.array(z.string()).optional(),
-  core_concepts: z.array(
+  learning_objectives: nullableArray(z.string()),
+  core_concepts: nullableArray(
     z.object({
       concept: z.string(),
       explanation: z.string(),
-      examples: z.string().optional(),
+      examples: nullableString,
     })
   ),
-  technical_glossary: z.array(
+  technical_glossary: nullableArray(
     z.object({
       term: z.string(),
       definition: z.string(),
     })
   ),
-  topic_notes: z.array(
+  topic_notes: nullableArray(
     z.object({
       topic: z.string(),
-      key_points: z.array(z.string()),
+      key_points: nullableArray(z.string()),
     })
   ),
-  exam_review_questions: z.array(
+  exam_review_questions: nullableArray(
     z.object({
       question: z.string(),
       hint_or_key_answer: z.string(),
@@ -296,9 +324,9 @@ export type LectureStructuredData = z.infer<typeof LectureStructuredDataSchema>;
 
 export const MusicLyricsStructuredDataSchema = z.object({
   song_title: z.string(),
-  artist_or_performers: z.string().optional(),
-  musical_style: z.string().optional(),
-  structured_lyrics: z.array(
+  artist_or_performers: nullableString,
+  musical_style: nullableString,
+  structured_lyrics: nullableArray(
     z.object({
       section: z.string(),
       lyrics: z.string(),
@@ -307,25 +335,25 @@ export const MusicLyricsStructuredDataSchema = z.object({
   emotional_tone: z.object({
     primary_mood: z.string(),
     energy_level: z.string(),
-    sentiment_analysis: z.string().optional(),
+    sentiment_analysis: nullableString,
   }),
   core_message: z.string(),
-  thematic_elements: z.array(z.string()).optional(),
+  thematic_elements: nullableArray(z.string()),
 });
 export type MusicLyricsStructuredData = z.infer<typeof MusicLyricsStructuredDataSchema>;
 
 export const ResearchDeepdiveStructuredDataSchema = z.object({
   research_title: z.string(),
   abstract_or_summary: z.string(),
-  key_methodology: z.string().optional(),
-  literature_synthesis: z.array(z.string()).optional(),
-  key_findings: z.array(
+  key_methodology: nullableString,
+  literature_synthesis: nullableArray(z.string()),
+  key_findings: nullableArray(
     z.object({
       finding: z.string(),
-      implication: z.string().optional(),
+      implication: nullableString,
     })
   ),
-  limitations_and_future_work: z.array(z.string()).optional(),
+  limitations_and_future_work: nullableArray(z.string()),
 });
 export type ResearchDeepdiveStructuredData = z.infer<typeof ResearchDeepdiveStructuredDataSchema>;
 

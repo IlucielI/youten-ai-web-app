@@ -86,7 +86,9 @@ export class AuthRepository implements IAuthRepository {
     const regRes = await this.http.post<ApiResponse<UserResponse>>(
       '/v1/auth/register',
       payload,
-      payload.anon_token ? { token: payload.anon_token } : undefined
+      payload.anon_token
+        ? { token: payload.anon_token, allowAnonFallback: true }
+        : { allowAnonFallback: true }
     );
     if (!regRes || regRes.status !== 'success' || !regRes.data) {
       return regRes as unknown as ApiResponse<AuthResponse>;
@@ -116,7 +118,9 @@ export class AuthRepository implements IAuthRepository {
     return this.http.post<ApiResponse<AuthResponse>>(
       '/v1/auth/login',
       payload,
-      payload.anon_token ? { token: payload.anon_token } : undefined
+      payload.anon_token
+        ? { token: payload.anon_token, allowAnonFallback: true }
+        : { allowAnonFallback: true }
     );
   }
 
@@ -125,28 +129,36 @@ export class AuthRepository implements IAuthRepository {
       const data = this.mock.refreshToken(payload);
       return this.successResponse(data, 'Token rotated successfully');
     }
-    return this.http.post<ApiResponse<AuthResponse>>('/v1/auth/refresh', payload);
+    return this.http.post<ApiResponse<AuthResponse>>('/v1/auth/refresh', payload, {
+      allowAnonFallback: true,
+    });
   }
 
   async logout(payload: LogoutRequest): Promise<BaseResponse> {
     if (this.useMock) {
       return this.baseSuccessResponse('Session terminated successfully');
     }
-    return this.http.post<BaseResponse>('/v1/auth/logout', payload);
+    return this.http.post<BaseResponse>('/v1/auth/logout', payload, {
+      allowAnonFallback: true,
+    });
   }
 
   async forgotPassword(payload: ForgotPasswordRequest): Promise<BaseResponse> {
     if (this.useMock) {
       return this.baseSuccessResponse('Password reset instructions sent');
     }
-    return this.http.post<BaseResponse>('/v1/auth/forgot-password', payload);
+    return this.http.post<BaseResponse>('/v1/auth/forgot-password', payload, {
+      allowAnonFallback: true,
+    });
   }
 
   async resetPassword(payload: ResetPasswordRequest): Promise<BaseResponse> {
     if (this.useMock) {
       return this.baseSuccessResponse('Password reset successfully');
     }
-    return this.http.post<BaseResponse>('/v1/auth/reset-password', payload);
+    return this.http.post<BaseResponse>('/v1/auth/reset-password', payload, {
+      allowAnonFallback: true,
+    });
   }
 
   async verifyEmail(payload: VerifyEmailRequest): Promise<ApiResponse<AuthResponse>> {
@@ -164,14 +176,18 @@ export class AuthRepository implements IAuthRepository {
         'Email verified successfully'
       );
     }
-    return this.http.post<ApiResponse<AuthResponse>>('/v1/auth/verify-email', payload);
+    return this.http.post<ApiResponse<AuthResponse>>('/v1/auth/verify-email', payload, {
+      allowAnonFallback: true,
+    });
   }
 
   async resendVerification(payload: ResendVerificationRequest): Promise<BaseResponse> {
     if (this.useMock) {
       return this.baseSuccessResponse('Verification email sent successfully');
     }
-    return this.http.post<BaseResponse>('/v1/auth/verify-email/resend', payload);
+    return this.http.post<BaseResponse>('/v1/auth/verify-email/resend', payload, {
+      allowAnonFallback: true,
+    });
   }
 
   async getMe(): Promise<ApiResponse<UserProfileResponse>> {

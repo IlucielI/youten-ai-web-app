@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { AuthController } from './auth.controller';
 import { IAuthService } from '../services/auth.service.interface';
+import { UnauthorizedError } from '../errors/app.error';
 import { ResponseStatus, ResponseCode } from '../constants';
 import { UserStatus } from '../constants/recording.constant';
 import { AUTH_COOKIE_NAME, REFRESH_COOKIE_NAME, GUEST_COOKIE_NAME } from '../constants/auth.constant';
@@ -257,6 +258,28 @@ describe('AuthController', () => {
 
       const res = await controller.refreshToken(req);
       expect(res.status).toBe(401);
+    });
+
+    it('clears auth and refresh cookies when upstream rejects refresh token with UnauthorizedError', async () => {
+      (mockService.refreshToken as ReturnType<typeof vi.fn>).mockRejectedValueOnce(
+        new UnauthorizedError('Refresh token revoked')
+      );
+
+      const req = new Request('http://localhost/api/auth/refresh', {
+        method: 'POST',
+        headers: {
+          Cookie: `${REFRESH_COOKIE_NAME}=revoked-refresh-token;`,
+        },
+      });
+
+      const res = await controller.refreshToken(req);
+      expect(res.status).toBe(401);
+
+      const cookies = res.cookies.getAll();
+      const accessCookie = cookies.find((c) => c.name === AUTH_COOKIE_NAME);
+      const refreshCookie = cookies.find((c) => c.name === REFRESH_COOKIE_NAME);
+      expect(accessCookie?.maxAge).toBe(0);
+      expect(refreshCookie?.maxAge).toBe(0);
     });
   });
 

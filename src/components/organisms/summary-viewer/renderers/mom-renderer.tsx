@@ -3,6 +3,7 @@ import type { MomStructuredData } from '@/server/schemas/summary.schema';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/atoms/card';
 import { Badge } from '@/components/atoms/badge';
 import { CheckCircle2, Calendar, Users, Target, Activity, ShieldAlert } from 'lucide-react';
+import { DiscussionTopicsSection } from './discussion-topics-section';
 import { cn } from '@/lib/utils';
 import { useTranslation } from '@/locales';
 
@@ -19,6 +20,10 @@ const priorityBadgeStyles: Record<string, string> = {
 
 export function MomRenderer({ data, className }: MomRendererProps) {
   const { t } = useTranslation();
+  const openItems =
+    data.open_issues && data.open_issues.length > 0
+      ? data.open_issues
+      : data.open_points || [];
 
   return (
     <div
@@ -57,6 +62,12 @@ export function MomRenderer({ data, className }: MomRendererProps) {
           </p>
         </CardContent>
       </Card>
+
+      {/* Discussion Topics (Sub-pembahasan) */}
+      <DiscussionTopicsSection
+        title="Pembahasan Per Topik"
+        topics={data.discussion_topics || []}
+      />
 
       {/* Meeting Dynamics & Perspectives */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-full">
@@ -217,17 +228,17 @@ export function MomRenderer({ data, className }: MomRendererProps) {
 
       {/* Open Issues & Next Meeting */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-full">
-        {data.open_issues && data.open_issues.length > 0 && (
+        {openItems.length > 0 && (
           <Card className="border-border/60 bg-card/40 min-w-0 max-w-full overflow-hidden">
             <CardHeader className="pb-2">
               <CardTitle className="text-xs font-semibold flex items-center gap-1.5 text-amber-400">
                 <ShieldAlert className="h-3.5 w-3.5 shrink-0" />
-                <span>{t('recording.templates.mom.openIssues', { count: data.open_issues.length })}</span>
+                <span>{t('recording.templates.mom.openIssues', { count: openItems.length })}</span>
               </CardTitle>
             </CardHeader>
             <CardContent>
               <ul className="list-disc list-inside space-y-1 text-xs text-muted-foreground">
-                {data.open_issues.map((issue, idx) => (
+                {openItems.map((issue, idx) => (
                   <li key={idx} className="break-words">{issue}</li>
                 ))}
               </ul>

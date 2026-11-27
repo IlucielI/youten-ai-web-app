@@ -28,6 +28,11 @@ export function useVerifyEmail() {
 
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const redirectTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const verifiedTokenRef = useRef<string | null>(null);
+  const tRef = useRef(t);
+  useEffect(() => {
+    tRef.current = t;
+  }, [t]);
 
   // Clear pending timers on unmount
   useEffect(() => {
@@ -49,7 +54,8 @@ export function useVerifyEmail() {
 
   // Magic link auto-verification when ?token= query param is present
   useEffect(() => {
-    if (!rawToken) return;
+    if (!rawToken || verifiedTokenRef.current === rawToken) return;
+    verifiedTokenRef.current = rawToken;
 
     let isMounted = true;
     const verifyMagicToken = async () => {
@@ -65,7 +71,7 @@ export function useVerifyEmail() {
         if (response && response.status === 'success' && response.data) {
           if (!isMounted) return;
           setIsSuccess(true);
-          toast.success(t('notifications.success.emailVerified'));
+          toast.success(tRef.current('notifications.success.emailVerified'));
 
           useTokenStore.getState().clearAnonSession();
           if (response.data.user) {
@@ -87,12 +93,12 @@ export function useVerifyEmail() {
           }, 1500);
         } else {
           if (!isMounted) return;
-          setErrorMessage(response?.message || t('auth.verification.invalidOrExpiredToken'));
+          setErrorMessage(response?.message || tRef.current('auth.verification.invalidOrExpiredToken'));
         }
       } catch (err: unknown) {
         if (!isMounted) return;
         const msg =
-          err instanceof Error ? err.message : t('auth.verification.invalidOrExpiredToken');
+          err instanceof Error ? err.message : tRef.current('auth.verification.invalidOrExpiredToken');
         setErrorMessage(msg);
       } finally {
         if (isMounted) {
@@ -108,7 +114,7 @@ export function useVerifyEmail() {
         clearTimeout(redirectTimerRef.current);
       }
     };
-  }, [rawToken, router, claimId, t]);
+  }, [rawToken, router, claimId]);
 
   const handleSubmitCode = useCallback(
     async (codeToSubmit?: string) => {
